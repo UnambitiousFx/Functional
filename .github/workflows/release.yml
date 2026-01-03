@@ -43,4 +43,6 @@ jobs:
         run: dotnet build Functional.slnx --no-restore --configuration Release /p:Version=${{ steps.get_version.outputs.VERSION }}
 
       - name: Publish to NuGet
-        run: dotnet nuget push ./local_packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: |
+          dotnet nuget push ./local_packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push ./local_packages/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
