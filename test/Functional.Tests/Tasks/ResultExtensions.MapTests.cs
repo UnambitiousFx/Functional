@@ -1,0 +1,139 @@
+using UnambitiousFx.Functional.Tasks;
+using UnambitiousFx.Functional.xunit;
+
+namespace UnambitiousFx.Functional.Tests.Tasks;
+
+/// <summary>
+///     Tests for async Map extension methods on Result using Task.
+/// </summary>
+public sealed partial class ResultExtensions
+{
+    #region Chaining
+
+    [Fact]
+    public async Task MapAsync_CanBeChained()
+    {
+        // Arrange (Given)
+        var result = Result.Success(5);
+
+        // Act (When)
+        var final = await result
+            .MapAsync(async x =>
+            {
+                await Task.CompletedTask;
+                return x * 2;
+            })
+            .MapAsync(x => x + 10);
+
+        // Assert (Then)
+        final.ShouldBe().Success().And(value => Assert.Equal(20, value));
+    }
+
+    #endregion
+
+    #region MapAsync - Result to Task
+
+    [Fact]
+    public async Task MapAsync_WithSuccessAndAsyncMapper_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = Result.Success(5);
+
+        // Act (When)
+        var mapped = await result.MapAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x * 2;
+        });
+
+        // Assert (Then)
+        mapped.ShouldBe().Success().And(value => Assert.Equal(10, value));
+    }
+
+    [Fact]
+    public async Task MapAsync_WithFailure_ReturnsOriginalFailure()
+    {
+        // Arrange (Given)
+        var result = Result.Failure<int>("Error occurred");
+
+        // Act (When)
+        var mapped = await result.MapAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x * 2;
+        });
+
+        // Assert (Then)
+        mapped.ShouldBe().Failure().AndMessage("Error occurred");
+    }
+
+    #endregion
+
+    #region MapAsync - Task<Result> with sync mapper
+
+    [Fact]
+    public async Task MapAsync_WithTaskResultAndSyncMapper_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(10));
+
+        // Act (When)
+        var mapped = await result.MapAsync(x => x + 5);
+
+        // Assert (Then)
+        mapped.ShouldBe().Success().And(value => Assert.Equal(15, value));
+    }
+
+    [Fact]
+    public async Task MapAsync_WithTaskResultFailureAndSyncMapper_ReturnsFailure()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure<int>("Failed"));
+
+        // Act (When)
+        var mapped = await result.MapAsync(x => x + 5);
+
+        // Assert (Then)
+        mapped.ShouldBe().Failure().AndMessage("Failed");
+    }
+
+    #endregion
+
+    #region MapAsync - Task<Result> with async mapper
+
+    [Fact]
+    public async Task MapAsync_WithTaskResultAndAsyncMapper_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(20));
+
+        // Act (When)
+        var mapped = await result.MapAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x.ToString();
+        });
+
+        // Assert (Then)
+        mapped.ShouldBe().Success().And(value => Assert.Equal("20", value));
+    }
+
+    [Fact]
+    public async Task MapAsync_WithTaskResultFailureAndAsyncMapper_ReturnsFailure()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure<int>("Error"));
+
+        // Act (When)
+        var mapped = await result.MapAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x.ToString();
+        });
+
+        // Assert (Then)
+        mapped.ShouldBe().Failure().AndMessage("Error");
+    }
+
+    #endregion
+}

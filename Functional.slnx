@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks\FunctionalBenchmark\FunctionalBenchmark.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Functional.AspNetCore/Functional.AspNetCore.csproj" />
+    <Project Path="src/Functional.Generators/Functional.Generators.csproj" />
+    <Project Path="src/Functional.xunit/Functional.xunit.csproj" />
+    <Project Path="src/Functional/Functional.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Functional.AspNetCore.Tests/Functional.AspNetCore.Tests.csproj" />
+    <Project Path="test/Functional.Tests/Functional.Tests.csproj" />
+    <Project Path="test/Functional.xunit.Tests/Functional.xunit.Tests.csproj" />
+  </Folder>
+  <Folder Name="/_/">
+    <File Path="AGENTS.md" />
+    <File Path="build.props" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>

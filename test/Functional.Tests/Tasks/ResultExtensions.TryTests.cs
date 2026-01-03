@@ -1,0 +1,230 @@
+using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Tasks;
+using UnambitiousFx.Functional.xunit;
+
+namespace UnambitiousFx.Functional.Tests.Tasks;
+
+/// <summary>
+///     Tests for async Try extension methods on Result using Task.
+/// </summary>
+public sealed partial class ResultExtensions
+{
+    [Fact]
+    public async Task TryAsync_WithSyncResult_WithSuccessAndAsyncFunctionSucceeds_ReturnsTransformedValue()
+    {
+        // Arrange (Given)
+        var result = Result.Success(5);
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x * 2;
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Success().And(value => Assert.Equal(10, value));
+    }
+
+    [Fact]
+    public async Task TryAsync_WithSyncResult_WithSuccessAndAsyncFunctionThrows_ReturnsFailureWithException()
+    {
+        // Arrange (Given)
+        var result = Result.Success(5);
+
+        // Act (When)
+        var transformed = await result.TryAsync<int, int>(async x =>
+        {
+            await Task.CompletedTask;
+            throw new InvalidOperationException("Test exception");
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Failure();
+        transformed.TryGet(out Error? error);
+        var nonGenericResult = Result.Failure(error!);
+        Assert.True(nonGenericResult.HasException<InvalidOperationException>());
+    }
+
+    [Fact]
+    public async Task TryAsync_WithSyncResult_WithFailure_ReturnsOriginalFailure()
+    {
+        // Arrange (Given)
+        var result = Result.Failure<int>("Original error");
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x * 2;
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Failure().AndMessage("Original error");
+    }
+
+    [Fact]
+    public async Task TryAsync_WithSyncResult_WithSuccessAndDivisionByZero_CatchesException()
+    {
+        // Arrange (Given)
+        var result = Result.Success(10);
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x / 0;
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Failure();
+        transformed.TryGet(out Error? error);
+        var nonGenericResult = Result.Failure(error!);
+        Assert.True(nonGenericResult.HasException<DivideByZeroException>());
+    }
+
+    [Fact]
+    public async Task TryAsync_WithSyncResult_AllowsTypeTransformation()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x.ToString();
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Success().And(value => Assert.Equal("42", value));
+    }
+
+    [Fact]
+    public async Task TryAsync_WithAsyncResult_WithSuccessAndAsyncFunctionSucceeds_ReturnsTransformedValue()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(5));
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x * 2;
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Success().And(value => Assert.Equal(10, value));
+    }
+
+    [Fact]
+    public async Task TryAsync_WithAsyncResult_WithSuccessAndAsyncFunctionThrows_ReturnsFailureWithException()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(5));
+
+        // Act (When)
+        var transformed = await result.TryAsync<int, int>(async x =>
+        {
+            await Task.CompletedTask;
+            throw new InvalidOperationException("Test exception");
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Failure();
+        transformed.TryGet(out Error? error);
+        var nonGenericResult = Result.Failure(error!);
+        Assert.True(nonGenericResult.HasException<InvalidOperationException>());
+    }
+
+    [Fact]
+    public async Task TryAsync_WithAsyncResult_WithFailure_ReturnsOriginalFailure()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure<int>("Original error"));
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x * 2;
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Failure().AndMessage("Original error");
+    }
+
+    [Fact]
+    public async Task TryAsync_WithAsyncResult_WithSuccessAndDivisionByZero_CatchesException()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(10));
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x / 0;
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Failure();
+        transformed.TryGet(out Error? error);
+        var nonGenericResult = Result.Failure(error!);
+        Assert.True(nonGenericResult.HasException<DivideByZeroException>());
+    }
+
+    [Fact]
+    public async Task TryAsync_WithAsyncResult_AllowsTypeTransformation()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(42));
+
+        // Act (When)
+        var transformed = await result.TryAsync(async x =>
+        {
+            await Task.CompletedTask;
+            return x.ToString();
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Success().And(value => Assert.Equal("42", value));
+    }
+
+
+    [Fact]
+    public async Task TryAsync_WithAsyncResult_WithSuccessAndSyncFunctionSucceeds_ReturnsTransformedValue()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(5));
+
+        // Act (When)
+        var transformed = await result.TryAsync(x =>
+        {
+            return x * 2;
+        });
+
+        // Assert (Then)
+        transformed.ShouldBe().Success().And(value => Assert.Equal(10, value));
+    }
+
+    [Fact]
+    public async Task TryAsync_WithAsyncResult_WithSuccessAndSyncFunctionThrows_ReturnsFailureWithException()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(5));
+
+        Func<int, int> syncFunction = x =>
+        {
+            throw new InvalidOperationException("Test exception");
+        };
+        // Act (When)
+        var transformed = await result.TryAsync(syncFunction);
+
+        // Assert (Then)
+        transformed.ShouldBe().Failure();
+        transformed.TryGet(out Error? error);
+        var nonGenericResult = Result.Failure(error!);
+        Assert.True(nonGenericResult.HasException<InvalidOperationException>());
+    }
+}

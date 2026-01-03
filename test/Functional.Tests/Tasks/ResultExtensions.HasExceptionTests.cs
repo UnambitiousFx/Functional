@@ -1,0 +1,48 @@
+using UnambitiousFx.Functional.Tasks;
+
+namespace UnambitiousFx.Functional.Tests.Tasks;
+
+/// <summary>
+///     Tests for awaitable wrapper extension methods (Tap, ToNullable, ValueOr, HasError, etc.) using Task.
+/// </summary>
+public sealed partial class ResultExtensions
+{
+    [Fact]
+    public async Task HasExceptionAsync_WithAwaitableSuccessResult_ReturnsFalse()
+    {
+        // Arrange (Given)
+        var awaitableResult = Task.FromResult(Result.Success());
+
+        // Act (When)
+        var hasException = await awaitableResult.HasExceptionAsync<InvalidOperationException>();
+
+        // Assert (Then)
+        Assert.False(hasException);
+    }
+
+    [Fact]
+    public async Task HasExceptionAsync_WithAwaitableFailureWithMatchingException_ReturnsTrue()
+    {
+        // Arrange (Given)
+        var awaitableResult = Task.FromResult(Result.Failure(new InvalidOperationException("Test")));
+
+        // Act (When)
+        var hasException = await awaitableResult.HasExceptionAsync<InvalidOperationException>();
+
+        // Assert (Then)
+        Assert.True(hasException);
+    }
+
+    [Fact]
+    public async Task HasExceptionAsync_WithAwaitableFailureWithNonMatchingException_ReturnsFalse()
+    {
+        // Arrange (Given)
+        var awaitableResult = Task.FromResult(Result.Failure(new InvalidOperationException("Test")));
+
+        // Act (When)
+        var hasException = await awaitableResult.HasExceptionAsync<ArgumentException>();
+
+        // Assert (Then)
+        Assert.False(hasException);
+    }
+}
