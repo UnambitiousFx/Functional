@@ -1,0 +1,62 @@
+using UnambitiousFx.Functional.Errors;
+
+namespace UnambitiousFx.Functional.AspNetCore.Mappers;
+
+/// <summary>
+///     Composite mapper that chains multiple error mappers using chain-of-responsibility pattern.
+///     Tries each mapper in order until one returns a non-null result.
+/// </summary>
+public sealed class CompositeErrorHttpMapper : IErrorHttpMapper
+{
+    private readonly IReadOnlyList<IErrorHttpMapper> _mappers;
+
+    /// <summary>
+    ///     Creates a composite mapper with the specified mappers.
+    /// </summary>
+    /// <param name="mappers">Ordered list of mappers to try.</param>
+    public CompositeErrorHttpMapper(IReadOnlyList<IErrorHttpMapper> mappers)
+    {
+        ArgumentNullException.ThrowIfNull(mappers);
+        _mappers = mappers;
+    }
+
+    /// <summary>
+    ///     Creates a composite mapper with the specified mappers.
+    /// </summary>
+    /// <param name="mappers">Mappers to try in order.</param>
+    public CompositeErrorHttpMapper(params IErrorHttpMapper[] mappers)
+    {
+        ArgumentNullException.ThrowIfNull(mappers);
+        _mappers = mappers;
+    }
+
+    /// <inheritdoc />
+    public int? GetStatusCode(IError error)
+    {
+        foreach (var mapper in _mappers)
+        {
+            var statusCode = mapper.GetStatusCode(error);
+            if (statusCode.HasValue)
+            {
+                return statusCode;
+            }
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
+    public object? GetResponseBody(IError error)
+    {
+        foreach (var mapper in _mappers)
+        {
+            var body = mapper.GetResponseBody(error);
+            if (body is not null)
+            {
+                return body;
+            }
+        }
+
+        return null;
+    }
+}

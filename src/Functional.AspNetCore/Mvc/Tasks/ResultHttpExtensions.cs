@@ -1,0 +1,184 @@
+using Microsoft.AspNetCore.Mvc;
+using UnambitiousFx.Functional.AspNetCore.Mappers;
+
+namespace UnambitiousFx.Functional.AspNetCore.Mvc.Tasks;
+
+/// <summary>
+///     Provides extension methods for converting <see cref="Result" /> and <see cref="Task" /> of
+///     <see cref="Result" />
+///     into HTTP-compatible results using <see cref="Microsoft.AspNetCore.Http.IResult" />.
+/// </summary>
+public static class ResultHttpExtensions
+{
+    /// <summary>
+    ///     Converts a <see cref="Task" /> of <see cref="Result" /> to an HTTP-compatible result asynchronously.
+    /// </summary>
+    /// <param name="awaitableResult">
+    ///     The <see cref="Task" /> containing a <see cref="Result" /> to be converted to an HTTP result.
+    /// </param>
+    /// <param name="mapper">
+    ///     An optional <see cref="IErrorHttpMapper" /> instance used to map errors in the <see cref="Result" /> to HTTP status
+    ///     codes and response bodies.
+    ///     If null, a default mapper is used.
+    /// </param>
+    /// <returns>
+    ///     A <see cref="Task" /> of <see cref="Microsoft.AspNetCore.Http.IResult" /> representing the HTTP response
+    ///     derived from the result.
+    /// </returns>
+    public static async Task<IActionResult> ToActionResultAsync(
+        this Task<Result> awaitableResult,
+        IErrorHttpMapper? mapper = null)
+    {
+        var result = await awaitableResult;
+        return result.ToActionResult(mapper);
+    }
+
+    /// <summary>
+    ///     Converts an awaitable <see cref="Task{TResult}" /> of type <see cref="Result{TValue}" />
+    ///     to an HTTP result by utilizing an optional error mapper.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value contained within the result.</typeparam>
+    /// <param name="awaitableResult">The awaitable result instance to be converted.</param>
+    /// <param name="mapper">
+    ///     An optional instance of <see cref="IErrorHttpMapper" /> to customize the mapping
+    ///     of errors to HTTP responses. If not provided, a default mapper is used.
+    /// </param>
+    /// <returns>
+    ///     A task representing the asynchronous operation, containing an <see cref="Microsoft.AspNetCore.Http.IResult" />
+    ///     that represents the mapped HTTP response.
+    /// </returns>
+    public static async Task<IActionResult> ToActionResultAsync<TValue>(
+        this Task<Result<TValue>> awaitableResult,
+        IErrorHttpMapper? mapper = null)
+        where TValue : notnull
+    {
+        var result = await awaitableResult;
+        return result.ToActionResult(mapper);
+    }
+
+    /// <summary>
+    /// Converts a <see cref="Task" /> of <see cref="Result" /> into an HTTP-compatible result asynchronously.
+    /// </summary>
+    /// <param name="awaitableResult">
+    /// The <see cref="Task" /> containing a <see cref="Result" /> to be converted into an HTTP result.
+    /// </param>
+    /// <param name="dtoMapper">
+    /// A function that maps the success case of the <see cref="Result" /> to a DTO object for the HTTP response.
+    /// </param>
+    /// <param name="errorMapper">
+    /// An optional <see cref="IErrorHttpMapper" /> instance used to map errors in the <see cref="Result" /> to HTTP status
+    /// codes and response bodies. If null, a default error mapper is used.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task" /> of <see cref="Microsoft.AspNetCore.Mvc.IActionResult" /> representing the HTTP response
+    /// derived from the result.
+    /// </returns>
+    public static async Task<IActionResult> ToHttpResultAsync<TDto>(this Task<Result> awaitableResult,
+        Func<TDto> dtoMapper,
+        IErrorHttpMapper? errorMapper = null)
+    {
+        var result = await awaitableResult;
+        return result.ToActionResult(dtoMapper, errorMapper);
+    }
+
+    /// <summary>
+    ///     Converts a <see cref="Task{TResult}" /> representing an asynchronous operation result
+    ///     to an HTTP result using a mapping function for the successful value type
+    ///     and an optional mapper for errors.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the successful result value.</typeparam>
+    /// <typeparam name="TDto">The type to which the successful value will be mapped in the response.</typeparam>
+    /// <param name="awaitableResult">The asynchronous result to be converted to an HTTP result.</param>
+    /// <param name="dtoMapper">A function that maps the successful result value to a DTO type for the response.</param>
+    /// <param name="errorMapper">
+    ///     An optional error mapper used to map errors to HTTP status codes and response bodies.
+    ///     If null, a default mapper is used.
+    /// </param>
+    /// <returns>
+    ///     A <see cref="Task{TResult}" /> that resolves to an <see cref="Microsoft.AspNetCore.Http.IResult" />
+    ///     representing the HTTP response.
+    /// </returns>
+    public static async Task<IActionResult> ToActionResultAsync<TValue, TDto>(
+        this Task<Result<TValue>> awaitableResult,
+        Func<TValue, TDto> dtoMapper,
+        IErrorHttpMapper? errorMapper = null)
+        where TValue : notnull
+    {
+        var result = await awaitableResult;
+        return result.ToActionResult(dtoMapper, errorMapper);
+    }
+
+    /// <summary>
+    /// Converts an asynchronous <see cref="Result{TValue}" /> operation to an HTTP 201 Created result,
+    /// specifying the action and route values for the created resource, and optionally mapping errors to HTTP responses.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value contained in the result.</typeparam>
+    /// <param name="awaitableResult">
+    /// The asynchronous result of the operation to be converted to an HTTP 201 Created response.
+    /// </param>
+    /// <param name="actionName">
+    /// The name of the action to include in the location header of the created response.
+    /// </param>
+    /// <param name="routeValues">
+    /// An optional object containing the route values for generating the location URI
+    /// of the created resource. If null, no route values are included.
+    /// </param>
+    /// <param name="mapper">
+    /// An optional <see cref="IErrorHttpMapper" /> instance for converting errors into HTTP status codes
+    /// and response bodies. If null, a default error mapping will be used.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous conversion operation. The result is an HTTP 201 Created
+    /// response if the operation succeeded, or an appropriate HTTP error response if the operation failed.
+    /// </returns>
+    public static async Task<IActionResult> ToCreatedActionResultAsync<TValue>(
+        this Task<Result<TValue>> awaitableResult,
+        string actionName,
+        object? routeValues = null,
+        IErrorHttpMapper? mapper = null)
+        where TValue : notnull
+    {
+        var result = await awaitableResult;
+        return result.ToCreatedActionResult(actionName, routeValues, mapper);
+    }
+
+    /// <summary>
+    /// Converts a Task of Result into an HTTP 201 Created response with a location header
+    /// and a DTO payload.
+    /// The response is created asynchronously using the specified action name, DTO mapping function, optional route values,
+    /// and an optional error mapper for failure scenarios.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value contained in the result.</typeparam>
+    /// <typeparam name="TDto">The type of the DTO to which the result is mapped.</typeparam>
+    /// <param name="awaitableResult">
+    /// The asynchronous result to be converted into an HTTP 201 Created response.
+    /// </param>
+    /// <param name="actionName">
+    /// The name of the action that defines the endpoint for the resource being created.
+    /// </param>
+    /// <param name="dtoMapper">
+    /// A function that maps the result value into a DTO to include in the response body.
+    /// </param>
+    /// <param name="routeValues">
+    /// An optional object containing route values used to generate the URI for the "Location" header.
+    /// If null, the URI is generated without route values.
+    /// </param>
+    /// <param name="errorMapper">
+    /// An optional error mapper for generating error responses when the result is a failure.
+    /// If null, a default error handling mechanism is used.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation, resulting in an HTTP 201 Created response.
+    /// </returns>
+    public static async Task<IActionResult> ToCreatedActionResultAsync<TValue, TDto>(
+        this Task<Result<TValue>> awaitableResult,
+        string actionName,
+        Func<TValue, TDto> dtoMapper,
+        object? routeValues = null,
+        IErrorHttpMapper? errorMapper = null)
+        where TValue : notnull
+    {
+        var result = await awaitableResult;
+        return result.ToCreatedActionResult(actionName, dtoMapper, routeValues, errorMapper);
+    }
+}

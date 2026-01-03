@@ -1,0 +1,6 @@
+<Project>
+  <!-- Do not import the parent build.props to avoid package name conflicts -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

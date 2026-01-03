@@ -1,0 +1,59 @@
+namespace UnambitiousFx.Functional.Tasks;
+
+public static partial class ResultExtensions
+{
+    /// <summary>
+    ///     Async Try executing an async function, catching exceptions and converting to Result.Failure.
+    /// </summary>
+    /// <typeparam name="TValue1">Input value type 1.</typeparam>
+    /// <typeparam name="TOut1">Output value type 1.</typeparam>
+    /// <param name="result">The result instance.</param>
+    /// <param name="func">The async function to execute.</param>
+    /// <returns>A task with the result of the operation.</returns>
+    public static Task<Result<TOut1>> TryAsync<TValue1, TOut1>(this Result<TValue1> result,
+        Func<TValue1, Task<TOut1>> func) where TValue1 : notnull where TOut1 : notnull
+    {
+        return result.BindAsync(async value =>
+        {
+            try
+            {
+                var newValue = await func(value).ConfigureAwait(false);
+                return Result.Success(newValue);
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure<TOut1>(ex);
+            }
+        });
+    }
+
+    /// <param name="awaitableResult">The awaitable result instance.</param>
+    /// <typeparam name="TValue1">Input value type 1.</typeparam>
+    extension<TValue1>(Task<Result<TValue1>> awaitableResult) where TValue1 : notnull
+    {
+        /// <summary>
+        ///     Async Try awaiting result then executing a sync function with exception handling.
+        /// </summary>
+        /// <typeparam name="TOut1">Output value type 1.</typeparam>
+        /// <param name="func">The function to execute.</param>
+        /// <returns>A task with the result of the operation.</returns>
+        public async Task<Result<TOut1>> TryAsync<TOut1>(Func<TValue1, TOut1> func) where TOut1 : notnull
+        {
+            var result = await awaitableResult.ConfigureAwait(false);
+            return result.Try(func);
+        }
+
+        /// <summary>
+        ///     Async Try awaiting result then executing an async function with exception handling.
+        /// </summary>
+        /// <typeparam name="TOut1">Output value type 1.</typeparam>
+        /// <param name="func">The async function to execute.</param>
+        /// <returns>A task with the result of the operation.</returns>
+        public async Task<Result<TOut1>> TryAsync<TOut1>(Func<TValue1, Task<TOut1>> func)
+            where TOut1 : notnull
+        {
+            var result = await awaitableResult.ConfigureAwait(false);
+            return await result.TryAsync(func).ConfigureAwait(false);
+        }
+    }
+}

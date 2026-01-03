@@ -1,0 +1,76 @@
+using UnambitiousFx.Functional.Errors;
+
+namespace UnambitiousFx.Functional.Tasks;
+
+public static partial class ResultExtensions
+{
+    /// <summary>
+    ///     Asynchronously maps errors in the result using the specified mapping function.
+    /// </summary>
+    /// <param name="result">The result to map errors for.</param>
+    /// <param name="mapError">The async function to map errors.</param>
+    /// <returns>
+    ///     A task with a new result containing mapped errors if the original result failed, otherwise the original
+    ///     successful result.
+    /// </returns>
+    public static Task<Result> MapErrorAsync(this Result result,
+        Func<Error, Task<Error>> mapError)
+    {
+        return result.Match<Task<Result>>(
+            () => Task.FromResult(Result.Success()),
+            async ex => Result.Failure(await mapError(ex))
+        );
+    }
+
+    /// <summary>
+    ///     Asynchronously maps errors in the result using the specified mapping function.
+    /// </summary>
+    /// <param name="awaitableResult">The awaitable result to map errors for.</param>
+    /// <param name="mapError">The async function to map errors.</param>
+    /// <returns>
+    ///     A task with a new result containing mapped errors if the original result failed, otherwise the original
+    ///     successful result.
+    /// </returns>
+    public static async Task<Result> MapErrorAsync(this Task<Result> awaitableResult,
+        Func<Error, Task<Error>> mapError)
+    {
+        var result = await awaitableResult;
+        return await result.MapErrorAsync(mapError);
+    }
+
+    /// <summary>
+    ///     Asynchronously maps errors in the result using the specified mapping function.
+    /// </summary>
+    /// <typeparam name="T1">The type of the first value.</typeparam>
+    /// <param name="result">The result to map errors for.</param>
+    /// <param name="mapError">The async function to map errors.</param>
+    /// <returns>
+    ///     A task with a new result containing mapped errors if the original result failed, otherwise the original
+    ///     successful result.
+    /// </returns>
+    public static Task<Result<T1>> MapErrorAsync<T1>(this Result<T1> result,
+        Func<Error, Task<Error>> mapError) where T1 : notnull
+    {
+        return result.Match<Task<Result<T1>>>(
+            value1 => Task.FromResult(Result.Success(value1)),
+            async ex => Result.Failure<T1>(await mapError(ex))
+        );
+    }
+
+    /// <summary>
+    ///     Asynchronously maps errors in the result using the specified mapping function.
+    /// </summary>
+    /// <typeparam name="T1">The type of the first value.</typeparam>
+    /// <param name="awaitableResult">The awaitable result to map errors for.</param>
+    /// <param name="mapError">The async function to map errors.</param>
+    /// <returns>
+    ///     A task with a new result containing mapped errors if the original result failed, otherwise the original
+    ///     successful result.
+    /// </returns>
+    public static async Task<Result<T1>> MapErrorAsync<T1>(this Task<Result<T1>> awaitableResult,
+        Func<Error, Task<Error>> mapError) where T1 : notnull
+    {
+        var result = await awaitableResult;
+        return await result.MapErrorAsync(mapError);
+    }
+}

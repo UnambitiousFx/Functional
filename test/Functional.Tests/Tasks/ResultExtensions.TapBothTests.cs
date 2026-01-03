@@ -1,0 +1,308 @@
+using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Tasks;
+using UnambitiousFx.Functional.xunit;
+
+namespace UnambitiousFx.Functional.Tests.Tasks;
+
+/// <summary>
+///     Tests for async TapBoth extension methods on Result using Task.
+/// </summary>
+public sealed partial class ResultExtensions
+{
+    [Fact]
+    public async Task TapBothAsync_WithSuccess_ExecutesOnSuccess()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+        var successExecuted = false;
+        var failureExecuted = false;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            async () =>
+            {
+                await Task.CompletedTask;
+                successExecuted = true;
+            },
+            async error =>
+            {
+                await Task.CompletedTask;
+                failureExecuted = true;
+            });
+
+        // Assert (Then)
+        tapped.ShouldBe().Success();
+        Assert.True(successExecuted);
+        Assert.False(failureExecuted);
+    }
+
+    [Fact]
+    public async Task TapBothAsync_WithFailure_ExecutesOnFailure()
+    {
+        // Arrange (Given)
+        var result = Result.Failure("Error");
+        var successExecuted = false;
+        var failureExecuted = false;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            async () =>
+            {
+                await Task.CompletedTask;
+                successExecuted = true;
+            },
+            async error =>
+            {
+                await Task.CompletedTask;
+                failureExecuted = true;
+            });
+
+        // Assert (Then)
+        tapped.ShouldBe().Failure();
+        Assert.False(successExecuted);
+        Assert.True(failureExecuted);
+    }
+
+
+    [Fact]
+    public async Task TapBothAsync_WithGenericSuccess_ExecutesOnSuccess()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+        var capturedValue = 0;
+        var failureExecuted = false;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            async value =>
+            {
+                await Task.CompletedTask;
+                capturedValue = value;
+            },
+            async error =>
+            {
+                await Task.CompletedTask;
+                failureExecuted = true;
+            });
+
+        // Assert (Then)
+        tapped.ShouldBe().Success().And(value => Assert.Equal(42, value));
+        Assert.Equal(42, capturedValue);
+        Assert.False(failureExecuted);
+    }
+
+    [Fact]
+    public async Task TapBothAsync_WithGenericFailure_ExecutesOnFailure()
+    {
+        // Arrange (Given)
+        var result = Result.Failure<int>("Error");
+        var successExecuted = false;
+        Error? capturedError = null;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            async value =>
+            {
+                await Task.CompletedTask;
+                successExecuted = true;
+            },
+            async error =>
+            {
+                await Task.CompletedTask;
+                capturedError = error;
+            });
+
+        // Assert (Then)
+        tapped.ShouldBe().Failure();
+        Assert.False(successExecuted);
+        Assert.NotNull(capturedError);
+        Assert.Equal("Error", capturedError.Message);
+    }
+
+
+    [Fact]
+    public async Task TapBothAsync_WithTaskResultAndSyncActions_ExecutesOnSuccess()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success());
+        var successExecuted = false;
+        var failureExecuted = false;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            () => successExecuted = true,
+            error => failureExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe().Success();
+        Assert.True(successExecuted);
+        Assert.False(failureExecuted);
+    }
+
+    [Fact]
+    public async Task TapBothAsync_WithTaskResultFailure_ExecutesOnFailure()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure("Error"));
+        var successExecuted = false;
+        var failureExecuted = false;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            () => successExecuted = true,
+            error => failureExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe().Failure();
+        Assert.False(successExecuted);
+        Assert.True(failureExecuted);
+    }
+
+
+    [Fact]
+    public async Task TapBothAsync_WithTaskGenericResult_ExecutesOnSuccess()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(100));
+        var capturedValue = 0;
+        var failureExecuted = false;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            value => capturedValue = value,
+            error => failureExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe().Success().And(value => Assert.Equal(100, value));
+        Assert.Equal(100, capturedValue);
+        Assert.False(failureExecuted);
+    }
+
+    [Fact]
+    public async Task TapBothAsync_WithTaskGenericResultFailure_ExecutesOnFailure()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure<int>("Failed"));
+        var successExecuted = false;
+        var failureExecuted = false;
+
+        // Act (When)
+        var tapped = await result.TapBothAsync(
+            value => successExecuted = true,
+            error => failureExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe().Failure();
+        Assert.False(successExecuted);
+        Assert.True(failureExecuted);
+    }
+
+
+    [Fact]
+    public async Task TapBothAsync_WithAwaitableSuccess_ExecutesSuccessAction()
+    {
+        // Arrange (Given)
+        var successExecuted = false;
+        var failureExecuted = false;
+        var awaitableResult = Task.FromResult(Result.Success());
+
+        // Act (When)
+        var result = await awaitableResult.TapBothAsync(
+            async () =>
+            {
+                await Task.CompletedTask;
+                successExecuted = true;
+            },
+            async _ =>
+            {
+                await Task.CompletedTask;
+                failureExecuted = true;
+            });
+
+        // Assert (Then)
+        Assert.True(successExecuted);
+        Assert.False(failureExecuted);
+        result.ShouldBe().Success();
+    }
+
+    [Fact]
+    public async Task TapBothAsync_WithAwaitableFailure_ExecutesFailureAction()
+    {
+        // Arrange (Given)
+        var successExecuted = false;
+        var failureExecuted = false;
+        var awaitableResult = Task.FromResult(Result.Failure("Error"));
+
+        // Act (When)
+        var result = await awaitableResult.TapBothAsync(
+            async () =>
+            {
+                await Task.CompletedTask;
+                successExecuted = true;
+            },
+            async _ =>
+            {
+                await Task.CompletedTask;
+                failureExecuted = true;
+            });
+
+        // Assert (Then)
+        Assert.False(successExecuted);
+        Assert.True(failureExecuted);
+        result.ShouldBe().Failure();
+    }
+
+    [Fact]
+    public async Task TapBothAsync_Generic_WithAwaitableSuccess_ExecutesSuccessAction()
+    {
+        // Arrange (Given)
+        var capturedValue = 0;
+        var failureExecuted = false;
+        var awaitableResult = Task.FromResult(Result.Success(42));
+
+        // Act (When)
+        var result = await awaitableResult.TapBothAsync(
+            async value =>
+            {
+                await Task.CompletedTask;
+                capturedValue = value;
+            },
+            async _ =>
+            {
+                await Task.CompletedTask;
+                failureExecuted = true;
+            });
+
+        // Assert (Then)
+        Assert.Equal(42, capturedValue);
+        Assert.False(failureExecuted);
+        result.ShouldBe().Success();
+    }
+
+    [Fact]
+    public async Task TapBothAsync_Generic_WithAwaitableFailure_ExecutesFailureAction()
+    {
+        // Arrange (Given)
+        var successExecuted = false;
+        Error? capturedError = null;
+        var awaitableResult = Task.FromResult(Result.Failure<int>("Error"));
+
+        // Act (When)
+        var result = await awaitableResult.TapBothAsync(
+            async _ =>
+            {
+                await Task.CompletedTask;
+                successExecuted = true;
+            },
+            async error =>
+            {
+                await Task.CompletedTask;
+                capturedError = error;
+            });
+
+        // Assert (Then)
+        Assert.False(successExecuted);
+        Assert.NotNull(capturedError);
+        result.ShouldBe().Failure();
+    }
+}

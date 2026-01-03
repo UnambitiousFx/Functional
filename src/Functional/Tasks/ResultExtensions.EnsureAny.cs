@@ -1,0 +1,62 @@
+using UnambitiousFx.Functional.Errors;
+
+namespace UnambitiousFx.Functional.Tasks;
+
+public static partial class ResultExtensions
+{
+    /// <summary>
+    ///     Ensures at least one item in a Task-wrapped collection result satisfies the given predicate.
+    /// </summary>
+    /// <typeparam name="TCollection">The collection type implementing IEnumerable&lt;TItem&gt;.</typeparam>
+    /// <typeparam name="TItem">The item type in the collection.</typeparam>
+    /// <param name="resultTask">The Task-wrapped result instance.</param>
+    /// <param name="predicate">The predicate that at least one item must satisfy.</param>
+    /// <param name="message">Optional validation error message.</param>
+    /// <param name="field">Optional field name for the error message.</param>
+    /// <returns>The original result if at least one item satisfies the predicate; otherwise a failure with ValidationError.</returns>
+    public static async Task<Result<TCollection>> EnsureAny<TCollection, TItem>(
+        this Task<Result<TCollection>> resultTask, Func<TItem, bool> predicate, string? message = null,
+        string? field = null)
+        where TCollection : IEnumerable<TItem>
+    {
+        var result = await resultTask;
+        return result.EnsureAny<TCollection, TItem>(predicate, message, field);
+    }
+
+    /// <summary>
+    ///     Ensures at least one item in a Task-wrapped collection result satisfies the given predicate with custom error
+    ///     factory.
+    /// </summary>
+    /// <typeparam name="TCollection">The collection type implementing IEnumerable&lt;TItem&gt;.</typeparam>
+    /// <typeparam name="TItem">The item type in the collection.</typeparam>
+    /// <param name="resultTask">The Task-wrapped result instance.</param>
+    /// <param name="predicate">The predicate that at least one item must satisfy.</param>
+    /// <param name="errorFactory">Factory function to create an error when validation fails.</param>
+    /// <returns>The original result if at least one item satisfies the predicate; otherwise a failure with the error from the factory.</returns>
+    public static async Task<Result<TCollection>> EnsureAny<TCollection, TItem>(
+        this Task<Result<TCollection>> resultTask, Func<TItem, bool> predicate, Func<TCollection, Error> errorFactory)
+        where TCollection : IEnumerable<TItem>
+    {
+        var result = await resultTask;
+        return result.EnsureAny<TCollection, TItem>(predicate, errorFactory);
+    }
+
+    /// <summary>
+    ///     Ensures no items in a Task-wrapped collection result satisfy the given predicate.
+    /// </summary>
+    /// <typeparam name="TCollection">The collection type implementing IEnumerable&lt;TItem&gt;.</typeparam>
+    /// <typeparam name="TItem">The item type in the collection.</typeparam>
+    /// <param name="resultTask">The Task-wrapped result instance.</param>
+    /// <param name="predicate">The predicate that no items must satisfy.</param>
+    /// <param name="message">Optional validation error message.</param>
+    /// <param name="field">Optional field name for the error message.</param>
+    /// <returns>The original result if no items satisfy the predicate; otherwise a failure with ValidationError.</returns>
+    public static async Task<Result<TCollection>> EnsureNone<TCollection, TItem>(
+        this Task<Result<TCollection>> resultTask, Func<TItem, bool> predicate, string? message = null,
+        string? field = null)
+        where TCollection : IEnumerable<TItem>
+    {
+        var result = await resultTask;
+        return result.EnsureNone<TCollection, TItem>(predicate, message, field);
+    }
+}
