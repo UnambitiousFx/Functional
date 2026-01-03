@@ -9,6 +9,11 @@
 
 A lightweight, modern functional programming library for .NET that makes error handling and optional values elegant and type-safe.
 
+## 🔧 Compatibility & support
+
+- **Dependency-free**: No external runtime dependencies — the library is dependency-less at runtime.
+- **Supported .NET versions**: Supports all Microsoft LTS releases **and** the latest non-LTS release. See the CI matrix or the Releases page for exact versions.
+
 ## 🎯 Features
 
 - **`Result<T>`** - Railway-oriented programming for error handling without exceptions
