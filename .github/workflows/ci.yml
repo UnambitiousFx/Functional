@@ -38,13 +38,32 @@ jobs:
       - name: Build
         run: dotnet build Functional.slnx --no-restore --configuration Release
 
-      - name: Test
-        run: dotnet test Functional.slnx --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      - name: Test (coverage + TRX)
+        run: >
+          dotnet test Functional.slnx
+          --no-build
+          --configuration Release
+          --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --results-directory ./test-results
+          --logger "trx;LogFileName=test-results.trx"
+
+      - name: Convert TRX to JUnit (for Codecov test results)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet tool install --global trx2junit
+          trx2junit ./test-results/test-results.trx --output ./test-results/junit.xml
 
       - name: Upload coverage reports to Codecov
         if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v5
         with:
-          directory: ./coverage
-          slug: UnambitiousFx/Functional
+          directory: ./test-results
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test results to Codecov
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/test-results-action@v1
+        with:
+          files: ./test-results/junit.xml
           token: ${{ secrets.CODECOV_TOKEN }}
