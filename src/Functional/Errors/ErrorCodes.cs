@@ -45,4 +45,9 @@ public static class ErrorCodes
     ///     Error code for operations that exceed timeout limits.
     /// </summary>
     public const string Timeout = "TIMEOUT";
+
+    /// <summary>
+    /// Error code indicating that the user is not authenticated.
+    /// </summary>
+    public const string Unauthenticated = "UNAUTHENTICATED";
 }
