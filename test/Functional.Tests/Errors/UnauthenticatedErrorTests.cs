@@ -67,9 +67,9 @@ public class UnauthenticatedErrorTests
 
         // Assert (Then)
         Assert.Equal("Session expired", error.Message);
-        Assert.NotNull(error.Extra);
-        Assert.Equal("user123", error.Extra["userId"]);
-        Assert.Equal("/api/secure", error.Extra["attemptedResource"]);
+        Assert.NotNull(error.Metadata);
+        Assert.Equal("user123", error.Metadata["userId"]);
+        Assert.Equal("/api/secure", error.Metadata["attemptedResource"]);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class UnauthenticatedErrorTests
         var error = new UnauthenticatedError("");
 
         // Assert (Then)
-        Assert.Equal("Unauthenticated.", error.Message);
+        Assert.Equal("Unauthenticated", error.Message);
     }
 
     [Fact]

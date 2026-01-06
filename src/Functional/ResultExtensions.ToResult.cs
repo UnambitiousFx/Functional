@@ -22,6 +22,11 @@ public static partial class ResultExtensions
     /// </returns>
     public static Result ToResult<T>(this Result<T> result) where T : notnull
     {
-        return result.Match(Result.Success, Result.Failure);
+        return result.Bind(_ =>
+        {
+            var r = Result.Success();
+            r.WithMetadata(result.Metadata);
+            return r;
+        });
     }
 }
