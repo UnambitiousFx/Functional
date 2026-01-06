@@ -193,7 +193,6 @@ public static partial class ResultExtensions
         {
             return Result.Failure<T>(new ConflictError(message));
         }
-
     }
     
     internal static Maybe<TError> GetError<TError>(this IResult result)
