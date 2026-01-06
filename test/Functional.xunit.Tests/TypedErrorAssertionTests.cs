@@ -77,7 +77,7 @@ public class TypedErrorAssertionTests
         var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
 
         // Act (When)
-        var result = assertion.AndMessage("Unauthorized.");
+        var result = assertion.AndMessage("Unauthorized");
 
         // Assert (Then)
         Assert.Equal(error, result.Error);
@@ -130,7 +130,7 @@ public class TypedErrorAssertionTests
         assertion
             .Where(e => e.Code == "UNAUTHORIZED")
             .AndCode("UNAUTHORIZED")
-            .AndMessage("Unauthorized.");
+            .AndMessage("Unauthorized");
     }
 
     [Fact(DisplayName = "Works with custom error types")]

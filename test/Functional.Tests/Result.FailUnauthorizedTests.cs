@@ -53,7 +53,7 @@ public sealed class ResultFailUnauthorizedTests
         // Assert (Then)
         result.ShouldBe()
             .Failure()
-            .AndMessage("Unauthorized.");
+            .AndMessage("Unauthorized");
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public sealed class ResultFailUnauthorizedTests
         // Assert (Then)
         result.ShouldBe()
             .Failure()
-            .AndMessage("Unauthorized.");
+            .AndMessage("Unauthorized");
     }
 
     [Fact]
