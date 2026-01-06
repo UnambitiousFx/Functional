@@ -14,7 +14,7 @@ public class UnauthenticatedErrorTests
         var error = new UnauthenticatedError();
 
         // Assert (Then)
-        Assert.Equal("Unauthenticated.", error.Message);
+        Assert.Equal("Unauthenticated", error.Message);
         Assert.Equal(ErrorCodes.Unauthenticated, error.Code);
     }
 
@@ -49,7 +49,7 @@ public class UnauthenticatedErrorTests
         var error = new UnauthenticatedError(null);
 
         // Assert (Then)
-        Assert.Equal("Unauthenticated.", error.Message);
+        Assert.Equal("Unauthenticated", error.Message);
     }
 
     [Fact]
