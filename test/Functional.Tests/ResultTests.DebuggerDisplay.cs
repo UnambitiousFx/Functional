@@ -168,6 +168,20 @@ public sealed class ResultTests_DebuggerDisplay
     }
 
     [Fact]
+    public void DebugView_Success_ErrorPropertyIsNull()
+    {
+        // Arrange
+        var result = Result.Success();
+
+        // Act
+        var debugView = GetDebugView(result);
+        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as ErrorBase;
+
+        // Assert
+        Assert.Null(errorProp);
+    }
+
+    [Fact]
     public void DebugView_Failure_ReturnsCorrectProperties()
     {
         // Arrange
@@ -201,6 +215,20 @@ public sealed class ResultTests_DebuggerDisplay
         // Assert
         Assert.True(isSuccess);
         Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void DebugView_GenericSuccess_ErrorPropertyIsNull()
+    {
+        // Arrange
+        var result = Result.Success(42);
+
+        // Act
+        var debugView = GetDebugView(result);
+        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as ErrorBase;
+
+        // Assert
+        Assert.Null(errorProp);
     }
 
     [Fact]
