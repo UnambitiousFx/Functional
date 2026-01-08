@@ -1,110 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using UnambitiousFx.Functional.AspNetCore.Http;
+using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.AspNetCore.Mvc;
 using UnambitiousFx.Functional.Errors;
 
-namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions;
+namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Mvc;
 
 public class ResultHttpExtensionsTests
 {
-    #region ToHttpResult - Minimal API
-
-    [Fact(DisplayName = "ToHttpResult returns 200 OK for success Result")]
-    public void ToHttpResult_SuccessResult_Returns200()
-    {
-        // Given
-        var result = Result.Success();
-
-        // When
-        var httpResult = result.ToHttpResult();
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult returns 400 BadRequest for ValidationError")]
-    public void ToHttpResult_FailureResult_Returns400()
-    {
-        // Given
-        var result = Result.Failure(new ValidationError(["Invalid input"]));
-
-        // When
-        var httpResult = result.ToHttpResult();
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult<T> returns 200 OK with value for success")]
-    public void ToHttpResult_Generic_Success_Returns200WithValue()
-    {
-        // Given
-        var result = Result.Success(42);
-
-        // When
-        var httpResult = result.ToHttpResult();
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult<T> returns 404 for NotFoundError")]
-    public void ToHttpResult_Generic_NotFoundError_Returns404()
-    {
-        // Given
-        var result = Result.Failure<int>(new NotFoundError("Item", "123"));
-
-        // When
-        var httpResult = result.ToHttpResult();
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with DTO mapper transforms value")]
-    public void ToHttpResult_WithDtoMapper_TransformsValue()
-    {
-        // Given
-        var result = Result.Success(42);
-
-        // When
-        var httpResult = result.ToHttpResult(x => new { Value = x.ToString() });
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToCreatedHttpResult returns 201 Created with location")]
-    public void ToCreatedHttpResult_Success_Returns201WithLocation()
-    {
-        // Given
-        var result = Result.Success(42);
-
-        // When
-        var httpResult = result.ToCreatedHttpResult(id => $"/items/{id}");
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToCreatedHttpResult with DTO mapper transforms value")]
-    public void ToCreatedHttpResult_WithDtoMapper_TransformsValue()
-    {
-        // Given
-        var result = Result.Success(42);
-
-        // When
-        var httpResult = result.ToCreatedHttpResult(
-            id => $"/items/{id}",
-            x => new { Id = x, Name = "Item" });
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    #endregion
-
-    #region ToActionResult - MVC Controllers
 
     [Fact(DisplayName = "ToActionResult returns NoContentResult for success")]
     public void ToActionResult_Success_ReturnsNoContentResult()
@@ -221,5 +123,45 @@ public class ResultHttpExtensionsTests
         Assert.Equal(400, objectResult.StatusCode);
     }
 
+
+    #region Helper classes for testing
+
+    private class CustomProblemDetailsMapper : IErrorHttpMapper
+    {
+        public (int StatusCode, object? Body)? GetResponse(IError error)
+        {
+            if (error is ValidationError)
+            {
+                return (400, new ProblemDetails
+                {
+                    Title = "Validation Error",
+                    Status = 400,
+                    Detail = "One or more validation errors occurred."
+                });
+            }
+            return null;
+        }
+    }
+
+    private class NullReturningMapper : IErrorHttpMapper
+    {
+        public (int StatusCode, object? Body)? GetResponse(IError error) => null;
+    }
+
+    private record CustomError(int StatusCode, string Message) : Error(Message);
+
+    private class CustomStatusCodeMapper : IErrorHttpMapper
+    {
+        public (int StatusCode, object? Body)? GetResponse(IError error)
+        {
+            if (error is CustomError customError)
+            {
+                return (customError.StatusCode, new { Message = error.Message });
+            }
+            return null;
+        }
+    }
+
     #endregion
+
 }
