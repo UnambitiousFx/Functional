@@ -10,12 +10,6 @@ public sealed class ResultHttpOptions
     private readonly List<IErrorHttpMapper> _customMappers = [];
 
     /// <summary>
-    ///     Whether to use Problem Details (RFC 7807) format for error responses.
-    ///     Default is false (uses simple JSON error responses).
-    /// </summary>
-    public bool UseProblemDetails { get; set; }
-
-    /// <summary>
     ///     Whether to include exception details (stack traces) in error responses.
     ///     Should only be enabled in development environments.
     ///     Default is false.
@@ -52,21 +46,10 @@ public sealed class ResultHttpOptions
         // Add custom mappers first (they have priority)
         mappers.AddRange(_customMappers);
 
-        // Add the appropriate default mapper
-        if (UseProblemDetails)
-        {
-            mappers.Add(new ProblemDetailsErrorMapper(IncludeExceptionDetails));
-        }
-        else
-        {
-            mappers.Add(new DefaultErrorHttpMapper());
-        }
+        mappers.Add(new DefaultErrorHttpMapper());
 
         // If we only have one mapper, return it directly
-        if (mappers.Count == 1)
-        {
-            return mappers[0];
-        }
+        if (mappers.Count == 1) return mappers[0];
 
         // Otherwise, wrap in a composite mapper
         return new CompositeErrorHttpMapper(mappers);

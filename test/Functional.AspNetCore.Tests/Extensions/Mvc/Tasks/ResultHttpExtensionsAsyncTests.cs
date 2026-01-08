@@ -16,7 +16,7 @@ public class ResultHttpExtensionsAsyncTests
         var actionResult = await result.ToActionResultAsync();
 
         // Assert (Then)
-        Assert.IsType<OkResult>(actionResult);
+        Assert.IsType<NoContentResult>(actionResult);
     }
 
     [Fact(DisplayName = "ToActionResultAsync returns error result for failed Task<Result>")]
@@ -148,7 +148,7 @@ public class ResultHttpExtensionsAsyncTests
         var actionResult = await resultTask;
 
         // Assert (Then)
-        Assert.IsType<OkResult>(actionResult);
+        Assert.IsType<NoContentResult>(actionResult);
     }
 
     [Fact(DisplayName = "ToActionResultAsync<T> awaits async operation correctly")]

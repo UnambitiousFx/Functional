@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using UnambitiousFx.Functional.AspNetCore;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Errors;
 
@@ -61,23 +60,6 @@ public class ServiceCollectionExtensionsTests
         Assert.IsType<DefaultErrorHttpMapper>(mapper);
     }
 
-    [Fact(DisplayName = "AddResultHttp with configuration applies options")]
-    public void AddResultHttp_WithConfiguration_AppliesOptions()
-    {
-        // Arrange (Given)
-        var services = new ServiceCollection();
-
-        // Act (When)
-        services.AddResultHttp(options =>
-        {
-            options.UseProblemDetails = true;
-        });
-        var provider = services.BuildServiceProvider();
-        var mapper = provider.GetRequiredService<IErrorHttpMapper>();
-
-        // Assert (Then)
-        Assert.IsType<ProblemDetailsErrorMapper>(mapper);
-    }
 
     [Fact(DisplayName = "AddResultHttp with custom mapper registers composite mapper")]
     public void AddResultHttp_WithCustomMapper_RegistersCompositeMapper()
@@ -87,10 +69,7 @@ public class ServiceCollectionExtensionsTests
         var customMapper = Substitute.For<IErrorHttpMapper>();
 
         // Act (When)
-        services.AddResultHttp(options =>
-        {
-            options.AddMapper(customMapper);
-        });
+        services.AddResultHttp(options => { options.AddMapper(customMapper); });
         var provider = services.BuildServiceProvider();
         var mapper = provider.GetRequiredService<IErrorHttpMapper>();
 
@@ -140,17 +119,13 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange (Given)
         var services = new ServiceCollection();
-        services.AddResultHttp(options =>
-        {
-            options.UseProblemDetails = true;
-            options.IncludeExceptionDetails = true;
-        });
+        services.AddResultHttp(options => { options.IncludeExceptionDetails = true; });
         var provider = services.BuildServiceProvider();
         var mapper = provider.GetRequiredService<IErrorHttpMapper>();
 
         // Act (When)
         var error = new ExceptionalError(new Exception("Test exception"));
-        var body = mapper.GetResponseBody(error);
+        var body = mapper.GetResponse(error);
 
         // Assert (Then)
         Assert.NotNull(body);
@@ -179,7 +154,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act (When)
-        services.AddResultHttp(configure: null);
+        services.AddResultHttp();
         var provider = services.BuildServiceProvider();
         var mapper = provider.GetRequiredService<IErrorHttpMapper>();
 

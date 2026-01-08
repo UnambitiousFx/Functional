@@ -12,8 +12,6 @@ namespace UnambitiousFx.Functional.AspNetCore.Mvc;
 /// </summary>
 public static class ResultHttpExtensions
 {
-    private static readonly IErrorHttpMapper DefaultMapper = DefaultErrorHttpMapper.Instance;
-
     /// <summary>
     ///     Converts a Result to an IActionResult for MVC controllers.
     ///     Success returns 200 OK, failure maps error to appropriate status code.
@@ -26,8 +24,8 @@ public static class ResultHttpExtensions
         IErrorHttpMapper? mapper = null)
     {
         return result.Match(
-            () => new OkResult(),
-            error => MapErrorToActionResult(error, mapper ?? DefaultMapper));
+            () => new NoContentResult(),
+            error => MapErrorToActionResult(error, mapper));
     }
 
     /// <summary>
@@ -45,29 +43,32 @@ public static class ResultHttpExtensions
     {
         return result.Match(
             value => new OkObjectResult(value),
-            error => MapErrorToActionResult(error, mapper ?? DefaultMapper));
+            error => MapErrorToActionResult(error, mapper));
     }
 
     /// <summary>
-    /// Converts a Result instance to an IActionResult for use in MVC controllers.
-    /// On success, the specified DTO mapper is used to project the result to a response payload.
-    /// On failure, the error is mapped to an appropriate HTTP response using the provided or default error mapper.
+    ///     Converts a Result instance to an IActionResult for use in MVC controllers.
+    ///     On success, the specified DTO mapper is used to project the result to a response payload.
+    ///     On failure, the error is mapped to an appropriate HTTP response using the provided or default error mapper.
     /// </summary>
     /// <typeparam name="TDto">The type of the output DTO for successful results.</typeparam>
     /// <param name="result">The Result instance to convert.</param>
     /// <param name="dtoMapper">A function to map the successful result to a DTO.</param>
-    /// <param name="errorMapper">An optional custom error-to-HTTP mapping strategy. Defaults to the standard mapper if not provided.</param>
+    /// <param name="errorMapper">
+    ///     An optional custom error-to-HTTP mapping strategy. Defaults to the standard mapper if not
+    ///     provided.
+    /// </param>
     /// <returns>An IActionResult representing either a successful HTTP 200 response or a failure based on the error mapper.</returns>
     public static IActionResult ToActionResult<TDto>(
         this Result result,
-        Func< TDto> dtoMapper,
+        Func<TDto> dtoMapper,
         IErrorHttpMapper? errorMapper = null)
     {
         ArgumentNullException.ThrowIfNull(dtoMapper);
 
         return result.Match(
             () => new OkObjectResult(dtoMapper()),
-            error => MapErrorToActionResult(error, errorMapper ?? DefaultMapper));
+            error => MapErrorToActionResult(error, errorMapper));
     }
 
     /// <summary>
@@ -90,7 +91,7 @@ public static class ResultHttpExtensions
 
         return result.Match(
             value => new OkObjectResult(dtoMapper(value)),
-            error => MapErrorToActionResult(error, errorMapper ?? DefaultMapper));
+            error => MapErrorToActionResult(error, errorMapper));
     }
 
     /// <summary>
@@ -114,7 +115,7 @@ public static class ResultHttpExtensions
 
         return result.Match(
             value => new CreatedAtActionResult(actionName, null, routeValues, value),
-            error => MapErrorToActionResult(error, mapper ?? DefaultMapper));
+            error => MapErrorToActionResult(error, mapper));
     }
 
     /// <summary>
@@ -142,17 +143,43 @@ public static class ResultHttpExtensions
 
         return result.Match(
             value => new CreatedAtActionResult(actionName, null, routeValues, dtoMapper(value)),
-            error => MapErrorToActionResult(error, errorMapper ?? DefaultMapper));
+            error => MapErrorToActionResult(error, errorMapper));
     }
 
-    private static IActionResult MapErrorToActionResult(Error error, IErrorHttpMapper mapper)
+    private static IActionResult ResponseToActionResult(int statusCode, object? body)
     {
-        var statusCode = mapper.GetStatusCode(error) ?? StatusCodes.Status400BadRequest;
-        var body = mapper.GetResponseBody(error);
-
-        return new ObjectResult(body)
+        return body switch
         {
-            StatusCode = statusCode
+            null => new StatusCodeResult(statusCode),
+            ProblemDetails problemDetails => new ObjectResult(problemDetails)
+            {
+                StatusCode = statusCode
+            },
+            _ => statusCode switch
+            {
+                400 => new BadRequestObjectResult(body),
+                401 => new UnauthorizedObjectResult(body),
+                404 => new NotFoundObjectResult(body),
+                409 => new ConflictObjectResult(body),
+                500 => new ObjectResult(body)
+                {
+                    StatusCode = 500
+                },
+                _ => new StatusCodeResult(statusCode)
+            }
         };
+    }
+
+    private static IActionResult MapErrorToActionResult(Error error, IErrorHttpMapper? customMapper)
+    {
+        var mappedResponse = customMapper?.GetResponse(error);
+        if (mappedResponse != null)
+            return ResponseToActionResult(mappedResponse.Value.StatusCode, mappedResponse.Value.Body);
+
+        var defaultResponse = DefaultErrorHttpMapper.Instance.GetResponse(error);
+        if (defaultResponse is not null)
+            return ResponseToActionResult(defaultResponse.Value.StatusCode, defaultResponse.Value.Body);
+
+        return new StatusCodeResult(StatusCodes.Status500InternalServerError);
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Errors;
 using IHttpResult = Microsoft.AspNetCore.Http.IResult;
@@ -11,8 +12,6 @@ namespace UnambitiousFx.Functional.AspNetCore.Http;
 /// </summary>
 public static class ResultHttpExtensions
 {
-    private static readonly IErrorHttpMapper DefaultMapper = DefaultErrorHttpMapper.Instance;
-
     /// <summary>
     ///     Converts a Result to an IResult for minimal API endpoints.
     ///     Success returns 200 OK, failure maps error to appropriate status code.
@@ -25,8 +24,8 @@ public static class ResultHttpExtensions
         IErrorHttpMapper? mapper = null)
     {
         return result.Match(
-            () => HttpResults.Ok(),
-            error => MapErrorToHttpResult(error, mapper ?? DefaultMapper));
+            () => HttpResults.NoContent(),
+            error => MapErrorToHttpResult(error, mapper));
     }
 
     /// <summary>
@@ -44,7 +43,7 @@ public static class ResultHttpExtensions
     {
         return result.Match(
             value => HttpResults.Ok(value),
-            error => MapErrorToHttpResult(error, mapper ?? DefaultMapper));
+            error => MapErrorToHttpResult(error, mapper));
     }
 
     /// <summary>
@@ -64,7 +63,7 @@ public static class ResultHttpExtensions
 
         return result.Match(
             () => HttpResults.Ok(dtoMapper()),
-            error => MapErrorToHttpResult(error, errorMapper ?? DefaultMapper));
+            error => MapErrorToHttpResult(error, errorMapper));
     }
 
     /// <summary>
@@ -87,7 +86,7 @@ public static class ResultHttpExtensions
 
         return result.Match(
             value => HttpResults.Ok(dtoMapper(value)),
-            error => MapErrorToHttpResult(error, errorMapper ?? DefaultMapper));
+            error => MapErrorToHttpResult(error, errorMapper));
     }
 
     /// <summary>
@@ -109,7 +108,7 @@ public static class ResultHttpExtensions
 
         return result.Match(
             value => HttpResults.Created(locationFactory(value), value),
-            error => MapErrorToHttpResult(error, mapper ?? DefaultMapper));
+            error => MapErrorToHttpResult(error, mapper));
     }
 
     /// <summary>
@@ -135,26 +134,37 @@ public static class ResultHttpExtensions
 
         return result.Match(
             value => HttpResults.Created(locationFactory(value), dtoMapper(value)),
-            error => MapErrorToHttpResult(error, errorMapper ?? DefaultMapper));
+            error => MapErrorToHttpResult(error, errorMapper));
     }
 
-    private static IHttpResult MapErrorToHttpResult(Error error, IErrorHttpMapper mapper)
+    private static IHttpResult ResponseToHttpResult(int statusCode, object? body)
     {
-        var statusCode = mapper.GetStatusCode(error) ?? StatusCodes.Status400BadRequest;
-        var body = mapper.GetResponseBody(error);
-
-        // Use anonymous object pattern for AOT compatibility
-        // The body is already an object from the mapper
-        return statusCode switch
+        return body switch
         {
-            200 => HttpResults.Ok(body),
-            201 => HttpResults.Created(string.Empty, body),
-            400 => HttpResults.BadRequest(body),
-            401 => HttpResults.Unauthorized(),
-            404 => HttpResults.NotFound(body),
-            409 => HttpResults.Conflict(body),
-            500 => HttpResults.Problem(statusCode: statusCode),
-            _ => HttpResults.StatusCode(statusCode)
+            null => HttpResults.StatusCode(statusCode),
+            ProblemDetails problemDetails => HttpResults.Problem(problemDetails),
+            _ => statusCode switch
+            {
+                400 => HttpResults.BadRequest(body),
+                401 => HttpResults.Unauthorized(),
+                404 => HttpResults.NotFound(body),
+                409 => HttpResults.Conflict(body),
+                500 => HttpResults.Problem(statusCode: statusCode),
+                _ => HttpResults.StatusCode(statusCode)
+            }
         };
+    }
+
+    private static IHttpResult MapErrorToHttpResult(Error error, IErrorHttpMapper? customMapper)
+    {
+        var mappedResponse = customMapper?.GetResponse(error);
+        if (mappedResponse != null)
+            return ResponseToHttpResult(mappedResponse.Value.StatusCode, mappedResponse.Value.Body);
+
+        var defaultResponse = DefaultErrorHttpMapper.Instance.GetResponse(error);
+        if (defaultResponse is not null)
+            return ResponseToHttpResult(defaultResponse.Value.StatusCode, defaultResponse.Value.Body);
+
+        return HttpResults.StatusCode(StatusCodes.Status500InternalServerError);
     }
 }

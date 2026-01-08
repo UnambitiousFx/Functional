@@ -30,31 +30,14 @@ public sealed class CompositeErrorHttpMapper : IErrorHttpMapper
         _mappers = mappers;
     }
 
+
     /// <inheritdoc />
-    public int? GetStatusCode(IError error)
+    public (int StatusCode, object? Body)? GetResponse(IError error)
     {
         foreach (var mapper in _mappers)
         {
-            var statusCode = mapper.GetStatusCode(error);
-            if (statusCode.HasValue)
-            {
-                return statusCode;
-            }
-        }
-
-        return null;
-    }
-
-    /// <inheritdoc />
-    public object? GetResponseBody(IError error)
-    {
-        foreach (var mapper in _mappers)
-        {
-            var body = mapper.GetResponseBody(error);
-            if (body is not null)
-            {
-                return body;
-            }
+            var mappedResponse = mapper.GetResponse(error);
+            if (mappedResponse is not null) return mappedResponse;
         }
 
         return null;

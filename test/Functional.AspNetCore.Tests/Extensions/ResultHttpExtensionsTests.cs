@@ -106,8 +106,8 @@ public class ResultHttpExtensionsTests
 
     #region ToActionResult - MVC Controllers
 
-    [Fact(DisplayName = "ToActionResult returns OkResult for success")]
-    public void ToActionResult_Success_ReturnsOkResult()
+    [Fact(DisplayName = "ToActionResult returns NoContentResult for success")]
+    public void ToActionResult_Success_ReturnsNoContentResult()
     {
         // Given
         var result = Result.Success();
@@ -116,7 +116,7 @@ public class ResultHttpExtensionsTests
         var actionResult = result.ToActionResult();
 
         // Then
-        Assert.IsType<OkResult>(actionResult);
+        Assert.IsType<NoContentResult>(actionResult);
     }
 
     [Fact(DisplayName = "ToActionResult returns ObjectResult with 500 for ExceptionalError")]
