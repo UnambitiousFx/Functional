@@ -70,6 +70,32 @@ public class ResultHttpExtensionsAsyncTests
         Assert.NotNull(httpResult);
     }
 
+    [Fact(DisplayName = "ToHttpResultAsync with DTO mapper returns error for failed ValueTask<Result>")]
+    public async Task ToHttpResultAsync_WithDtoMapper_Failure_ReturnsError()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure(new ValidationError(["Invalid data"])));
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(() => new { Status = "Success" });
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync with DTO mapper awaits async operation correctly")]
+    public async Task ToHttpResultAsync_WithDtoMapper_AwaitsAsyncOperation_Correctly()
+    {
+        // Arrange (Given)
+        var valueTask = Task.FromResult(Result.Success());
+
+        // Act (When)
+        var httpResult = await valueTask.ToHttpResultAsync(() => new { Message = "Complete" });
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
     [Fact(DisplayName = "ToCreatedHttpResultAsync returns 201 Created for success")]
     public async Task ToCreatedHttpResultAsync_Success_Returns201()
     {

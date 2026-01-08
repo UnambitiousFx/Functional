@@ -73,7 +73,7 @@ public static class ResultHttpExtensions
     /// A <see cref="ValueTask" /> of <see cref="Microsoft.AspNetCore.Http.IResult" /> representing the HTTP response
     /// derived from the result.
     /// </returns>
-    public static async ValueTask<HttpResult> ToHttpResultAsync<TDto>(this ValueTask<Result> awaitableResult,
+    public static async ValueTask<HttpResult> ToHttpResultAsync<TDto>(this Task<Result> awaitableResult,
         Func<TDto> dtoMapper,
         IErrorHttpMapper? errorMapper = null)
     {

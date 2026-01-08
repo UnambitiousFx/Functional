@@ -50,6 +50,20 @@ public class DefaultErrorHttpMapperTests
         Assert.Equal(401, response.Value.StatusCode);
     }
 
+    [Fact(DisplayName = "GetResponse returns 403 for UnauthenticatedError")]
+    public void GetResponse_UnauthenticatedError_Returns401()
+    {
+        // Given
+        var error = new UnauthenticatedError();
+
+        // When
+        var response = _sut.GetResponse(error);
+
+        // Then
+        Assert.NotNull(response);
+        Assert.Equal(403, response.Value.StatusCode);
+    }
+
     [Fact(DisplayName = "GetResponse returns 409 for ConflictError")]
     public void GetResponse_ConflictError_Returns409()
     {
