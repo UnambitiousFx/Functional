@@ -6,8 +6,8 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Mvc.ValueTasks;
 
 public class ResultHttpExtensionsAsyncTests
 {
-    [Fact(DisplayName = "ToActionResultAsync returns OkResult for successful ValueTask<Result>")]
-    public async Task ToActionResultAsync_SuccessResult_ReturnsOkResult()
+    [Fact(DisplayName = "ToActionResultAsync returns NoContentResult for successful ValueTask<Result>")]
+    public async Task ToActionResultAsync_SuccessResult_ReturnsNoContentResult()
     {
         // Arrange (Given)
         var result = ValueTask.FromResult(Result.Success());
@@ -16,7 +16,7 @@ public class ResultHttpExtensionsAsyncTests
         var actionResult = await result.ToActionResultAsync();
 
         // Assert (Then)
-        Assert.IsType<OkResult>(actionResult);
+        Assert.IsType<NoContentResult>(actionResult);
     }
 
     [Fact(DisplayName = "ToActionResultAsync returns error result for failed ValueTask<Result>")]
@@ -148,7 +148,7 @@ public class ResultHttpExtensionsAsyncTests
         var actionResult = await resultTask;
 
         // Assert (Then)
-        Assert.IsType<OkResult>(actionResult);
+        Assert.IsType<NoContentResult>(actionResult);
     }
 
     [Fact(DisplayName = "ToActionResultAsync<T> awaits async operation correctly")]

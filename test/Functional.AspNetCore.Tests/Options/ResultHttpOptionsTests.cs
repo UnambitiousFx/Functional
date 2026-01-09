@@ -1,5 +1,4 @@
 using NSubstitute;
-using UnambitiousFx.Functional.AspNetCore;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Errors;
 
@@ -7,16 +6,6 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Options;
 
 public class ResultHttpOptionsTests
 {
-    [Fact(DisplayName = "UseProblemDetails is false by default")]
-    public void UseProblemDetails_DefaultValue_IsFalse()
-    {
-        // Arrange (Given) & Act (When)
-        var options = new ResultHttpOptions();
-
-        // Assert (Then)
-        Assert.False(options.UseProblemDetails);
-    }
-
     [Fact(DisplayName = "IncludeExceptionDetails is false by default")]
     public void IncludeExceptionDetails_DefaultValue_IsFalse()
     {
@@ -106,22 +95,6 @@ public class ResultHttpOptionsTests
         Assert.IsType<DefaultErrorHttpMapper>(mapper);
     }
 
-    [Fact(DisplayName = "BuildMapper returns ProblemDetailsErrorMapper when UseProblemDetails is true")]
-    public void BuildMapper_UseProblemDetailsTrue_ReturnsProblemDetailsMapper()
-    {
-        // Arrange (Given)
-        var options = new ResultHttpOptions
-        {
-            UseProblemDetails = true
-        };
-
-        // Act (When)
-        var mapper = options.BuildMapper();
-
-        // Assert (Then)
-        Assert.IsType<ProblemDetailsErrorMapper>(mapper);
-    }
-
     [Fact(DisplayName = "BuildMapper returns CompositeMapper when custom mapper is added with default")]
     public void BuildMapper_SingleCustomMapper_ReturnsCompositeMapper()
     {
@@ -161,25 +134,23 @@ public class ResultHttpOptionsTests
         var customMapper = Substitute.For<IErrorHttpMapper>();
         var error = new ValidationError(["Test"]);
 
-        customMapper.GetStatusCode(error).Returns(999);
+        customMapper.GetResponse(error).Returns((999, null));
         options.AddMapper(customMapper);
 
         // Act (When)
         var compositeMapper = options.BuildMapper();
-        var statusCode = compositeMapper.GetStatusCode(error);
+        var response = compositeMapper.GetResponse(error);
 
         // Assert (Then)
-        Assert.Equal(999, statusCode);
+        Assert.NotNull(response);
+        Assert.Equal(999, response.Value.StatusCode);
     }
 
     [Fact(DisplayName = "BuildMapper with UseProblemDetails and custom mapper returns CompositeMapper")]
     public void BuildMapper_UseProblemDetailsAndCustomMapper_ReturnsCompositeMapper()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions
-        {
-            UseProblemDetails = true
-        };
+        var options = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
         options.AddMapper(customMapper);
 
@@ -196,14 +167,13 @@ public class ResultHttpOptionsTests
         // Arrange (Given)
         var options = new ResultHttpOptions
         {
-            UseProblemDetails = true,
             IncludeExceptionDetails = true
         };
 
         // Act (When)
         var mapper = options.BuildMapper();
         var error = new ExceptionalError(new Exception("Test"));
-        var body = mapper.GetResponseBody(error);
+        var body = mapper.GetResponse(error);
 
         // Assert (Then)
         Assert.NotNull(body);
