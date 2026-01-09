@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Http;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
@@ -233,6 +234,106 @@ public class ResultHttpExtensionsTests
         Assert.NotNull(httpResult);
     }
 
+    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 400 returns BadRequestObjectResult")]
+    public void ToHttpResult_WithCustomErrorMapper400_ReturnsBadRequestObjectResult()
+    {
+        // Given
+        var result = Result.Failure<int>(new CustomError(400, "Invalid input"));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var actionResult = result.ToHttpResult(mapper);
+
+        // Then
+        var objectResult = Assert.IsType<BadRequest<object>>(actionResult);
+        Assert.Equal(400, objectResult.StatusCode);
+    }
+
+    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 401 returns UnauthorizedObjectResult")]
+    public void ToHttpResult_WithCustomErrorMapper401_ReturnsUnauthorizedObjectResult()
+    {
+        // Given
+        var result = Result.Failure<int>(new CustomError(401, "Invalid input"));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var actionResult = result.ToHttpResult(mapper);
+
+        // Then
+        var objectResult = Assert.IsType<UnauthorizedHttpResult>(actionResult);
+        Assert.Equal(401, objectResult.StatusCode);
+    }
+
+    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 403 returns ForbidResult")]
+    public void ToHttpResult_WithCustomErrorMapper402_ReturnsForbidResult()
+    {
+        // Given
+        var result = Result.Failure<int>(new CustomError(403, "Invalid input"));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var actionResult = result.ToHttpResult(mapper);
+
+        // Then
+        Assert.IsType<ForbidHttpResult>(actionResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 404 returns NotFoundObjectResult")]
+    public void ToHttpResult_WithCustomErrorMapper404_ReturnsNotFoundObjectResult()
+    {
+        // Given
+        var result = Result.Failure<int>(new CustomError(404, "Invalid input"));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var actionResult = result.ToHttpResult(mapper);
+
+        // Then
+        Assert.IsType<NotFound<object>>(actionResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 409 returns ConflictObjectResult")]
+    public void ToHttpResult_WithCustomErrorMapper409_ReturnsConflictObjectResult()
+    {
+        // Given
+        var result = Result.Failure<int>(new CustomError(409, "Invalid input"));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var actionResult = result.ToHttpResult(mapper);
+
+        // Then
+        Assert.IsType<Conflict<object>>(actionResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 500 returns ObjectResult")]
+    public void ToHttpResult_WithCustomErrorMapper500_ReturnsObjectResult()
+    {
+        // Given
+        var result = Result.Failure<int>(new CustomError(500, "Invalid input"));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var actionResult = result.ToHttpResult(mapper);
+
+        // Then
+        Assert.IsType<ProblemHttpResult>(actionResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 500 and null body returns StatusCodeResult")]
+    public void ToHttpResult_WithCustomErrorMapperNullBody_ReturnsStatusCodeResult()
+    {
+        // Given
+        var result = Result.Failure<int>(new CustomError(500, string.Empty));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var actionResult = result.ToHttpResult(mapper);
+
+        // Then
+        Assert.IsType<StatusCodeHttpResult>(actionResult);
+    }
+
     #region Helper classes for testing
 
     private class CustomProblemDetailsMapper : IErrorHttpMapper
@@ -264,7 +365,8 @@ public class ResultHttpExtensionsTests
     {
         public (int StatusCode, object? Body)? GetResponse(IError error)
         {
-            if (error is CustomError customError) return (customError.StatusCode, new { error.Message });
+            var body = string.IsNullOrWhiteSpace(error.Message) ? null : new { error.Message };
+            if (error is CustomError customError) return (customError.StatusCode, body);
             return null;
         }
     }

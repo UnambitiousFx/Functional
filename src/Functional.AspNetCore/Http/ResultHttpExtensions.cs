@@ -137,21 +137,32 @@ public static class ResultHttpExtensions
             error => MapErrorToHttpResult(error, errorMapper));
     }
 
+    private static IHttpResult ProblemDetailToActionResult(ProblemDetails details)
+    {
+        return HttpResults.Problem(details);
+    }
+
+    private static IHttpResult BodyToActionResult(int statusCode, object? body)
+    {
+        return statusCode switch
+        {
+            400 => HttpResults.BadRequest(body),
+            401 => HttpResults.Unauthorized(),
+            403 => HttpResults.Forbid(),
+            404 => HttpResults.NotFound(body),
+            409 => HttpResults.Conflict(body),
+            500 => HttpResults.Problem(statusCode: statusCode),
+            _ => HttpResults.StatusCode(statusCode)
+        };
+    }
+
     private static IHttpResult ResponseToHttpResult(int statusCode, object? body)
     {
         return body switch
         {
             null => HttpResults.StatusCode(statusCode),
-            ProblemDetails problemDetails => HttpResults.Problem(problemDetails),
-            _ => statusCode switch
-            {
-                400 => HttpResults.BadRequest(body),
-                401 => HttpResults.Unauthorized(),
-                404 => HttpResults.NotFound(body),
-                409 => HttpResults.Conflict(body),
-                500 => HttpResults.Problem(statusCode: statusCode),
-                _ => HttpResults.StatusCode(statusCode)
-            }
+            ProblemDetails problemDetails => ProblemDetailToActionResult(problemDetails),
+            _ => BodyToActionResult(statusCode, body)
         };
     }
 

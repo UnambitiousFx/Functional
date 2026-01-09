@@ -146,27 +146,38 @@ public static class ResultHttpExtensions
             error => MapErrorToActionResult(error, errorMapper));
     }
 
+    private static ObjectResult ProblemDetailToActionResult(ProblemDetails details)
+    {
+        return new ObjectResult(details)
+        {
+            StatusCode = details.Status ?? StatusCodes.Status500InternalServerError
+        };
+    }
+
+    private static IActionResult BodyToActionResult(int statusCode, object? body)
+    {
+        return statusCode switch
+        {
+            400 => new BadRequestObjectResult(body),
+            401 => new UnauthorizedObjectResult(body),
+            403 => new ForbidResult(),
+            404 => new NotFoundObjectResult(body),
+            409 => new ConflictObjectResult(body),
+            500 => new ObjectResult(body)
+            {
+                StatusCode = 500
+            },
+            _ => new StatusCodeResult(statusCode)
+        };
+    }
+
     private static IActionResult ResponseToActionResult(int statusCode, object? body)
     {
         return body switch
         {
             null => new StatusCodeResult(statusCode),
-            ProblemDetails problemDetails => new ObjectResult(problemDetails)
-            {
-                StatusCode = statusCode
-            },
-            _ => statusCode switch
-            {
-                400 => new BadRequestObjectResult(body),
-                401 => new UnauthorizedObjectResult(body),
-                404 => new NotFoundObjectResult(body),
-                409 => new ConflictObjectResult(body),
-                500 => new ObjectResult(body)
-                {
-                    StatusCode = 500
-                },
-                _ => new StatusCodeResult(statusCode)
-            }
+            ProblemDetails problemDetails => ProblemDetailToActionResult(problemDetails),
+            _ => BodyToActionResult(statusCode, body)
         };
     }
 
