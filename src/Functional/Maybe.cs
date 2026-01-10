@@ -16,8 +16,10 @@ public static class Maybe
     /// <param name="value">The value to be wrapped inside the Maybe. It must be a non-null value of type TValue.</param>
     /// <returns>An <see cref="Maybe{TValue}" /> instance containing the provided value.</returns>
     public static Maybe<TValue> Some<TValue>(TValue value)
-        where TValue : notnull =>
-        Maybe<TValue>.Some(value);
+        where TValue : notnull
+    {
+        return Maybe<TValue>.Some(value);
+    }
 
     /// <summary>
     ///     Creates an instance of <see cref="Maybe{TValue}" /> that represents no value.
@@ -25,8 +27,10 @@ public static class Maybe
     /// <typeparam name="TValue">The type of the service represented by the option.</typeparam>
     /// <returns>An <see cref="Maybe{TValue}" /> instance that indicates no value.</returns>
     public static Maybe<TValue> None<TValue>()
-        where TValue : notnull =>
-        Maybe<TValue>.None();
+        where TValue : notnull
+    {
+        return Maybe<TValue>.None();
+    }
 }
 
 /// <summary>
@@ -73,14 +77,20 @@ public readonly record struct Maybe<TValue>
     ///     Creates a Maybe instance that represents no value.
     /// </summary>
     /// <returns>An empty <see cref="Maybe{TValue}" /> instance.</returns>
-    public static Maybe<TValue> None() => new(false);
+    public static Maybe<TValue> None()
+    {
+        return new Maybe<TValue>(false);
+    }
 
     /// <summary>
     ///     Creates a Maybe instance that contains the specified value.
     /// </summary>
     /// <param name="value">The value to wrap.</param>
     /// <returns>A <see cref="Maybe{TValue}" /> instance containing the value.</returns>
-    public static Maybe<TValue> Some(TValue value) => new(value);
+    public static Maybe<TValue> Some(TValue value)
+    {
+        return new Maybe<TValue>(value);
+    }
 
     /// <summary>
     ///     Executes the specified action if this instance is empty (None).
@@ -88,10 +98,7 @@ public readonly record struct Maybe<TValue>
     /// <param name="none">The action to execute when no value is present.</param>
     public void IfNone(Action none)
     {
-        if (IsNone)
-        {
-            none();
-        }
+        if (IsNone) none();
     }
 
     /// <summary>
@@ -101,10 +108,7 @@ public readonly record struct Maybe<TValue>
     /// <returns>A ValueTask that completes when the operation finishes.</returns>
     public async ValueTask IfNone(Func<ValueTask> none)
     {
-        if (IsNone)
-        {
-            await none();
-        }
+        if (IsNone) await none();
     }
 
     /// <summary>
@@ -113,10 +117,7 @@ public readonly record struct Maybe<TValue>
     /// <param name="some">The action to execute with the contained value.</param>
     public void IfSome(Action<TValue> some)
     {
-        if (IsSome)
-        {
-            some(_value!);
-        }
+        if (IsSome) some(_value!);
     }
 
     /// <summary>
@@ -126,10 +127,7 @@ public readonly record struct Maybe<TValue>
     /// <returns>A ValueTask that completes when the operation finishes.</returns>
     public async ValueTask IfSome(Func<TValue, ValueTask> some)
     {
-        if (IsSome)
-        {
-            await some(_value!);
-        }
+        if (IsSome) await some(_value!);
     }
 
     /// <summary>
@@ -151,7 +149,9 @@ public readonly record struct Maybe<TValue>
     /// <param name="none">The function to execute if no value is present.</param>
     /// <returns>The result of the executed function.</returns>
     public TOut Match<TOut>(Func<TValue, TOut> some, Func<TOut> none)
-        => IsSome ? some(_value!) : none();
+    {
+        return IsSome ? some(_value!) : none();
+    }
 
     /// <summary>
     ///     Matches the Maybe instance and executes the corresponding action based on whether a value is present.
@@ -161,13 +161,9 @@ public readonly record struct Maybe<TValue>
     public void Match(Action<TValue> some, Action none)
     {
         if (IsSome)
-        {
             some(_value!);
-        }
         else
-        {
             none();
-        }
     }
 
     /// <summary>
@@ -175,5 +171,8 @@ public readonly record struct Maybe<TValue>
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <returns>A <see cref="Maybe{TValue}" /> instance containing the value.</returns>
-    public static implicit operator Maybe<TValue>(TValue value) => Some(value);
+    public static implicit operator Maybe<TValue>(TValue? value)
+    {
+        return value is null ? None() : Some(value);
+    }
 }
