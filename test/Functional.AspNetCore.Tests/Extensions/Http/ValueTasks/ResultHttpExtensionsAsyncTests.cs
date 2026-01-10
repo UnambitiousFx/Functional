@@ -87,7 +87,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_WithDtoMapper_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var valueTask = new ValueTask<Result>(Result.Success());
+        var valueTask = ValueTask.FromResult(Result.Success());
 
         // Act (When)
         var resultTask = valueTask.ToHttpResultAsync(() => new { Message = "Complete" });
@@ -155,7 +155,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var valueTask = new ValueTask<Result>(Result.Success());
+        var valueTask = ValueTask.FromResult(Result.Success());
 
         // Act (When)
         var httpResult = await valueTask.ToHttpResultAsync();

@@ -12,8 +12,8 @@ public static partial class ResultExtensions
     /// <param name="message">Optional validation error message.</param>
     /// <param name="field">Optional field name for the error message.</param>
     /// <returns>The original result if the string matches the pattern; otherwise a failure with ValidationError.</returns>
-    public static async Task<Result<string>> EnsureMatches(this Task<Result<string>> resultTask, string pattern,
-        string? message = null, string? field = null)
+    public static async Task<Result<string>> EnsureMatches(this Task<Result<string>> resultTask,
+        string pattern, string? message = null, string? field = null)
     {
         var result = await resultTask;
         return result.EnsureMatches(pattern, message, field);
@@ -42,8 +42,8 @@ public static partial class ResultExtensions
     /// <param name="message">Optional validation error message.</param>
     /// <param name="field">Optional field name for the error message.</param>
     /// <returns>The original result if the string does not match the pattern; otherwise a failure with ValidationError.</returns>
-    public static async Task<Result<string>> EnsureDoesNotMatch(this Task<Result<string>> resultTask, string pattern,
-        string? message = null, string? field = null)
+    public static async Task<Result<string>> EnsureDoesNotMatch(this Task<Result<string>> resultTask,
+        string pattern, string? message = null, string? field = null)
     {
         var result = await resultTask;
         return result.EnsureDoesNotMatch(pattern, message, field);

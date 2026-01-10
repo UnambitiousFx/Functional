@@ -13,7 +13,7 @@ public static partial class ResultExtensions
     /// </returns>
     public static Task<Result> PrependErrorAsync(this Result result, string prefix)
     {
-        if (string.IsNullOrWhiteSpace(prefix) || result.IsSuccess)
+        if (string.IsNullOrEmpty(prefix) || result.IsSuccess)
         {
             return Task.FromResult(result);
         }

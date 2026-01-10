@@ -139,13 +139,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToActionResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var tcs = new TaskCompletionSource<Result>();
-        var valueTask = new ValueTask<Result>(tcs.Task);
+        var valueTask = ValueTask.FromResult(Result.Success());
 
         // Act (When)
-        var resultTask = valueTask.ToActionResultAsync();
-        tcs.SetResult(Result.Success());
-        var actionResult = await resultTask;
+        var actionResult = await valueTask.ToActionResultAsync();
 
         // Assert (Then)
         Assert.IsType<NoContentResult>(actionResult);

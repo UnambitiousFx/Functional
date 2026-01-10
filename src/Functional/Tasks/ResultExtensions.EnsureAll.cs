@@ -33,7 +33,8 @@ public static partial class ResultExtensions
     /// <param name="errorFactory">Factory function to create an error when validation fails.</param>
     /// <returns>The original result if all items satisfy the predicate; otherwise a failure with the error from the factory.</returns>
     public static async Task<Result<TCollection>> EnsureAll<TCollection, TItem>(
-        this Task<Result<TCollection>> resultTask, Func<TItem, bool> predicate, Func<TCollection, Error> errorFactory)
+        this Task<Result<TCollection>> resultTask, Func<TItem, bool> predicate,
+        Func<TCollection, Error> errorFactory)
         where TCollection : IEnumerable<TItem>
     {
         var result = await resultTask;
