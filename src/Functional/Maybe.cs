@@ -39,7 +39,7 @@ public static class Maybe
 /// <typeparam name="TValue">The type of the value that may be present.</typeparam>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(MaybeDebugView<>))]
-public readonly record struct Maybe<TValue>
+public readonly record struct Maybe<TValue> : IMaybe<TValue>
     where TValue : notnull
 {
     private readonly TValue? _value;
@@ -56,22 +56,66 @@ public readonly record struct Maybe<TValue>
         IsSome = isSome;
     }
 
-    /// <summary>
-    ///     Gets a value indicating whether this instance contains a value.
-    /// </summary>
+    private string DebuggerDisplay => IsSome ? $"Some({_value})" : "None";
+
+    /// <inheritdoc />
     public bool IsSome { get; }
 
-    /// <summary>
-    ///     Gets a value indicating whether this instance is empty (contains no value).
-    /// </summary>
+    /// <inheritdoc />
     public bool IsNone => !IsSome;
 
-    /// <summary>
-    ///     Gets the underlying value if present, or the default value if empty.
-    /// </summary>
+    /// <inheritdoc />
     public TValue? Case => IsSome ? _value : default;
 
-    private string DebuggerDisplay => IsSome ? $"Some({_value})" : "None";
+
+    /// <inheritdoc />
+    public void IfNone(Action none)
+    {
+        if (IsNone) none();
+    }
+
+    /// <inheritdoc />
+    public async ValueTask IfNone(Func<ValueTask> none)
+    {
+        if (IsNone) await none();
+    }
+
+    /// <inheritdoc />
+    public void IfSome(Action<TValue> some)
+    {
+        if (IsSome) some(_value!);
+    }
+
+
+    /// <inheritdoc />
+    public async ValueTask IfSome(Func<TValue, ValueTask> some)
+    {
+        if (IsSome) await some(_value!);
+    }
+
+
+    /// <inheritdoc />
+    public bool Some([NotNullWhen(true)] out TValue? value)
+    {
+        value = _value;
+        return IsSome;
+    }
+
+    /// <inheritdoc />
+    public TOut Match<TOut>(Func<TValue, TOut> some, Func<TOut> none)
+    {
+        return IsSome ? some(_value!) : none();
+    }
+
+
+    /// <inheritdoc />
+    public void Match(Action<TValue> some, Action none)
+    {
+        if (IsSome)
+            some(_value!);
+        else
+            none();
+    }
 
     /// <summary>
     ///     Creates a Maybe instance that represents no value.
@@ -90,80 +134,6 @@ public readonly record struct Maybe<TValue>
     public static Maybe<TValue> Some(TValue value)
     {
         return new Maybe<TValue>(value);
-    }
-
-    /// <summary>
-    ///     Executes the specified action if this instance is empty (None).
-    /// </summary>
-    /// <param name="none">The action to execute when no value is present.</param>
-    public void IfNone(Action none)
-    {
-        if (IsNone) none();
-    }
-
-    /// <summary>
-    ///     Asynchronously executes the specified function if this instance is empty (None).
-    /// </summary>
-    /// <param name="none">The asynchronous function to execute when no value is present.</param>
-    /// <returns>A ValueTask that completes when the operation finishes.</returns>
-    public async ValueTask IfNone(Func<ValueTask> none)
-    {
-        if (IsNone) await none();
-    }
-
-    /// <summary>
-    ///     Executes the specified action if this instance contains a value (Some).
-    /// </summary>
-    /// <param name="some">The action to execute with the contained value.</param>
-    public void IfSome(Action<TValue> some)
-    {
-        if (IsSome) some(_value!);
-    }
-
-    /// <summary>
-    ///     Asynchronously executes the specified function if this instance contains a value (Some).
-    /// </summary>
-    /// <param name="some">The asynchronous function to execute with the contained value.</param>
-    /// <returns>A ValueTask that completes when the operation finishes.</returns>
-    public async ValueTask IfSome(Func<TValue, ValueTask> some)
-    {
-        if (IsSome) await some(_value!);
-    }
-
-    /// <summary>
-    ///     Attempts to retrieve the contained value.
-    /// </summary>
-    /// <param name="value">When this method returns, contains the value if present; otherwise, the default value.</param>
-    /// <returns>true if this instance contains a value; otherwise, false.</returns>
-    public bool Some([NotNullWhen(true)] out TValue? value)
-    {
-        value = _value;
-        return IsSome;
-    }
-
-    /// <summary>
-    ///     Matches the Maybe instance and executes the corresponding function based on whether a value is present.
-    /// </summary>
-    /// <typeparam name="TOut">The type of the result.</typeparam>
-    /// <param name="some">The function to execute if a value is present.</param>
-    /// <param name="none">The function to execute if no value is present.</param>
-    /// <returns>The result of the executed function.</returns>
-    public TOut Match<TOut>(Func<TValue, TOut> some, Func<TOut> none)
-    {
-        return IsSome ? some(_value!) : none();
-    }
-
-    /// <summary>
-    ///     Matches the Maybe instance and executes the corresponding action based on whether a value is present.
-    /// </summary>
-    /// <param name="some">The action to execute if a value is present.</param>
-    /// <param name="none">The action to execute if no value is present.</param>
-    public void Match(Action<TValue> some, Action none)
-    {
-        if (IsSome)
-            some(_value!);
-        else
-            none();
     }
 
     /// <summary>
