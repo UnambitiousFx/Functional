@@ -1,10 +1,11 @@
 ﻿<Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove(&#39;build.props&#39;))" />
+    <Import Project="$([MSBuild]::GetPathOfFileAbove(&#39;build.props&#39;))"/>
 
-  <PropertyGroup>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <IsPackable>false</IsPackable>
-    <RootNamespace>$(Product).Benchmarks.$(MSBuildProjectName)</RootNamespace>
-    <AssemblyName>$(Product).Benchmarks.$(MSBuildProjectName)</AssemblyName>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>$(LatestTargetFramework)</TargetFramework>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>$(Product).Benchmarks.$(MSBuildProjectName)</RootNamespace>
+        <AssemblyName>$(Product).Benchmarks.$(MSBuildProjectName)</AssemblyName>
+    </PropertyGroup>
 </Project>
