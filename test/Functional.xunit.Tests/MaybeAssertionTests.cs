@@ -37,7 +37,7 @@ public sealed class MaybeAssertionTests
     [Fact]
     public async Task Async_ValueTask_EnsureNone()
     {
-        await new ValueTask<Maybe<int>>(Maybe<int>.None())
+        await ValueTask.FromResult(Maybe<int>.None())
             .ShouldBe()
             .None();
     }

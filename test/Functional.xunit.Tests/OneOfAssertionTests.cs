@@ -42,7 +42,7 @@ public sealed class OneOfAssertionTests
     [Fact]
     public async Task Async_ValueTask_OneOf_EnsureSecond()
     {
-        await new ValueTask<OneOf<int, string>>(OneOf<int, string>.FromSecond("two"))
+        await ValueTask.FromResult(OneOf<int, string>.FromSecond("two"))
             .ShouldBe()
             .Second()
             .And(v => Assert.Equal("two", v))

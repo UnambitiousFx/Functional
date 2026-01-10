@@ -31,7 +31,7 @@ public static partial class ResultExtensions
                     response = response.WithMetadata(result.Metadata);
                 }
 
-                return new ValueTask<Result>(response);
+                return ValueTask.FromResult(response);
             });
         }
 
@@ -62,7 +62,7 @@ public static partial class ResultExtensions
                     response = response.WithMetadata(result.Metadata);
                 }
 
-                return new ValueTask<Result<TOut1>>(response);
+                return ValueTask.FromResult(response);
             });
         }
     }
@@ -191,7 +191,7 @@ public static partial class ResultExtensions
                     response = response.WithMetadata(result.Metadata);
                 }
 
-                return new ValueTask<Result>(response);
+                return ValueTask.FromResult(response);
             });
         }
 
@@ -222,7 +222,7 @@ public static partial class ResultExtensions
                     response = response.WithMetadata(result.Metadata);
                 }
 
-                return new ValueTask<Result<TOut1>>(response);
+                return ValueTask.FromResult(response);
             });
         }
     }

@@ -29,4 +29,32 @@ public static partial class MaybeExtensions
     {
         return (await awaitableOption).Match(some, none);
     }
+
+    /// Matches the current state of the asynchronous option and executes the corresponding asynchronous function.
+    /// This method supports handling both the presence and absence of a value within the option in an asynchronous context.
+    /// <typeparam name="TOut">The type of the result returned by the executed asynchronous function.</typeparam>
+    /// <typeparam name="TValue">The type of the value contained within the option.</typeparam>
+    /// <param name="awaitableOption">
+    /// A ValueTask that resolves to an instance of <see cref="Maybe{TValue}" />, representing the asynchronous option to
+    /// be matched.
+    /// </param>
+    /// <param name="some">
+    /// An asynchronous function to execute if the option contains a value. The function receives the value as input and must
+    /// return a ValueTask of type TOut.
+    /// </param>
+    /// <param name="none">
+    /// An asynchronous function to execute if the option does not contain a value. This function must return a ValueTask of type TOut.
+    /// </param>
+    /// <returns>
+    /// A ValueTask of type TOut that resolves to the result of invoking either the "some" or "none" asynchronous function based
+    /// on the state of the matched option.
+    /// </returns>
+    public static async ValueTask<TOut> MatchAsync<TOut, TValue>(this ValueTask<Maybe<TValue>> awaitableOption,
+        Func<TValue, ValueTask<TOut>> some,
+        Func<ValueTask<TOut>> none)
+        where TValue : notnull
+    {
+        var maybe = await awaitableOption;
+        return await maybe.Match(some, none);
+    }
 }

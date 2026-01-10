@@ -17,7 +17,7 @@ public static partial class ResultExtensions
         Func<Error, ValueTask<Error>> mapError)
     {
         return result.Match<ValueTask<Result>>(
-            () => new ValueTask<Result>(Result.Success()),
+            () => ValueTask.FromResult(Result.Success()),
             async ex => Result.Failure(await mapError(ex))
         );
     }
@@ -52,7 +52,7 @@ public static partial class ResultExtensions
         Func<Error, ValueTask<Error>> mapError) where T1 : notnull
     {
         return result.Match<ValueTask<Result<T1>>>(
-            value1 => new ValueTask<Result<T1>>(Result.Success(value1)),
+            value1 => ValueTask.FromResult(Result.Success(value1)),
             async ex => Result.Failure<T1>(await mapError(ex))
         );
     }
