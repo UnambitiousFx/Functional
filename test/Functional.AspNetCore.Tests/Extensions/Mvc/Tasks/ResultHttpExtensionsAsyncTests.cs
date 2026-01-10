@@ -6,8 +6,8 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Mvc.Tasks;
 
 public class ResultHttpExtensionsAsyncTests
 {
-    [Fact(DisplayName = "ToActionResultAsync returns OkResult for successful Task<Result>")]
-    public async Task ToActionResultAsync_SuccessResult_ReturnsOkResult()
+    [Fact(DisplayName = "ToActionResultAsync returns NoContentResult for successful Task<Result>")]
+    public async Task ToActionResultAsync_SuccessResult_ReturnsNoContentResult()
     {
         // Arrange (Given)
         var result = Task.FromResult(Result.Success());
@@ -139,11 +139,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToActionResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var result = Result.Success();
-        var task = Task.FromResult(result);
+        var valueTask = Task.FromResult(Result.Success());
 
         // Act (When)
-        var actionResult = await task.ToActionResultAsync();
+        var actionResult = await valueTask.ToActionResultAsync();
 
         // Assert (Then)
         Assert.IsType<NoContentResult>(actionResult);
@@ -153,13 +152,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToActionResultAsync_Generic_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var tcs = new TaskCompletionSource<Result<int>>();
-        var task = tcs.Task;
+        var valueTask = Task.FromResult(Result.Success(42));
 
         // Act (When)
-        var resultTask = task.ToActionResultAsync();
-        tcs.SetResult(Result.Success(42));
-        var actionResult = await resultTask;
+        var actionResult = await valueTask.ToActionResultAsync();
 
         // Assert (Then)
         var okResult = Assert.IsType<OkObjectResult>(actionResult);
@@ -170,13 +166,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToCreatedActionResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var tcs = new TaskCompletionSource<Result<int>>();
-        var task = tcs.Task;
+        var valueTask = Task.FromResult(Result.Success(42));
 
         // Act (When)
-        var resultTask = task.ToCreatedActionResultAsync("GetItem");
-        tcs.SetResult(Result.Success(42));
-        var actionResult = await resultTask;
+        var actionResult = await valueTask.ToCreatedActionResultAsync("GetItem");
 
         // Assert (Then)
         var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);

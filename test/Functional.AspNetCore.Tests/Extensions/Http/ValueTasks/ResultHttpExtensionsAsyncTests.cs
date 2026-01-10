@@ -168,7 +168,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_Generic_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var valueTask = new ValueTask<Result<int>>(Result.Success(42));
+        var valueTask = ValueTask.FromResult(Result.Success(42));
 
         // Act (When)
         var httpResult = await valueTask.ToHttpResultAsync();
@@ -181,7 +181,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToCreatedHttpResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var valueTask = new ValueTask<Result<int>>(Result.Success(42));
+        var valueTask = ValueTask.FromResult(Result.Success(42));
 
         // Act (When)
         var httpResult = await valueTask.ToCreatedHttpResultAsync(id => $"/items/{id}");

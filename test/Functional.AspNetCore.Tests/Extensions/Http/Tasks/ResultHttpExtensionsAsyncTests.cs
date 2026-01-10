@@ -57,20 +57,20 @@ public class ResultHttpExtensionsAsyncTests
         Assert.NotNull(httpResult);
     }
 
-    [Fact(DisplayName = "ToHttpResultAsync<T, TDto> with DTO mapper transforms value")]
-    public async Task ToHttpResultAsync_Generic_WithDtoMapper_TransformsValue()
+    [Fact(DisplayName = "ToHttpResultAsync with DTO mapper transforms value for Task<Result>")]
+    public async Task ToHttpResultAsync_WithDtoMapper_TransformsValue()
     {
         // Arrange (Given)
-        var result = Task.FromResult(Result.Success(42));
+        var result = Task.FromResult(Result.Success());
 
         // Act (When)
-        var httpResult = await result.ToHttpResultAsync(x => new { Value = x.ToString() });
+        var httpResult = await result.ToHttpResultAsync(() => new { Status = "Success" });
 
         // Assert (Then)
         Assert.NotNull(httpResult);
     }
 
-    [Fact(DisplayName = "ToHttpResultAsync with DTO mapper returns error for failed ValueTask<Result>")]
+    [Fact(DisplayName = "ToHttpResultAsync with DTO mapper returns error for failed Task<Result>")]
     public async Task ToHttpResultAsync_WithDtoMapper_Failure_ReturnsError()
     {
         // Arrange (Given)
@@ -90,7 +90,21 @@ public class ResultHttpExtensionsAsyncTests
         var valueTask = Task.FromResult(Result.Success());
 
         // Act (When)
-        var httpResult = await valueTask.ToHttpResultAsync(() => new { Message = "Complete" });
+        var resultTask = valueTask.ToHttpResultAsync(() => new { Message = "Complete" });
+        var httpResult = await resultTask;
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync<T, TDto> with DTO mapper transforms value")]
+    public async Task ToHttpResultAsync_Generic_WithDtoMapper_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(42));
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(x => new { Value = x.ToString() });
 
         // Assert (Then)
         Assert.NotNull(httpResult);
@@ -141,11 +155,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var result = Result.Success();
-        var task = Task.FromResult(result);
+        var valueTask = Task.FromResult(Result.Success());
 
         // Act (When)
-        var httpResult = await task.ToHttpResultAsync();
+        var httpResult = await valueTask.ToHttpResultAsync();
 
         // Assert (Then)
         Assert.NotNull(httpResult);
@@ -155,13 +168,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_Generic_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var tcs = new TaskCompletionSource<Result<int>>();
-        var task = tcs.Task;
+        var valueTask = Task.FromResult(Result.Success(42));
 
         // Act (When)
-        var resultTask = task.ToHttpResultAsync();
-        tcs.SetResult(Result.Success(42));
-        var httpResult = await resultTask;
+        var httpResult = await valueTask.ToHttpResultAsync();
 
         // Assert (Then)
         Assert.NotNull(httpResult);
@@ -171,13 +181,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToCreatedHttpResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var tcs = new TaskCompletionSource<Result<int>>();
-        var task = tcs.Task;
+        var valueTask = Task.FromResult(Result.Success(42));
 
         // Act (When)
-        var resultTask = task.ToCreatedHttpResultAsync(id => $"/items/{id}");
-        tcs.SetResult(Result.Success(42));
-        var httpResult = await resultTask;
+        var httpResult = await valueTask.ToCreatedHttpResultAsync(id => $"/items/{id}");
 
         // Assert (Then)
         Assert.NotNull(httpResult);

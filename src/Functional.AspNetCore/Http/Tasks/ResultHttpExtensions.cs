@@ -57,23 +57,27 @@ public static class ResultHttpExtensions
     }
 
     /// <summary>
-    /// Converts a <see cref="ValueTask" /> of <see cref="Result" /> to an HTTP-compatible result asynchronously.
+    ///     Converts a <see cref="Task" /> of <see cref="Result" /> to an HTTP-compatible result asynchronously
+    ///     using a specified DTO mapper and an optional error mapper.
     /// </summary>
+    /// <typeparam name="TDto">
+    ///     The type of the DTO to be returned in the HTTP-compatible result.
+    /// </typeparam>
     /// <param name="awaitableResult">
-    /// The <see cref="ValueTask" /> containing a <see cref="Result" /> to be converted to an HTTP result.
+    ///     The <see cref="Task" /> containing a <see cref="Result" /> to be converted to an HTTP result.
     /// </param>
     /// <param name="dtoMapper">
-    /// A function that produces a DTO object for representing successful results in the HTTP response.
+    ///     A function that maps the result data to a DTO to be included in the HTTP-compatible response.
     /// </param>
     /// <param name="errorMapper">
-    /// An optional <see cref="IErrorHttpMapper" /> instance used to map errors in the <see cref="Result" /> to HTTP status
-    /// codes and response bodies. If null, a default mapper is used.
+    ///     An optional <see cref="IErrorHttpMapper" /> instance used to map errors in the <see cref="Result" /> to HTTP status
+    ///     codes and response bodies. If null, a default mapper is used.
     /// </param>
     /// <returns>
-    /// A <see cref="ValueTask" /> of <see cref="Microsoft.AspNetCore.Http.IResult" /> representing the HTTP response
-    /// derived from the result.
+    ///     A <see cref="Task" /> of <see cref="Microsoft.AspNetCore.Http.IResult" /> representing the HTTP response
+    ///     derived from the result.
     /// </returns>
-    public static async ValueTask<HttpResult> ToHttpResultAsync<TDto>(this Task<Result> awaitableResult,
+    public static async Task<HttpResult> ToHttpResultAsync<TDto>(this Task<Result> awaitableResult,
         Func<TDto> dtoMapper,
         IErrorHttpMapper? errorMapper = null)
     {

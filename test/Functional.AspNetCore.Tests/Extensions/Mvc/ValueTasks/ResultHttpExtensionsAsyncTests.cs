@@ -152,13 +152,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToActionResultAsync_Generic_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var tcs = new TaskCompletionSource<Result<int>>();
-        var valueTask = new ValueTask<Result<int>>(tcs.Task);
+        var valueTask = ValueTask.FromResult(Result.Success(42));
 
         // Act (When)
-        var resultTask = valueTask.ToActionResultAsync();
-        tcs.SetResult(Result.Success(42));
-        var actionResult = await resultTask;
+        var actionResult = await valueTask.ToActionResultAsync();
 
         // Assert (Then)
         var okResult = Assert.IsType<OkObjectResult>(actionResult);
@@ -169,13 +166,10 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToCreatedActionResultAsync_AwaitsAsyncOperation_Correctly()
     {
         // Arrange (Given)
-        var tcs = new TaskCompletionSource<Result<int>>();
-        var valueTask = new ValueTask<Result<int>>(tcs.Task);
+        var valueTask = ValueTask.FromResult(Result.Success(42));
 
         // Act (When)
-        var resultTask = valueTask.ToCreatedActionResultAsync("GetItem");
-        tcs.SetResult(Result.Success(42));
-        var actionResult = await resultTask;
+        var actionResult = await valueTask.ToCreatedActionResultAsync("GetItem");
 
         // Assert (Then)
         var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);

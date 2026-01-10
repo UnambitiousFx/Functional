@@ -70,7 +70,7 @@ public sealed class ResultAssertionTests
     [Fact]
     public async Task Async_ValueTask_Generic_EnsureSuccess()
     {
-        await new ValueTask<Result<int>>(Result.Success(9))
+        await  ValueTask.FromResult(Result.Success(9))
             .ShouldBe()
             .Success()
             .And(v => Assert.Equal(9, v));
