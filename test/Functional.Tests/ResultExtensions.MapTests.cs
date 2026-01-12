@@ -8,6 +8,28 @@ namespace UnambitiousFx.Functional.Tests;
 /// </summary>
 public sealed partial class ResultExtensions
 {
+    #region Map (Non-Generic Result) - Edge Cases
+
+    [Fact]
+    public void Map_WithNonGenericResult_CanChainWithGenericMap()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var mapped = result
+            .Map(() => 10)
+            .Map(x => x * 2)
+            .Map(x => x.ToString());
+
+        // Assert (Then)
+        mapped.ShouldBe()
+            .Success()
+            .And(value => Assert.Equal("20", value));
+    }
+
+    #endregion
+
     #region Map - Success Cases
 
     [Fact]
@@ -144,6 +166,128 @@ public sealed partial class ResultExtensions
         mapped.ShouldBe()
             .Success()
             .And(value => Assert.Equal("John is 30 years old", value));
+    }
+
+    #endregion
+
+    #region Map (Non-Generic Result) - Success Cases
+
+    [Fact]
+    public void Map_WithNonGenericSuccessResult_CreatesSuccessWithValue()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var mapped = result.Map(() => 42);
+
+        // Assert (Then)
+        mapped.ShouldBe()
+            .Success()
+            .And(value => Assert.Equal(42, value));
+    }
+
+    [Fact]
+    public void Map_WithNonGenericSuccessResult_TransformsToString()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var mapped = result.Map(() => "Hello");
+
+        // Assert (Then)
+        mapped.ShouldBe()
+            .Success()
+            .And(value => Assert.Equal("Hello", value));
+    }
+
+    [Fact]
+    public void Map_WithNonGenericSuccessResult_TransformsToComplexObject()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var mapped = result.Map(() => new { Name = "Test", Value = 123 });
+
+        // Assert (Then)
+        mapped.ShouldBe()
+            .Success()
+            .And(value =>
+            {
+                Assert.Equal("Test", value.Name);
+                Assert.Equal(123, value.Value);
+            });
+    }
+
+    [Fact]
+    public void Map_WithNonGenericSuccessResult_PreservesMetadata()
+    {
+        // Arrange (Given)
+        var result = Result.Success().WithMetadata("key", "value");
+
+        // Act (When)
+        var mapped = result.Map(() => 100);
+
+        // Assert (Then)
+        mapped.ShouldBe().Success();
+        Assert.Equal("value", mapped.Metadata["key"]);
+    }
+
+    #endregion
+
+    #region Map (Non-Generic Result) - Failure Cases
+
+    [Fact]
+    public void Map_WithNonGenericFailureResult_PropagatesError()
+    {
+        // Arrange (Given)
+        var error = new Error("Operation failed");
+        var result = Result.Failure(error);
+
+        // Act (When)
+        var mapped = result.Map(() => 42);
+
+        // Assert (Then)
+        mapped.ShouldBe()
+            .Failure()
+            .AndMessage("Operation failed");
+    }
+
+    [Fact]
+    public void Map_WithNonGenericFailureResult_DoesNotExecuteMapper()
+    {
+        // Arrange (Given)
+        var error = new Error("Test error");
+        var result = Result.Failure(error);
+        var executed = false;
+
+        // Act (When)
+        var mapped = result.Map(() =>
+        {
+            executed = true;
+            return 42;
+        });
+
+        // Assert (Then)
+        Assert.False(executed);
+        mapped.ShouldBe().Failure();
+    }
+
+    [Fact]
+    public void Map_WithNonGenericFailureResult_PreservesMetadata()
+    {
+        // Arrange (Given)
+        var error = new Error("Test error");
+        var result = Result.Failure(error).WithMetadata("key", "value");
+
+        // Act (When)
+        var mapped = result.Map(() => "test");
+
+        // Assert (Then)
+        mapped.ShouldBe().Failure();
+        Assert.Equal("value", mapped.Metadata["key"]);
     }
 
     #endregion
