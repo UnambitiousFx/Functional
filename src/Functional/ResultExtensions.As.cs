@@ -30,4 +30,26 @@ public static partial class ResultExtensions
     {
         return result.Bind(_ => Result.Success(value));
     }
+
+    /// <summary>
+    /// Converts the current <see cref="Result{TValue}"/> instance to a <see cref="Result{TOut}"/> instance
+    /// by replacing the success value with the specified new value, while preserving any error state.
+    /// </summary>
+    /// <typeparam name="TOut">
+    /// The type of the value in the resulting <see cref="Result{TOut}"/>.
+    /// </typeparam>
+    /// <param name="result">
+    /// The current <see cref="Result{TValue}"/> instance to convert.
+    /// </param>
+    /// <param name="value">
+    /// The new value to assign to the resulting <see cref="Result{TOut}"/> if the current result is successful.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Result{TOut}"/> instance with the specified new success value if the operation succeeds.
+    /// If the current result contains an error, the error state is preserved.
+    /// </returns>
+    public static Result<TOut> As<TOut>(this Result result, TOut value) where TOut : notnull
+    {
+        return result.Bind(() => Result.Success(value));
+    }
 }

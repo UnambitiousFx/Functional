@@ -194,4 +194,191 @@ public sealed partial class ResultExtensions
     }
 
     #endregion
+
+    #region As (Non-Generic Result) - Success Cases
+
+    [Fact]
+    public void As_NonGenericResult_WithSuccess_ReplacesWithValue()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var converted = result.As("new value");
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Success()
+            .And(value => Assert.Equal("new value", value));
+    }
+
+    [Fact]
+    public void As_NonGenericResult_WithSuccess_CanUseAnyType()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var converted = result.As(42);
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Success()
+            .And(value => Assert.Equal(42, value));
+    }
+
+    [Fact]
+    public void As_NonGenericResult_WithSuccess_PreservesMetadata()
+    {
+        // Arrange (Given)
+        var result = Result.Success().WithMetadata("key", "value");
+
+        // Act (When)
+        var converted = result.As("new value");
+
+        // Assert (Then)
+        converted.ShouldBe().Success();
+        Assert.Equal("value", converted.Metadata["key"]);
+    }
+
+    [Fact]
+    public void As_NonGenericResult_WithSuccess_CanUseComplexType()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+        var newValue = new { Name = "Jane", Age = 25 };
+
+        // Act (When)
+        var converted = result.As(newValue);
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Success()
+            .And(value =>
+            {
+                Assert.Equal("Jane", value.Name);
+                Assert.Equal(25, value.Age);
+            });
+    }
+
+    #endregion
+
+    #region As (Non-Generic Result) - Failure Cases
+
+    [Fact]
+    public void As_NonGenericResult_WithFailure_PropagatesError()
+    {
+        // Arrange (Given)
+        var error = new Error("Test error");
+        var result = Result.Failure(error);
+
+        // Act (When)
+        var converted = result.As("new value");
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Failure()
+            .AndMessage("Test error");
+    }
+
+    [Fact]
+    public void As_NonGenericResult_WithFailure_DoesNotUseNewValue()
+    {
+        // Arrange (Given)
+        var error = new Error("Test error");
+        var result = Result.Failure(error);
+
+        // Act (When)
+        var converted = result.As(42);
+
+        // Assert (Then)
+        converted.ShouldBe().Failure();
+    }
+
+    [Fact]
+    public void As_NonGenericResult_WithFailure_PreservesErrorCode()
+    {
+        // Arrange (Given)
+        var error = new Error("TEST_CODE", "Test error");
+        var result = Result.Failure(error);
+
+        // Act (When)
+        var converted = result.As(123);
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Failure()
+            .AndCode("TEST_CODE");
+    }
+
+    [Fact]
+    public void As_NonGenericResult_WithFailure_PreservesMetadata()
+    {
+        // Arrange (Given)
+        var error = new Error("Test error");
+        var result = Result.Failure(error).WithMetadata("key", "value");
+
+        // Act (When)
+        var converted = result.As("new value");
+
+        // Assert (Then)
+        converted.ShouldBe().Failure();
+        Assert.Equal("value", converted.Metadata["key"]);
+    }
+
+    #endregion
+
+    #region As (Non-Generic Result) - Edge Cases
+
+    [Fact]
+    public void As_NonGenericResult_CanChainMultipleTimes()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var converted = result
+            .As("first")
+            .As(100)
+            .As(true);
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Success()
+            .And(value => Assert.True(value));
+    }
+
+    [Fact]
+    public void As_NonGenericResult_CanBeUsedAfterBind()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var converted = result
+            .Bind(() => Result.Success())
+            .As("replaced");
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Success()
+            .And(value => Assert.Equal("replaced", value));
+    }
+
+    [Fact]
+    public void As_NonGenericResult_CanConvertToGenericResult()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var converted = result.As(42);
+
+        // Assert (Then)
+        converted.ShouldBe()
+            .Success()
+            .And(value => Assert.Equal(42, value));
+    }
+
+    #endregion
 }
