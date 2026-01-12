@@ -1,11 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Functional\Functional.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Functional\Functional.csproj"/>
+    </ItemGroup>
 
+    <ItemGroup>
+        <PackageReference Include="AsyncFixer">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 </Project>
