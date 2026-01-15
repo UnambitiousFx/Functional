@@ -114,15 +114,6 @@ public class ResultHttpExtensionsTests
         Assert.NotNull(httpResult);
     }
 
-    [Fact(DisplayName = "ToHttpResult with non-generic Result and null DTO mapper throws ArgumentNullException")]
-    public void ToHttpResult_NonGenericWithNullDtoMapper_ThrowsArgumentNullException()
-    {
-        // Given
-        var result = Result.Success();
-
-        // When & Then
-        Assert.Throws<ArgumentNullException>(() => result.ToHttpResult<object>(null!));
-    }
 
     [Fact(DisplayName = "ToCreatedHttpResult with failure returns error result")]
     public void ToCreatedHttpResult_Failure_ReturnsErrorResult()

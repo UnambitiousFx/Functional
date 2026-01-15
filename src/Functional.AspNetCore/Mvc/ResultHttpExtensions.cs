@@ -87,7 +87,7 @@ public static class ResultHttpExtensions
         /// <returns>An IResult representing the result.</returns>
         public IActionResult ToActionResult(IErrorHttpMapper? errorMapper = null)
         {
-            return result.ToActionResult(() => new NoContentResult(), errorMapper);
+            return result.ToActionResult(httpMapper: () => new NoContentResult(), errorMapper);
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ public static class ResultHttpExtensions
         /// <returns>An IResult representing the result.</returns>
         public IActionResult ToActionResult(IErrorHttpMapper? mapper = null)
         {
-            return result.ToActionResult(v => new OkObjectResult(v), mapper);
+            return result.ToActionResult(v => v, (_, v) => new OkObjectResult(v), mapper);
         }
 
         /// <summary>
