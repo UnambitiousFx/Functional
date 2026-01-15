@@ -63,7 +63,8 @@ public static partial class ResultExtensions
         /// <param name="then">The transformation function.</param>
         /// <param name="copyReasonsAndMetadata">Whether to copy reasons and metadata from original result.</param>
         /// <returns>A task with the new result.</returns>
-        public async Task<Result<TValue>> ThenAsync(Func<TValue, Result<TValue>> then, bool copyReasonsAndMetadata = true)
+        public async Task<Result<TValue>> ThenAsync(Func<TValue, Result<TValue>> then,
+            bool copyReasonsAndMetadata = true)
         {
             var result = await awaitableResult.ConfigureAwait(false);
             return result.Then(then, copyReasonsAndMetadata);
@@ -71,7 +72,7 @@ public static partial class ResultExtensions
 
 
         /// <summary>
-        /// Asynchronously chains a transformation function that returns a non-generic result.
+        ///     Asynchronously chains a transformation function that returns a non-generic result.
         /// </summary>
         /// <param name="then">The transformation function to apply on a successful result.</param>
         /// <param name="copyReasonsAndMetadata">Specifies whether to copy reasons and metadata from the original result.</param>
@@ -85,8 +86,9 @@ public static partial class ResultExtensions
         }
 
         /// <summary>
-        /// Asynchronously applies a transformation function to a result of type <typeparamref name="TValue"/> and returns a new
-        /// result, possibly with reasons and metadata copied from the original result.
+        ///     Asynchronously applies a transformation function to a result of type <typeparamref name="TValue" /> and returns a
+        ///     new
+        ///     result, possibly with reasons and metadata copied from the original result.
         /// </summary>
         /// <param name="then">The transformation function that is asynchronously applied to the value of the result.</param>
         /// <param name="copyReasonsAndMetadata">Specifies whether to copy reasons and metadata from the original result.</param>
