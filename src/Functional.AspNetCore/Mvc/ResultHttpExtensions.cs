@@ -20,6 +20,12 @@ public static class ResultHttpExtensions
         };
     }
 
+    private static IActionResult DefaultActionResult(int statusCode, object? body)
+    {
+        if (body is null) return new StatusCodeResult(statusCode);
+        return new ObjectResult(body) { StatusCode = statusCode };
+    }
+
     private static IActionResult BodyToActionResult(int statusCode, object? body)
     {
         return statusCode switch
@@ -33,7 +39,7 @@ public static class ResultHttpExtensions
             {
                 StatusCode = 500
             },
-            _ => new StatusCodeResult(statusCode)
+            _ => DefaultActionResult(statusCode, body)
         };
     }
 
