@@ -119,7 +119,7 @@ public class ResultHttpExtensionsTests
         var actionResult = result.ToCreatedActionResult("GetItem", mapper: mapper);
 
         // Then
-        var objectResult = Assert.IsType<StatusCodeResult>(actionResult);
+        var objectResult = Assert.IsType<ObjectResult>(actionResult);
         Assert.Equal(418, objectResult.StatusCode);
     }
 

@@ -6,6 +6,7 @@
 #nullable enable
 
 using UnambitiousFx.Functional.AspNetCore.Http.Tasks;
+using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Errors;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Http.Tasks;
@@ -196,4 +197,158 @@ public class ResultHttpExtensionsAsyncTests
         // Assert (Then)
         Assert.NotNull(httpResult);
     }
+
+    [Fact(DisplayName = "ToHttpResultAsync with custom httpMapper returns custom result for success")]
+    public async Task ToHttpResultAsync_WithCustomHttpMapper_Success_ReturnsCustomResult()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success());
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            () => Microsoft.AspNetCore.Http.Results.Ok("Custom success response"));
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync with custom httpMapper returns error for failure")]
+    public async Task ToHttpResultAsync_WithCustomHttpMapper_Failure_ReturnsError()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure(new ValidationError(["Validation failed"])));
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            () => Microsoft.AspNetCore.Http.Results.Ok("Custom success response"));
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync with custom httpMapper and custom errorMapper uses custom error mapping")]
+    public async Task ToHttpResultAsync_WithCustomHttpMapperAndErrorMapper_UsesCustomErrorMapping()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure(new CustomError(418, "I'm a teapot")));
+        var errorMapper = new CustomStatusCodeMapper();
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            () => Microsoft.AspNetCore.Http.Results.Ok("Success"),
+            errorMapper);
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync<TValue> with dtoMapper and httpMapper transforms value for success")]
+    public async Task ToHttpResultAsync_Generic_WithDtoMapperAndHttpMapper_Success_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success());
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            () => new { Status = "Complete" },
+            dto => Microsoft.AspNetCore.Http.Results.Accepted("/status", dto));
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync<TValue> with dtoMapper and httpMapper returns error for failure")]
+    public async Task ToHttpResultAsync_Generic_WithDtoMapperAndHttpMapper_Failure_ReturnsError()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure(new NotFoundError("Resource", "123")));
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            () => new { Status = "Complete" },
+            dto => Microsoft.AspNetCore.Http.Results.Accepted("/status", dto));
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync<TValue> with dtoMapper, httpMapper and custom errorMapper uses custom error mapping")]
+    public async Task ToHttpResultAsync_Generic_WithDtoMapperHttpMapperAndErrorMapper_UsesCustomErrorMapping()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure(new CustomError(418, "Custom error")));
+        var errorMapper = new CustomStatusCodeMapper();
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            () => new { Status = "Complete" },
+            dto => Microsoft.AspNetCore.Http.Results.Accepted("/status", dto),
+            errorMapper);
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync<TValue,TDto> with dtoMapper and httpMapper transforms value for success")]
+    public async Task ToHttpResultAsync_GenericWithDto_WithDtoMapperAndHttpMapper_Success_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Success(42));
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            x => new { Value = x.ToString(), Doubled = x * 2 },
+            (value, dto) => Microsoft.AspNetCore.Http.Results.Created($"/items/{value}", dto));
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync<TValue,TDto> with dtoMapper and httpMapper returns error for failure")]
+    public async Task ToHttpResultAsync_GenericWithDto_WithDtoMapperAndHttpMapper_Failure_ReturnsError()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure<int>(new ValidationError(["Invalid value"])));
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            x => new { Value = x.ToString(), Doubled = x * 2 },
+            (value, dto) => Microsoft.AspNetCore.Http.Results.Created($"/items/{value}", dto));
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResultAsync<TValue,TDto> with dtoMapper, httpMapper and custom errorMapper uses custom error mapping")]
+    public async Task ToHttpResultAsync_GenericWithDto_WithDtoMapperHttpMapperAndErrorMapper_UsesCustomErrorMapping()
+    {
+        // Arrange (Given)
+        var result = Task.FromResult(Result.Failure<int>(new CustomError(418, "Custom error")));
+        var errorMapper = new CustomStatusCodeMapper();
+
+        // Act (When)
+        var httpResult = await result.ToHttpResultAsync(
+            x => new { Value = x.ToString(), Doubled = x * 2 },
+            (value, dto) => Microsoft.AspNetCore.Http.Results.Created($"/items/{value}", dto),
+            errorMapper);
+
+        // Assert (Then)
+        Assert.NotNull(httpResult);
+    }
+
+    #region Helper classes for testing
+
+    private record CustomError(int StatusCode, string Message) : Error(Message);
+
+    private class CustomStatusCodeMapper : IErrorHttpMapper
+    {
+        public (int StatusCode, object? Body)? GetResponse(IError error)
+        {
+            var body = string.IsNullOrWhiteSpace(error.Message) ? null : new { error.Message };
+            if (error is CustomError customError) return (customError.StatusCode, body);
+            return null;
+        }
+    }
+
+    #endregion
 }

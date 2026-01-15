@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.AspNetCore.Mvc.ValueTasks;
 using UnambitiousFx.Functional.Errors;
 
@@ -68,7 +69,7 @@ public class ResultHttpExtensionsAsyncTests
         var result = ValueTask.FromResult(Result.Success());
 
         // Act (When)
-        var actionResult = await result.ToHttpResultAsync(() => new { Status = "Success" });
+        var actionResult = await result.ToActionResultAsync(() => new { Status = "Success" });
 
         // Assert (Then)
         var okResult = Assert.IsType<OkObjectResult>(actionResult);
@@ -175,4 +176,168 @@ public class ResultHttpExtensionsAsyncTests
         var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
         Assert.Equal(42, createdResult.Value);
     }
+
+    [Fact(DisplayName = "ToActionResultAsync with custom httpMapper returns custom result for success")]
+    public async Task ToActionResultAsync_WithCustomHttpMapper_Success_ReturnsCustomResult()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Success());
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            httpMapper: () => new OkObjectResult("Custom success response"));
+
+        // Assert (Then)
+        var okResult = Assert.IsType<OkObjectResult>(actionResult);
+        Assert.Equal("Custom success response", okResult.Value);
+    }
+
+    [Fact(DisplayName = "ToActionResultAsync with custom httpMapper returns error for failure")]
+    public async Task ToActionResultAsync_WithCustomHttpMapper_Failure_ReturnsError()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Failure(new ValidationError(["Validation failed"])));
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(() => new OkObjectResult("Custom success response"));
+
+        // Assert (Then)
+        var objectResult = Assert.IsType<ObjectResult>(actionResult);
+        Assert.Equal(400, objectResult.StatusCode);
+    }
+
+    [Fact(DisplayName = "ToActionResultAsync with custom httpMapper and custom errorMapper uses custom error mapping")]
+    public async Task ToActionResultAsync_WithCustomHttpMapperAndErrorMapper_UsesCustomErrorMapping()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Failure(new CustomError(418, "I'm a teapot")));
+        var errorMapper = new CustomStatusCodeMapper();
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            httpMapper: () => new OkObjectResult("Success"),
+            errorMapper);
+
+        // Assert (Then)
+        var objectResult = Assert.IsType<ObjectResult>(actionResult);
+        Assert.Equal(418, objectResult.StatusCode);
+    }
+
+    [Fact(DisplayName = "ToActionResultAsync<TValue> with dtoMapper and httpMapper transforms value for success")]
+    public async Task ToActionResultAsync_Generic_WithDtoMapperAndHttpMapper_Success_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Success());
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            () => new { Status = "Complete" },
+            dto => new AcceptedResult("/status", dto));
+
+        // Assert (Then)
+        var acceptedResult = Assert.IsType<AcceptedResult>(actionResult);
+        Assert.NotNull(acceptedResult.Value);
+    }
+
+    [Fact(DisplayName = "ToActionResultAsync<TValue> with dtoMapper and httpMapper returns error for failure")]
+    public async Task ToActionResultAsync_Generic_WithDtoMapperAndHttpMapper_Failure_ReturnsError()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Failure(new NotFoundError("Resource", "123")));
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            () => new { Status = "Complete" },
+            dto => new AcceptedResult("/status", dto));
+
+        // Assert (Then)
+        var objectResult = Assert.IsType<ObjectResult>(actionResult);
+        Assert.Equal(404, objectResult.StatusCode);
+    }
+
+    [Fact(DisplayName =
+        "ToActionResultAsync<TValue> with dtoMapper, httpMapper and custom errorMapper uses custom error mapping")]
+    public async Task ToActionResultAsync_Generic_WithDtoMapperHttpMapperAndErrorMapper_UsesCustomErrorMapping()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Failure(new CustomError(418, "Custom error")));
+        var errorMapper = new CustomStatusCodeMapper();
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            () => new { Status = "Complete" },
+            dto => new AcceptedResult("/status", dto),
+            errorMapper);
+
+        // Assert (Then)
+        var objectResult = Assert.IsType<ObjectResult>(actionResult);
+        Assert.Equal(418, objectResult.StatusCode);
+    }
+
+    [Fact(DisplayName = "ToActionResultAsync<TValue,TDto> with dtoMapper and httpMapper transforms value for success")]
+    public async Task ToActionResultAsync_GenericWithDto_WithDtoMapperAndHttpMapper_Success_TransformsValue()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Success(42));
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            x => new { Value = x.ToString(), Doubled = x * 2 },
+            (value, dto) => new CreatedAtActionResult("GetItem", null, new { id = value }, dto));
+
+        // Assert (Then)
+        var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
+        Assert.NotNull(createdResult.Value);
+    }
+
+    [Fact(DisplayName = "ToActionResultAsync<TValue,TDto> with dtoMapper and httpMapper returns error for failure")]
+    public async Task ToActionResultAsync_GenericWithDto_WithDtoMapperAndHttpMapper_Failure_ReturnsError()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Failure<int>(new ValidationError(["Invalid value"])));
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            x => new { Value = x.ToString(), Doubled = x * 2 },
+            (value, dto) => new CreatedAtActionResult("GetItem", null, new { id = value }, dto));
+
+        // Assert (Then)
+        var objectResult = Assert.IsType<ObjectResult>(actionResult);
+        Assert.Equal(400, objectResult.StatusCode);
+    }
+
+    [Fact(DisplayName =
+        "ToActionResultAsync<TValue,TDto> with dtoMapper, httpMapper and custom errorMapper uses custom error mapping")]
+    public async Task ToActionResultAsync_GenericWithDto_WithDtoMapperHttpMapperAndErrorMapper_UsesCustomErrorMapping()
+    {
+        // Arrange (Given)
+        var result = ValueTask.FromResult(Result.Failure<int>(new CustomError(418, "Custom error")));
+        var errorMapper = new CustomStatusCodeMapper();
+
+        // Act (When)
+        var actionResult = await result.ToActionResultAsync(
+            x => new { Value = x.ToString(), Doubled = x * 2 },
+            (value, dto) => new CreatedAtActionResult("GetItem", null, new { id = value }, dto),
+            errorMapper);
+
+        // Assert (Then)
+        var objectResult = Assert.IsType<ObjectResult>(actionResult);
+        Assert.Equal(418, objectResult.StatusCode);
+    }
+
+    #region Helper classes for testing
+
+    private record CustomError(int StatusCode, string Message) : Error(Message);
+
+    private class CustomStatusCodeMapper : IErrorHttpMapper
+    {
+        public (int StatusCode, object? Body)? GetResponse(IError error)
+        {
+            var body = string.IsNullOrWhiteSpace(error.Message) ? null : new { error.Message };
+            if (error is CustomError customError) return (customError.StatusCode, body);
+            return null;
+        }
+    }
+
+    #endregion
 }

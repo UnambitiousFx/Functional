@@ -75,7 +75,7 @@ public class ResultHttpExtensionsAsyncTests
         var result = Task.FromResult(Result.Success());
 
         // Act (When)
-        var actionResult = await result.ToHttpResultAsync(() => new { Status = "Success" });
+        var actionResult = await result.ToActionResultAsync(() => new { Status = "Success" });
 
         // Assert (Then)
         var okResult = Assert.IsType<OkObjectResult>(actionResult);
