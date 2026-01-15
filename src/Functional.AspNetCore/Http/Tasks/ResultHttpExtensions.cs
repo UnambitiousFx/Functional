@@ -164,7 +164,6 @@ public static class ResultHttpExtensions
         ///     Converts an awaitable Result of type TValue to an IResult for use in minimal API endpoints.
         ///     Maps success to an appropriate HTTP response and failure to a corresponding status code or response body.
         /// </summary>
-        /// <typeparam name="TValue">The type of the success value.</typeparam>
         /// <param name="errorMapper">
         ///     An optional custom mapper for handling errors. If null, a default implementation will be used.
         /// </param>
