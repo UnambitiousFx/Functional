@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -63,9 +63,9 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound("Product", "abc-123");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<NotFoundError>(error);
-        var notFoundError = (NotFoundError)error;
+        result.TryGetError(out Failure? error);
+        Assert.IsType<NotFoundFailure>(error);
+        var notFoundError = (NotFoundFailure)error;
         Assert.Equal("Product", notFoundError.Resource);
         Assert.Equal("abc-123", notFoundError.Identifier);
     }
@@ -151,9 +151,9 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound<string>("Product", "abc-123");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<NotFoundError>(error);
-        var notFoundError = (NotFoundError)error;
+        result.TryGetError(out Failure? error);
+        Assert.IsType<NotFoundFailure>(error);
+        var notFoundError = (NotFoundFailure)error;
         Assert.Equal("Product", notFoundError.Resource);
         Assert.Equal("abc-123", notFoundError.Identifier);
     }

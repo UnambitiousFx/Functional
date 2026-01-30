@@ -1,5 +1,4 @@
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
@@ -9,35 +8,35 @@ public class ValidationErrorAssertionTests
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When)
         var result = assertion.And(e => Assert.NotNull(e));
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "WithFailure succeeds when failure exists")]
     public void WithFailure_WhenFailureExists_Succeeds()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required", "Email is invalid"]);
+        var error = new ValidationFailure(["Field is required", "Email is invalid"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When)
         var result = assertion.WithFailure("Field is required");
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "WithFailure throws when failure does not exist")]
     public void WithFailure_WhenFailureDoesNotExist_Throws()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -48,21 +47,21 @@ public class ValidationErrorAssertionTests
     public void WithFailureContaining_WhenTextContained_Succeeds()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When)
         var result = assertion.WithFailureContaining("required");
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "WithFailureContaining throws when text is not contained in any failure")]
     public void WithFailureContaining_WhenTextNotContained_Throws()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -73,21 +72,21 @@ public class ValidationErrorAssertionTests
     public void WithFailureCount_WhenCountMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required", "Email is invalid"]);
+        var error = new ValidationFailure(["Field is required", "Email is invalid"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When)
         var result = assertion.WithFailureCount(2);
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "WithFailureCount throws when count does not match")]
     public void WithFailureCount_WhenCountDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -98,21 +97,21 @@ public class ValidationErrorAssertionTests
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When)
         var result = assertion.AndMessage("Field is required");
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "AndMessage throws when message does not match")]
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -123,21 +122,21 @@ public class ValidationErrorAssertionTests
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When)
         var result = assertion.AndCode("VALIDATION");
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "AndCode throws when code does not match")]
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -148,7 +147,7 @@ public class ValidationErrorAssertionTests
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required", "Email is invalid"]);
+        var error = new ValidationFailure(["Field is required", "Email is invalid"]);
         var assertion = new ValidationErrorAssertion(error);
 
         // Act (When) & Assert (Then)

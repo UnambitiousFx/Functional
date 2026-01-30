@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -63,8 +63,8 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized("Permission denied");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<UnauthorizedError>(error);
+        result.TryGetError(out Failure? error);
+        Assert.IsType<UnauthorizedFailure>(error);
     }
 
     [Fact]
@@ -136,8 +136,8 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized<string>("Permission denied");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<UnauthorizedError>(error);
+        result.TryGetError(out Failure? error);
+        Assert.IsType<UnauthorizedFailure>(error);
     }
 
     [Fact]

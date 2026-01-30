@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using Xunit;
 
 namespace UnambitiousFx.Functional.xunit;
@@ -11,7 +11,7 @@ namespace UnambitiousFx.Functional.xunit;
 /// <typeparam name="TError">The specific error type that implements IError.</typeparam>
 [DebuggerStepThrough]
 public readonly struct TypedErrorAssertion<TError>
-    where TError : IError
+    where TError : IFailure
 {
     /// <summary>
     ///     Represents a fluent assertion mechanism for handling strongly-typed error cases in test results.

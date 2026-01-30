@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -14,7 +14,7 @@ public sealed partial class ResultExtensions
     public void Flatten_WithFailure_PropagatesOuterError()
     {
         // Arrange (Given)
-        var error = new Error("Outer error");
+        var error = new Failure("Outer error");
         var outerResult = Result.Failure<Result<int>>(error);
 
         // Act (When)
@@ -46,7 +46,7 @@ public sealed partial class ResultExtensions
     public void Flatten_WithSuccessOfFailure_ReturnsInnerFailure()
     {
         // Arrange (Given)
-        var error = new Error("Inner error");
+        var error = new Failure("Inner error");
         var innerResult = Result.Failure<int>(error);
         var outerResult = Result.Success(innerResult);
 

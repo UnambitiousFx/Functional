@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional;
 
@@ -15,9 +15,9 @@ internal sealed class ResultDebugView<TValue>
     public bool IsSuccess => _result.IsSuccess;
     public bool IsFaulted => _result.IsFaulted;
 
-    public TValue? Value => _result.TryGet(out TValue? value) ? value : default;
+    public TValue? Value => _result.TryGetValue(out var value) ? value : default;
 
-    public Error? Error => _result.TryGet(out _, out var error) ? null : error;
+    public Failure? Error => _result.TryGet(out _, out var error) ? null : error;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
@@ -29,11 +29,11 @@ internal sealed class ResultDebugView<TValue>
             {
                 return error switch
                 {
-                    AggregateError agg => new
+                    AggregateFailure agg => new
                     {
                         Type = "AggregateError", ErrorCount = agg.Errors.Count(), Errors = agg.Errors.ToArray()
                     },
-                    ExceptionalError exc => new
+                    ExceptionalFailure exc => new
                     {
                         Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType().Name
                     },
@@ -58,7 +58,7 @@ internal sealed class ResultDebugView
     public bool IsSuccess => _result.IsSuccess;
     public bool IsFaulted => _result.IsFaulted;
 
-    public Error? Error => _result.TryGet(out var error) ? null : error;
+    public Failure? Error => !_result.TryGetError(out var error) ? null : error;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
@@ -66,18 +66,18 @@ internal sealed class ResultDebugView
     {
         get
         {
-            if (_result.TryGet(out var error))
+            if (!_result.TryGetError(out var error))
             {
                 return null;
             }
 
             return error switch
             {
-                AggregateError agg => new
+                AggregateFailure agg => new
                 {
                     Type = "AggregateError", ErrorCount = agg.Errors.Count(), Errors = agg.Errors.ToArray()
                 },
-                ExceptionalError exc => new
+                ExceptionalFailure exc => new
                 {
                     Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType().Name
                 },

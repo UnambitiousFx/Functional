@@ -1,6 +1,6 @@
 using NSubstitute;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Mappers;
 
@@ -10,7 +10,7 @@ public class CompositeErrorHttpMapperTests
     public void GetResponse_FirstMapperReturnsStatus_ReturnsFirstStatus()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
         mapper1.GetResponse(error).Returns((400, null));
@@ -27,14 +27,14 @@ public class CompositeErrorHttpMapperTests
         Assert.NotNull(response);
         Assert.Equal(400, response.Value.StatusCode);
         mapper1.Received(1).GetResponse(error);
-        mapper2.DidNotReceive().GetResponse(Arg.Any<IError>());
+        mapper2.DidNotReceive().GetResponse(Arg.Any<IFailure>());
     }
 
     [Fact(DisplayName = "GetResponse tries next mapper when first returns null")]
     public void GetResponse_FirstMapperReturnsNull_TriesNextMapper()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
         mapper1.GetResponse(error).Returns(((int StatusCode, object? Body)?)null);
@@ -58,7 +58,7 @@ public class CompositeErrorHttpMapperTests
     public void GetResponse_AllMappersReturnNull_ReturnsNull()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
         mapper1.GetResponse(error).Returns(((int StatusCode, object? Body)?)null);
@@ -81,7 +81,7 @@ public class CompositeErrorHttpMapperTests
     public void GetResponseBody_FirstMapperReturnsBody_ReturnsFirstBody()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var expectedBody = new { error = "validation_error" };
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
@@ -99,14 +99,14 @@ public class CompositeErrorHttpMapperTests
         Assert.NotNull(response);
         Assert.Same(expectedBody, response.Value.Body);
         mapper1.Received(1).GetResponse(error);
-        mapper2.DidNotReceive().GetResponse(Arg.Any<IError>());
+        mapper2.DidNotReceive().GetResponse(Arg.Any<IFailure>());
     }
 
     [Fact(DisplayName = "GetResponseBody tries next mapper when first returns null")]
     public void GetResponseBody_FirstMapperReturnsNull_TriesNextMapper()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
         var expectedBody = new { error = "validation_error" };
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
@@ -131,7 +131,7 @@ public class CompositeErrorHttpMapperTests
     public void GetResponseBody_AllMappersReturnNull_ReturnsNull()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
         mapper1.GetResponse(error).Returns((object?)null);

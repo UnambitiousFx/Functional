@@ -1,4 +1,3 @@
-using UnambitiousFx.Functional.xunit.Tasks;
 using UnambitiousFx.Functional.xunit.ValueTasks;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
@@ -30,9 +29,9 @@ public sealed class OneOfAssertionTests
     }
 
     [Fact]
-    public async Task Async_Task_OneOf_EnsureFirst()
+    public async Task Async_ValueTask_OneOf_EnsureFirst()
     {
-        await Task.FromResult(OneOf<int, string>.FromFirst(1))
+        await new ValueTask<OneOf<int, string>>(OneOf<int, string>.FromFirst(1))
             .ShouldBe()
             .First()
             .And(v => Assert.Equal(1, v))
@@ -42,7 +41,7 @@ public sealed class OneOfAssertionTests
     [Fact]
     public async Task Async_ValueTask_OneOf_EnsureSecond()
     {
-        await ValueTask.FromResult(OneOf<int, string>.FromSecond("two"))
+        await new ValueTask<OneOf<int, string>>(OneOf<int, string>.FromSecond("two"))
             .ShouldBe()
             .Second()
             .And(v => Assert.Equal("two", v))

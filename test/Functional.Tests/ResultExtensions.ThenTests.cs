@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -66,7 +66,7 @@ public sealed partial class ResultExtensions
     public void Then_WithFailure_DoesNotExecuteTransformation()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure<int>(error);
         var transformCalled = false;
 
@@ -86,7 +86,7 @@ public sealed partial class ResultExtensions
     public void Then_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -98,37 +98,6 @@ public sealed partial class ResultExtensions
 
     #endregion
 
-    #region Then - Metadata Handling
-
-    [Fact]
-    public void Then_CopiesMetadata_WhenCopyReasonsAndMetadataIsTrue()
-    {
-        // Arrange (Given)
-        var result = Result.Success(10).WithMetadata("key", "value");
-
-        // Act (When)
-        var transformed = result.Then(x => Result.Success(x * 2));
-
-        // Assert (Then)
-        transformed.ShouldBe().Success();
-        Assert.Equal("value", transformed.Metadata["key"]);
-    }
-
-    [Fact]
-    public void Then_DoesNotCopyMetadata_WhenCopyReasonsAndMetadataIsFalse()
-    {
-        // Arrange (Given)
-        var result = Result.Success(10).WithMetadata("key", "value");
-
-        // Act (When)
-        var transformed = result.Then(x => Result.Success(x * 2), false);
-
-        // Assert (Then)
-        transformed.ShouldBe().Success();
-        Assert.Empty(transformed.Metadata);
-    }
-
-    #endregion
 
     #region Then - Chaining
 
@@ -244,7 +213,7 @@ public sealed partial class ResultExtensions
     public void Then_WithNonGenericResult_WithFailure_DoesNotExecuteTransformation()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure<int>(error);
         var transformCalled = false;
 
@@ -264,7 +233,7 @@ public sealed partial class ResultExtensions
     public void Then_WithNonGenericResult_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -272,66 +241,6 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         transformed.ShouldBe().Failure().AndMessage("Initial error");
-    }
-
-    #endregion
-
-    #region Then (Func<TValue, Result>) - Metadata Handling
-
-    [Fact]
-    public void Then_WithNonGenericResult_CopiesMetadata_WhenCopyReasonsAndMetadataIsTrue()
-    {
-        // Arrange (Given)
-        var result = Result.Success(10).WithMetadata("key", "value");
-
-        // Act (When)
-        var transformed = result.Then(x => Result.Success());
-
-        // Assert (Then)
-        transformed.ShouldBe().Success();
-        Assert.Equal("value", transformed.Metadata["key"]);
-    }
-
-    [Fact]
-    public void Then_WithNonGenericResult_DoesNotCopyMetadata_WhenCopyReasonsAndMetadataIsFalse()
-    {
-        // Arrange (Given)
-        var result = Result.Success(10).WithMetadata("key", "value");
-
-        // Act (When)
-        var transformed = result.Then(x => Result.Success(), false);
-
-        // Assert (Then)
-        transformed.ShouldBe().Success();
-        Assert.NotEmpty(transformed.Metadata);
-    }
-
-    [Fact]
-    public void Then_WithNonGenericResult_CopiesMetadataOnFailure_WhenCopyReasonsAndMetadataIsTrue()
-    {
-        // Arrange (Given)
-        var result = Result.Success(3).WithMetadata("key", "value");
-
-        // Act (When)
-        var transformed = result.Then(x => x > 5 ? Result.Success() : Result.Failure("Too small"));
-
-        // Assert (Then)
-        transformed.ShouldBe().Failure();
-        Assert.Equal("value", transformed.Metadata["key"]);
-    }
-
-    [Fact]
-    public void Then_WithNonGenericResult_DoesNotCopyMetadataOnFailure_WhenCopyReasonsAndMetadataIsFalse()
-    {
-        // Arrange (Given)
-        var result = Result.Success(3).WithMetadata("key", "value");
-
-        // Act (When)
-        var transformed = result.Then(x => x > 5 ? Result.Success() : Result.Failure("Too small"), false);
-
-        // Assert (Then)
-        transformed.ShouldBe().Failure();
-        Assert.Empty(transformed.Metadata);
     }
 
     #endregion

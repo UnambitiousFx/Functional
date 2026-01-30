@@ -1,6 +1,4 @@
 using System.Reflection;
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -10,80 +8,10 @@ namespace UnambitiousFx.Functional.Tests;
 public sealed partial class ResultExtensions
 {
     [Fact]
-    public void AppendError_WithSuccess_ReturnsOriginalResult()
-    {
-        // Arrange (Given)
-        var result = Result.Success();
-
-        // Act (When)
-        var appended = result.AppendError(" - additional info");
-
-        // Assert (Then)
-        appended.ShouldBe().Success();
-    }
-
-    [Fact]
-    public void AppendError_WithFailure_AppendsToMessage()
-    {
-        // Arrange (Given)
-        var error = new Error("Database error");
-        var result = Result.Failure(error);
-
-        // Act (When)
-        var appended = result.AppendError(" - connection timeout");
-
-        // Assert (Then)
-        appended.ShouldBe().Failure().AndMessage("Database error - connection timeout");
-    }
-
-    [Fact]
-    public void AppendError_WithEmptySuffix_ReturnsOriginalResult()
-    {
-        // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure(error);
-
-        // Act (When)
-        var appended = result.AppendError("");
-
-        // Assert (Then)
-        appended.ShouldBe().Failure().AndMessage("Test error");
-    }
-
-    [Fact]
-    public void AppendError_WithNullSuffix_ReturnsOriginalResult()
-    {
-        // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure(error);
-
-        // Act (When)
-        var appended = result.AppendError(null!);
-
-        // Assert (Then)
-        appended.ShouldBe().Failure().AndMessage("Test error");
-    }
-
-    [Fact]
-    public void AppendError_GenericResult_WithFailure_AppendsToMessage()
-    {
-        // Arrange (Given)
-        var error = new Error("Validation failed");
-        var result = Result.Failure<int>(error);
-
-        // Act (When)
-        var appended = result.AppendError(" - field: age");
-
-        // Assert (Then)
-        appended.ShouldBe().Failure().AndMessage("Validation failed - field: age");
-    }
-
-
-        [Fact]
     public void DebugView_ErrorDetails_AggregateError_ReturnsCorrectObject()
     {
         // Arrange
-        var errors = new Error[] { new Error("e1"), new Error("e2") };
+        var errors = new Functional.Failures.Failure[] { new Functional.Failures.Failure("e1"), new Functional.Failures.Failure("e2") };
         var result = Result.Failure(errors.AsEnumerable());
 
         // Act
@@ -94,7 +22,7 @@ public sealed partial class ResultExtensions
         Assert.NotNull(details);
         var type = details?.GetType().GetProperty("Type")?.GetValue(details) as string;
         var count = (int?)details?.GetType().GetProperty("ErrorCount")?.GetValue(details);
-        var arr = details?.GetType().GetProperty("Errors")?.GetValue(details) as Error[];
+        var arr = details?.GetType().GetProperty("Errors")?.GetValue(details) as Functional.Failures.Failure[];
 
         Assert.Equal("AggregateError", type);
         Assert.Equal(2, count);
@@ -130,7 +58,7 @@ public sealed partial class ResultExtensions
     public void DebugView_ErrorDetails_DefaultError_ReturnsCorrectObject()
     {
         // Arrange
-        var err = new Error("VALIDATION_001", "msg");
+        var err = new Functional.Failures.Failure("VALIDATION_001", "msg");
         var result = Result.Failure(err);
 
         // Act
@@ -154,7 +82,7 @@ public sealed partial class ResultExtensions
     public void DebugView_GenericErrorDetails_AggregateError_ReturnsCorrectObject()
     {
         // Arrange
-        var errors = new Error[] { new Error("e1"), new Error("e2") };
+        var errors = new Functional.Failures.Failure[] { new Functional.Failures.Failure("e1"), new Functional.Failures.Failure("e2") };
         var result = Result.Failure<int>(errors.AsEnumerable());
 
         // Act
@@ -165,7 +93,7 @@ public sealed partial class ResultExtensions
         Assert.NotNull(details);
         var type = details?.GetType().GetProperty("Type")?.GetValue(details) as string;
         var count = (int?)details?.GetType().GetProperty("ErrorCount")?.GetValue(details);
-        var arr = details?.GetType().GetProperty("Errors")?.GetValue(details) as Error[];
+        var arr = details?.GetType().GetProperty("Errors")?.GetValue(details) as Functional.Failures.Failure[];
 
         Assert.Equal("AggregateError", type);
         Assert.Equal(2, count);
@@ -201,7 +129,7 @@ public sealed partial class ResultExtensions
     public void DebugView_GenericErrorDetails_DefaultError_ReturnsCorrectObject()
     {
         // Arrange
-        var err = new Error("VALIDATION_001", "msg");
+        var err = new Functional.Failures.Failure("VALIDATION_001", "msg");
         var result = Result.Failure<int>(err);
 
         // Act

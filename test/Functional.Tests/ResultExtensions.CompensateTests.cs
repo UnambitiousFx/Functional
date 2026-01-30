@@ -1,5 +1,5 @@
-using UnambitiousFx.Functional.Errors;
 using UnambitiousFx.Functional.xunit;
+using AggregateFailure = UnambitiousFx.Functional.Failures.AggregateFailure;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -28,9 +28,9 @@ public class ResultExtensionsCompensateTests
     public void Compensate_WithFailureAndSuccessfulRollback_ReturnsOriginalFailure()
     {
         // Arrange (Given)
-        var originalError = new Error("Original error");
+        var originalError = new Functional.Failures.Failure("Original error");
         var result = Result.Failure(originalError);
-        Error? receivedError = null;
+        Functional.Failures.Failure? receivedError = null;
 
         // Act (When)
         var compensated = result.Compensate(error =>
@@ -50,8 +50,8 @@ public class ResultExtensionsCompensateTests
     public void Compensate_WithFailureAndFailedRollback_ReturnsAggregateError()
     {
         // Arrange (Given)
-        var originalError = new Error("Original error");
-        var rollbackError = new Error("Rollback error");
+        var originalError = new Functional.Failures.Failure("Original error");
+        var rollbackError = new Functional.Failures.Failure("Rollback error");
         var result = Result.Failure(originalError);
 
         // Act (When)
@@ -62,7 +62,7 @@ public class ResultExtensionsCompensateTests
             .Failure()
             .And(error =>
             {
-                var aggregateError = Assert.IsType<AggregateError>(error);
+                var aggregateError = Assert.IsType<AggregateFailure>(error);
                 Assert.Equal(2, aggregateError.Errors.Count());
                 Assert.Equal(originalError, aggregateError.Errors.ElementAt(0));
                 Assert.Equal(rollbackError, aggregateError.Errors.ElementAt(1));
@@ -94,9 +94,9 @@ public class ResultExtensionsCompensateTests
     public void Compensate_Generic_WithFailureAndSuccessfulRollback_ReturnsOriginalFailure()
     {
         // Arrange (Given)
-        var originalError = new Error("Original error");
+        var originalError = new Functional.Failures.Failure("Original error");
         var result = Result.Failure<int>(originalError);
-        Error? receivedError = null;
+        Functional.Failures.Failure? receivedError = null;
 
         // Act (When)
         var compensated = result.Compensate(error =>
@@ -116,8 +116,8 @@ public class ResultExtensionsCompensateTests
     public void Compensate_Generic_WithFailureAndFailedRollback_ReturnsAggregateError()
     {
         // Arrange (Given)
-        var originalError = new Error("Original error");
-        var rollbackError = new Error("Rollback error");
+        var originalError = new Functional.Failures.Failure("Original error");
+        var rollbackError = new Functional.Failures.Failure("Rollback error");
         var result = Result.Failure<string>(originalError);
 
         // Act (When)
@@ -128,7 +128,7 @@ public class ResultExtensionsCompensateTests
             .Failure()
             .And(error =>
             {
-                var aggregateError = Assert.IsType<AggregateError>(error);
+                var aggregateError = Assert.IsType<AggregateFailure>(error);
                 Assert.Equal(2, aggregateError.Errors.Count());
                 Assert.Equal(originalError, aggregateError.Errors.ElementAt(0));
                 Assert.Equal(rollbackError, aggregateError.Errors.ElementAt(1));
@@ -143,8 +143,8 @@ public class ResultExtensionsCompensateTests
         string rollbackMsg)
     {
         // Arrange (Given)
-        var originalError = new Error(originalMsg);
-        var rollbackError = new Error(rollbackMsg);
+        var originalError = new Functional.Failures.Failure(originalMsg);
+        var rollbackError = new Functional.Failures.Failure(rollbackMsg);
         var result = Result.Failure(originalError);
 
         // Act (When)
@@ -155,7 +155,7 @@ public class ResultExtensionsCompensateTests
             .Failure()
             .And(error =>
             {
-                var aggregateError = Assert.IsType<AggregateError>(error);
+                var aggregateError = Assert.IsType<AggregateFailure>(error);
                 Assert.Equal(originalMsg, aggregateError.Errors.ElementAt(0).Message);
                 Assert.Equal(rollbackMsg, aggregateError.Errors.ElementAt(1).Message);
             });
@@ -169,8 +169,8 @@ public class ResultExtensionsCompensateTests
         string rollbackMsg)
     {
         // Arrange (Given)
-        var originalError = new Error(originalMsg);
-        var rollbackError = new Error(rollbackMsg);
+        var originalError = new Functional.Failures.Failure(originalMsg);
+        var rollbackError = new Functional.Failures.Failure(rollbackMsg);
         var result = Result.Failure<int>(originalError);
 
         // Act (When)
@@ -181,7 +181,7 @@ public class ResultExtensionsCompensateTests
             .Failure()
             .And(error =>
             {
-                var aggregateError = Assert.IsType<AggregateError>(error);
+                var aggregateError = Assert.IsType<AggregateFailure>(error);
                 Assert.Equal(originalMsg, aggregateError.Errors.ElementAt(0).Message);
                 Assert.Equal(rollbackMsg, aggregateError.Errors.ElementAt(1).Message);
             });

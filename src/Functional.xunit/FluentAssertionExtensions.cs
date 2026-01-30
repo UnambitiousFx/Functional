@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using Xunit;
 
 namespace UnambitiousFx.Functional.xunit;
@@ -16,12 +16,12 @@ public static class FluentAssertionExtensions
     /// <returns>A <see cref="ValidationErrorAssertion" /> for the ValidationError.</returns>
     public static ValidationErrorAssertion WhichIsValidationError(this FailureAssertion assertion)
     {
-        if (assertion.Error is ValidationError validationError)
+        if (assertion.Failure is ValidationFailure validationError)
         {
             return new ValidationErrorAssertion(validationError);
         }
 
-        Assert.Fail($"Expected ValidationError but was {assertion.Error.GetType().Name}.");
+        Assert.Fail($"Expected ValidationError but was {assertion.Failure.GetType().Name}.");
         throw new InvalidOperationException("Unreachable");
     }
 
@@ -32,12 +32,12 @@ public static class FluentAssertionExtensions
     /// <returns>A <see cref="NotFoundErrorAssertion" /> for the NotFoundError.</returns>
     public static NotFoundErrorAssertion WhichIsNotFoundError(this FailureAssertion assertion)
     {
-        if (assertion.Error is NotFoundError notFoundError)
+        if (assertion.Failure is NotFoundFailure notFoundError)
         {
             return new NotFoundErrorAssertion(notFoundError);
         }
 
-        Assert.Fail($"Expected NotFoundError but was {assertion.Error.GetType().Name}.");
+        Assert.Fail($"Expected NotFoundError but was {assertion.Failure.GetType().Name}.");
         throw new InvalidOperationException("Unreachable");
     }
 
@@ -48,12 +48,12 @@ public static class FluentAssertionExtensions
     /// <returns>A <see cref="ConflictErrorAssertion" /> for the ConflictError.</returns>
     public static ConflictErrorAssertion WhichIsConflictError(this FailureAssertion assertion)
     {
-        if (assertion.Error is ConflictError conflictError)
+        if (assertion.Failure is ConflictFailure conflictError)
         {
             return new ConflictErrorAssertion(conflictError);
         }
 
-        Assert.Fail($"Expected ConflictError but was {assertion.Error.GetType().Name}.");
+        Assert.Fail($"Expected ConflictError but was {assertion.Failure.GetType().Name}.");
         throw new InvalidOperationException("Unreachable");
     }
 
@@ -64,14 +64,14 @@ public static class FluentAssertionExtensions
     /// <param name="assertion">The failure assertion to validate.</param>
     /// <returns>A <see cref="TypedErrorAssertion{TError}" /> for the strongly-typed error.</returns>
     public static TypedErrorAssertion<TError> WhichIs<TError>(this FailureAssertion assertion)
-        where TError : IError
+        where TError : IFailure
     {
-        if (assertion.Error is TError typedError)
+        if (assertion.Failure is TError typedError)
         {
             return new TypedErrorAssertion<TError>(typedError);
         }
 
-        Assert.Fail($"Expected {typeof(TError).Name} but was {assertion.Error.GetType().Name}.");
+        Assert.Fail($"Expected {typeof(TError).Name} but was {assertion.Failure.GetType().Name}.");
         throw new InvalidOperationException("Unreachable");
     }
 }

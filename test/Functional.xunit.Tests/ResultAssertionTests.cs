@@ -1,5 +1,3 @@
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit.Tasks;
 using UnambitiousFx.Functional.xunit.ValueTasks;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
@@ -40,7 +38,7 @@ public sealed class ResultAssertionTests
     [Fact]
     public void GenericResult_EnsureFailure_Chaining()
     {
-        Result.Failure<int>(new Error("some code", "boom"))
+        Result.Failure<int>(new Failures.Failure("some code", "boom"))
             .ShouldBe()
             .Failure()
             .And(error => { Assert.Equal("boom", error.Message); })
@@ -50,29 +48,20 @@ public sealed class ResultAssertionTests
 
 
     [Fact]
-    public async Task Async_Task_Generic_EnsureSuccess()
+    public async Task Async_ValueTask_Generic_EnsureSuccess()
     {
-        var assertion = await Task.FromResult(Result.Success(5))
+        var assertion = await new ValueTask<Result<int>>(Result.Success(5))
             .ShouldBe()
             .Success();
         assertion.And(v => Assert.Equal(5, v));
     }
 
     [Fact]
-    public async Task Async_Task_Generic_EnsureFailure()
+    public async Task Async_ValueTask_Generic_EnsureFailure()
     {
-        await Task.FromResult(Result.Failure<int>(new Exception("x")))
+        await new ValueTask<Result<int>>(Result.Failure<int>(new Exception("x")))
             .ShouldBe()
             .Failure()
             .AndMessage("x");
-    }
-
-    [Fact]
-    public async Task Async_ValueTask_Generic_EnsureSuccess()
-    {
-        await  ValueTask.FromResult(Result.Success(9))
-            .ShouldBe()
-            .Success()
-            .And(v => Assert.Equal(9, v));
     }
 }

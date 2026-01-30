@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using Xunit;
 
 namespace UnambitiousFx.Functional.xunit;
@@ -14,15 +14,15 @@ public readonly struct NotFoundErrorAssertion
     /// <summary>
     ///     Represents a fluent assertion mechanism for handling NotFoundError cases in test results.
     /// </summary>
-    internal NotFoundErrorAssertion(NotFoundError error)
+    internal NotFoundErrorAssertion(NotFoundFailure failure)
     {
-        Error = error;
+        Failure = failure;
     }
 
     /// <summary>
     ///     Gets the NotFoundError associated with this assertion.
     /// </summary>
-    public NotFoundError Error { get; }
+    public NotFoundFailure Failure { get; }
 
     /// <summary>
     ///     Applies the specified assertion action to the NotFoundError and returns the current assertion
@@ -30,9 +30,9 @@ public readonly struct NotFoundErrorAssertion
     /// </summary>
     /// <param name="assert">The action to be applied to the NotFoundError.</param>
     /// <returns>The current <see cref="NotFoundErrorAssertion" /> instance to allow method chaining.</returns>
-    public NotFoundErrorAssertion And(Action<NotFoundError> assert)
+    public NotFoundErrorAssertion And(Action<NotFoundFailure> assert)
     {
-        assert(Error);
+        assert(Failure);
         return this;
     }
 
@@ -43,7 +43,7 @@ public readonly struct NotFoundErrorAssertion
     /// <returns>The current instance of <see cref="NotFoundErrorAssertion" /> for further chaining.</returns>
     public NotFoundErrorAssertion WithResource(string expectedResource)
     {
-        Assert.Equal(expectedResource, Error.Resource);
+        Assert.Equal(expectedResource, Failure.Resource);
         return this;
     }
 
@@ -54,7 +54,7 @@ public readonly struct NotFoundErrorAssertion
     /// <returns>The current instance of <see cref="NotFoundErrorAssertion" /> for further chaining.</returns>
     public NotFoundErrorAssertion WithIdentifier(string expectedIdentifier)
     {
-        Assert.Equal(expectedIdentifier, Error.Identifier);
+        Assert.Equal(expectedIdentifier, Failure.Identifier);
         return this;
     }
 
@@ -65,7 +65,7 @@ public readonly struct NotFoundErrorAssertion
     /// <returns>The current instance of <see cref="NotFoundErrorAssertion" /> for further chaining.</returns>
     public NotFoundErrorAssertion AndMessage(string expected)
     {
-        Assert.Equal(expected, Error.Message);
+        Assert.Equal(expected, Failure.Message);
         return this;
     }
 
@@ -76,7 +76,7 @@ public readonly struct NotFoundErrorAssertion
     /// <returns>The current instance of <see cref="NotFoundErrorAssertion" /> for further chaining.</returns>
     public NotFoundErrorAssertion AndCode(string expected)
     {
-        Assert.Equal(expected, Error.Code);
+        Assert.Equal(expected, Failure.Code);
         return this;
     }
 }

@@ -38,27 +38,48 @@ public class ResultComparisonBenchmark
 
     // Creation (Success)
     [Benchmark(Description = "Create Success (Our)")]
-    public Functional.Result<int> Create_Success_Our() => Functional.Result.Success(A);
+    public Functional.Result<int> Create_Success_Our()
+    {
+        return Functional.Result.Success(A);
+    }
 
     [Benchmark(Description = "Create Success (FluentResults)")]
-    public FluentResults.Result<int> Create_Success_Fluent() => FluentResult.Ok(A);
+    public FluentResults.Result<int> Create_Success_Fluent()
+    {
+        return FluentResult.Ok(A);
+    }
 
     [Benchmark(Description = "Create Success (Ardalis)")]
-    public Result<int> Create_Success_Ardalis() => Result<int>.Success(A);
+    public Result<int> Create_Success_Ardalis()
+    {
+        return Result<int>.Success(A);
+    }
 
     // Creation (Failure)
     [Benchmark(Description = "Create Failure (Our)")]
-    public Functional.Result<int> Create_Failure_Our() => Functional.Result.Failure<int>(ErrorMessage);
+    public Functional.Result<int> Create_Failure_Our()
+    {
+        return Functional.Result.Failure<int>(ErrorMessage);
+    }
 
     [Benchmark(Description = "Create Failure (FluentResults)")]
-    public FluentResults.Result<int> Create_Failure_Fluent() => FluentResult.Fail<int>(ErrorMessage);
+    public FluentResults.Result<int> Create_Failure_Fluent()
+    {
+        return FluentResult.Fail<int>(ErrorMessage);
+    }
 
     [Benchmark(Description = "Create Failure (Ardalis)")]
-    public Result<int> Create_Failure_Ardalis() => Result<int>.Error(ErrorMessage);
+    public Result<int> Create_Failure_Ardalis()
+    {
+        return Result<int>.Error(ErrorMessage);
+    }
 
     // Match/Access on Success
     [Benchmark(Description = "Access Success (Our: Match)")]
-    public int Access_Success_Our() => _ourSuccess.Match(v => v + 1, _ => 0);
+    public int Access_Success_Our()
+    {
+        return _ourSuccess.Match(v => v + 1, _ => 0);
+    }
 
     [Benchmark(Description = "Access Success (FluentResults: IsSuccess/Value)")]
     public int Access_Success_Fluent()
@@ -78,7 +99,10 @@ public class ResultComparisonBenchmark
 
     // Match/Access on Failure
     [Benchmark(Description = "Access Failure (Our: Match)")]
-    public int Access_Failure_Our() => _ourFailure.Match(v => v + 1, _ => -1);
+    public int Access_Failure_Our()
+    {
+        return _ourFailure.Match(v => v + 1, _ => -1);
+    }
 
     [Benchmark(Description = "Access Failure (FluentResults: IsSuccess/Value)")]
     public int Access_Failure_Fluent()
@@ -100,7 +124,7 @@ public class ResultComparisonBenchmark
     [Benchmark(Description = "Ok Success (Our)")]
     public int Ok_Success_Our()
     {
-        _ourSuccess.TryGet(out int value);
+        _ourSuccess.TryGetValue(out var value);
         return value + 1;
     }
 
@@ -130,13 +154,22 @@ public class ResultComparisonBenchmark
 
     // Ok/TryGet-like on Failure
     [Benchmark(Description = "Ok Failure (Our)")]
-    public bool Ok_Failure_Our() => _ourFailure.TryGet(out int _);
+    public bool Ok_Failure_Our()
+    {
+        return _ourFailure.TryGetValue(out var _);
+    }
 
     [Benchmark(Description = "Ok Failure (FluentResults: IsSuccess)")]
-    public bool Ok_Failure_Fluent() => _fluentFailure.IsSuccess;
+    public bool Ok_Failure_Fluent()
+    {
+        return _fluentFailure.IsSuccess;
+    }
 
     [Benchmark(Description = "Ok Failure (Ardalis: IsSuccess)")]
-    public bool Ok_Failure_Ardalis() => _ardalisFailure.IsSuccess;
+    public bool Ok_Failure_Ardalis()
+    {
+        return _ardalisFailure.IsSuccess;
+    }
 
     private class Config : ManualConfig
     {

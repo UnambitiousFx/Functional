@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -19,7 +19,7 @@ public sealed partial class ResultExtensions
         // Act (When)
         var ensured = result.Ensure(
             x => x < 50,
-            x => new Error($"Value {x} exceeds maximum of 50"));
+            x => new Failure($"Value {x} exceeds maximum of 50"));
 
         // Assert (Then)
         ensured.ShouldBe().Failure().AndMessage("Value 100 exceeds maximum of 50");
@@ -36,7 +36,7 @@ public sealed partial class ResultExtensions
         var result = Result.Success(10);
 
         // Act (When)
-        var ensured = result.Ensure(x => x > 0, x => new Error("Must be positive"));
+        var ensured = result.Ensure(x => x > 0, x => new Failure("Must be positive"));
 
         // Assert (Then)
         ensured.ShouldBe().Success().And(value => Assert.Equal(10, value));
@@ -49,7 +49,7 @@ public sealed partial class ResultExtensions
         var result = Result.Success(-5);
 
         // Act (When)
-        var ensured = result.Ensure(x => x > 0, x => new Error("Must be positive"));
+        var ensured = result.Ensure(x => x > 0, x => new Failure("Must be positive"));
 
         // Assert (Then)
         ensured.ShouldBe().Failure().AndMessage("Must be positive");
@@ -59,7 +59,7 @@ public sealed partial class ResultExtensions
     public void Ensure_WithFailure_DoesNotExecutePredicate()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure<int>(error);
         var predicateCalled = false;
 
@@ -70,7 +70,7 @@ public sealed partial class ResultExtensions
                 predicateCalled = true;
                 return true;
             },
-            x => new Error("Validation failed"));
+            x => new Failure("Validation failed"));
 
         // Assert (Then)
         ensured.ShouldBe().Failure().AndMessage("Initial error");
@@ -89,9 +89,9 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var ensured = result
-            .Ensure(x => x > 0, x => new Error("Must be positive"))
-            .Ensure(x => x < 100, x => new Error("Must be less than 100"))
-            .Ensure(x => x % 5 == 0, x => new Error("Must be divisible by 5"));
+            .Ensure(x => x > 0, x => new Failure("Must be positive"))
+            .Ensure(x => x < 100, x => new Failure("Must be less than 100"))
+            .Ensure(x => x % 5 == 0, x => new Failure("Must be divisible by 5"));
 
         // Assert (Then)
         ensured.ShouldBe().Success().And(value => Assert.Equal(25, value));
@@ -106,13 +106,13 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var ensured = result
-            .Ensure(x => x > 0, x => new Error("Must be positive"))
-            .Ensure(x => x < 100, x => new Error("Must be less than 100"))
+            .Ensure(x => x > 0, x => new Failure("Must be positive"))
+            .Ensure(x => x < 100, x => new Failure("Must be less than 100"))
             .Ensure(x =>
             {
                 thirdPredicateCalled = true;
                 return x % 5 == 0;
-            }, x => new Error("Must be divisible by 5"));
+            }, x => new Failure("Must be divisible by 5"));
 
         // Assert (Then)
         ensured.ShouldBe().Failure().AndMessage("Must be less than 100");
@@ -132,7 +132,7 @@ public sealed partial class ResultExtensions
         // Act (When)
         var ensured = result.Ensure(
             x => x.Length >= 3,
-            x => new Error($"String '{x}' is too short"));
+            x => new Failure($"String '{x}' is too short"));
 
         // Assert (Then)
         ensured.ShouldBe().Success().And(value => Assert.Equal("hello", value));
@@ -147,7 +147,7 @@ public sealed partial class ResultExtensions
         // Act (When)
         var ensured = result.Ensure(
             x => x.Length >= 5,
-            x => new Error($"String '{x}' must be at least 5 characters"));
+            x => new Failure($"String '{x}' must be at least 5 characters"));
 
         // Assert (Then)
         ensured.ShouldBe().Failure().AndMessage("String 'hi' must be at least 5 characters");
@@ -166,7 +166,7 @@ public sealed partial class ResultExtensions
         // Act (When)
         var ensured = result.Ensure(
             x => x.Age >= 18 && !string.IsNullOrWhiteSpace(x.Name),
-            x => new Error("Invalid person data"));
+            x => new Failure("Invalid person data"));
 
         // Assert (Then)
         ensured.ShouldBe().Success();
@@ -181,7 +181,7 @@ public sealed partial class ResultExtensions
         // Act (When)
         var ensured = result.Ensure(
             x => x.Age >= 18,
-            x => new Error($"{x.Name} must be at least 18 years old"));
+            x => new Failure($"{x.Name} must be at least 18 years old"));
 
         // Assert (Then)
         ensured.ShouldBe().Failure().AndMessage("John must be at least 18 years old");

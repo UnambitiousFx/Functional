@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -10,7 +10,7 @@ public sealed class MaybeExtensionsToResultTests
     {
         // Arrange (Given)
         var maybe = Maybe.Some(42);
-        var error = new Error("code", "message");
+        var error = new Failure("code", "message");
 
         // Act (When)
         var result = maybe.ToResult(error);
@@ -26,7 +26,7 @@ public sealed class MaybeExtensionsToResultTests
     {
         // Arrange (Given)
         var maybe = Maybe.None<int>();
-        var error = new Error("code", "message");
+        var error = new Failure("code", "message");
 
         // Act (When)
         var result = maybe.ToResult(error);
@@ -45,7 +45,7 @@ public sealed class MaybeExtensionsToResultTests
         var maybe = Maybe.Some(42);
 
         // Act (When)
-        var result = maybe.ToResult(() => new Error("code", "message"));
+        var result = maybe.ToResult(() => new Failure("code", "message"));
 
         // Assert (Then)
         result.ShouldBe()
@@ -58,7 +58,7 @@ public sealed class MaybeExtensionsToResultTests
     {
         // Arrange (Given)
         var maybe = Maybe.None<int>();
-        var error = new Error("code", "message");
+        var error = new Failure("code", "message");
 
         // Act (When)
         var result = maybe.ToResult(() => error);

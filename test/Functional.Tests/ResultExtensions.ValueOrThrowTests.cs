@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using FunctionalException = UnambitiousFx.Functional.Failures.FunctionalException;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -26,7 +26,7 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_WithFailure_ThrowsException()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Functional.Failures.Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act & Assert
@@ -68,7 +68,7 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_WithCustomFactory_ThrowsCustomException()
     {
         // Arrange (Given)
-        var error = new Error("Custom error");
+        var error = new Functional.Failures.Failure("Custom error");
         var result = Result.Failure<int>(error);
 
         // Act & Assert
@@ -82,7 +82,7 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_CanThrowSpecificExceptionType()
     {
         // Arrange (Given)
-        var error = new Error("Not found");
+        var error = new Functional.Failures.Failure("Not found");
         var result = Result.Failure<string>(error);
 
         // Act & Assert
@@ -96,7 +96,7 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_CustomFactory_ReceivesError()
     {
         // Arrange (Given)
-        var error = new Error("ERR_404", "Resource not found");
+        var error = new Functional.Failures.Failure("ERR_404", "Resource not found");
         var result = Result.Failure<int>(error);
 
         // Act & Assert

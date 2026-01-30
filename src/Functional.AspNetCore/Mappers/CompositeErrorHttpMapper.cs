@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Mappers;
 
@@ -32,11 +32,11 @@ public sealed class CompositeErrorHttpMapper : IErrorHttpMapper
 
 
     /// <inheritdoc />
-    public (int StatusCode, object? Body)? GetResponse(IError error)
+    public (int StatusCode, object? Body)? GetResponse(IFailure failure)
     {
         foreach (var mapper in _mappers)
         {
-            var mappedResponse = mapper.GetResponse(error);
+            var mappedResponse = mapper.GetResponse(failure);
             if (mappedResponse is not null) return mappedResponse;
         }
 

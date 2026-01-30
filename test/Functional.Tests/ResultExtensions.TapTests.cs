@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -61,7 +61,7 @@ public sealed partial class ResultExtensions
     public void Tap_WithFailure_DoesNotExecuteSideEffect()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error);
         var executed = false;
 
@@ -77,7 +77,7 @@ public sealed partial class ResultExtensions
     public void Tap_WithFailure_ReturnsOriginalResult()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)

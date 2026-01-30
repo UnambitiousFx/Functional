@@ -1,5 +1,5 @@
 using System.Reflection;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -40,7 +40,7 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebuggerDisplay_FailureWithErrorCode_IncludesCode()
     {
         // Arrange
-        var error = new Error("VALIDATION_001", "Test error");
+        var error = new Failure("VALIDATION_001", "Test error");
         var result = Result.Failure(error);
 
         // Act
@@ -69,11 +69,11 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebuggerDisplay_FailureWithAggregateError_ShowsMultipleReasons()
     {
         // Arrange
-        var errors = new Error[]
+        var errors = new Failure[]
         {
-            new Error("Error 1"),
-            new Error("Error 2"),
-            new Error("Error 3")
+            new Failure("Error 1"),
+            new Failure("Error 2"),
+            new Failure("Error 3")
         };
         var result = Result.Failure(errors.AsEnumerable());
 
@@ -122,7 +122,7 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebuggerDisplay_GenericFailureWithErrorCode_IncludesCode()
     {
         // Arrange
-        var error = new Error("VALIDATION_001", "Test error");
+        var error = new Failure("VALIDATION_001", "Test error");
         var result = Result.Failure<string>(error);
 
         // Act
@@ -175,7 +175,7 @@ public sealed class ResultTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(result);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as ErrorBase;
+        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.Null(errorProp);
@@ -185,14 +185,14 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebugView_Failure_ReturnsCorrectProperties()
     {
         // Arrange
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure(error);
 
         // Act
         var debugView = GetDebugView(result);
         var isSuccess = (bool?)debugView?.GetType().GetProperty("IsSuccess")?.GetValue(debugView);
         var isFaulted = (bool?)debugView?.GetType().GetProperty("IsFaulted")?.GetValue(debugView);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as ErrorBase;
+        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.False(isSuccess);
@@ -225,7 +225,7 @@ public sealed class ResultTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(result);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as ErrorBase;
+        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.Null(errorProp);
@@ -235,13 +235,13 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebugView_GenericFailure_ReturnsCorrectProperties()
     {
         // Arrange
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act
         var debugView = GetDebugView(result);
         var isSuccess = (bool?)debugView?.GetType().GetProperty("IsSuccess")?.GetValue(debugView);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as ErrorBase;
+        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.False(isSuccess);

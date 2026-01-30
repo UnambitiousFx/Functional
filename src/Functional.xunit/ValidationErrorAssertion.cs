@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using Xunit;
 
 namespace UnambitiousFx.Functional.xunit;
@@ -14,15 +14,15 @@ public readonly struct ValidationErrorAssertion
     /// <summary>
     ///     Represents a fluent assertion mechanism for handling ValidationError cases in test results.
     /// </summary>
-    internal ValidationErrorAssertion(ValidationError error)
+    internal ValidationErrorAssertion(ValidationFailure failure)
     {
-        Error = error;
+        Failure = failure;
     }
 
     /// <summary>
     ///     Gets the ValidationError associated with this assertion.
     /// </summary>
-    public ValidationError Error { get; }
+    public ValidationFailure Failure { get; }
 
     /// <summary>
     ///     Applies the specified assertion action to the ValidationError and returns the current assertion
@@ -30,9 +30,9 @@ public readonly struct ValidationErrorAssertion
     /// </summary>
     /// <param name="assert">The action to be applied to the ValidationError.</param>
     /// <returns>The current <see cref="ValidationErrorAssertion" /> instance to allow method chaining.</returns>
-    public ValidationErrorAssertion And(Action<ValidationError> assert)
+    public ValidationErrorAssertion And(Action<ValidationFailure> assert)
     {
-        assert(Error);
+        assert(Failure);
         return this;
     }
 
@@ -43,7 +43,7 @@ public readonly struct ValidationErrorAssertion
     /// <returns>The current instance of <see cref="ValidationErrorAssertion" /> for further chaining.</returns>
     public ValidationErrorAssertion WithFailure(string expectedFailure)
     {
-        Assert.Contains(expectedFailure, Error.Failures);
+        Assert.Contains(expectedFailure, Failure.Failures);
         return this;
     }
 
@@ -54,7 +54,7 @@ public readonly struct ValidationErrorAssertion
     /// <returns>The current instance of <see cref="ValidationErrorAssertion" /> for further chaining.</returns>
     public ValidationErrorAssertion WithFailureContaining(string expectedText)
     {
-        Assert.Contains(Error.Failures, f => f.Contains(expectedText));
+        Assert.Contains(Failure.Failures, f => f.Contains(expectedText));
         return this;
     }
 
@@ -65,7 +65,7 @@ public readonly struct ValidationErrorAssertion
     /// <returns>The current instance of <see cref="ValidationErrorAssertion" /> for further chaining.</returns>
     public ValidationErrorAssertion WithFailureCount(int expectedCount)
     {
-        Assert.Equal(expectedCount, Error.Failures.Count);
+        Assert.Equal(expectedCount, Failure.Failures.Count);
         return this;
     }
 
@@ -76,7 +76,7 @@ public readonly struct ValidationErrorAssertion
     /// <returns>The current instance of <see cref="ValidationErrorAssertion" /> for further chaining.</returns>
     public ValidationErrorAssertion AndMessage(string expected)
     {
-        Assert.Equal(expected, Error.Message);
+        Assert.Equal(expected, Failure.Message);
         return this;
     }
 
@@ -87,7 +87,7 @@ public readonly struct ValidationErrorAssertion
     /// <returns>The current instance of <see cref="ValidationErrorAssertion" /> for further chaining.</returns>
     public ValidationErrorAssertion AndCode(string expected)
     {
-        Assert.Equal(expected, Error.Code);
+        Assert.Equal(expected, Failure.Code);
         return this;
     }
 }

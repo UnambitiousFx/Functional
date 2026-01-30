@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional;
 
@@ -9,12 +9,12 @@ namespace UnambitiousFx.Functional;
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ResultDebugView))]
-public readonly record struct Result : IResult
+public readonly partial record struct Result : IResult
 {
-    private readonly Error? _error;
+    private readonly Failure? _error;
     private readonly Metadata? _metadata;
 
-    private Result(bool isSuccess, Error? error, Metadata? metadata)
+    private Result(bool isSuccess, Failure? error, Metadata? metadata)
     {
         IsSuccess = isSuccess;
         _error = error;
@@ -43,7 +43,7 @@ public readonly record struct Result : IResult
     /// </summary>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
     /// <returns>True if the operation succeeded, false otherwise.</returns>
-    public bool TryGet([NotNullWhen(false)] out Error? error)
+    public bool TryGetError([NotNullWhen(true)] out Failure? error)
     {
         error = _error;
         return IsSuccess;
@@ -56,16 +56,18 @@ public readonly record struct Result : IResult
         var message = string.Empty;
         var code = string.Empty;
 
-        if (TryGet(out var error))
+        if (TryGetError(out var error))
         {
             reasons = 0;
         }
         else
         {
             message = $"({error?.Message ?? "Unknown error"})";
-            reasons = error is IAggregateError aggregate ? aggregate.Errors.Count() : 1;
+            reasons = error is IAggregateFailure aggregate ? aggregate.Errors.Count() : 1;
             if (error?.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
+            {
                 code = $" code={error.Code}";
+            }
         }
 
         var metaPart = Metadata.Count == 0
@@ -75,30 +77,6 @@ public readonly record struct Result : IResult
         return $"{type}{message}{code} reasons={reasons}{metaPart}";
     }
 
-    /// <summary>
-    ///     Pattern matches the result, executing the appropriate action.
-    /// </summary>
-    /// <param name="onSuccess">Action to execute if the result is successful.</param>
-    /// <param name="onFailure">Action to execute if the result is a failure.</param>
-    public void Match(Action onSuccess, Action<Error> onFailure)
-    {
-        if (IsSuccess)
-            onSuccess();
-        else
-            onFailure(_error!);
-    }
-
-    /// <summary>
-    ///     Pattern matches the result, returning a value from the appropriate function.
-    /// </summary>
-    /// <typeparam name="TOut">The type of value to return.</typeparam>
-    /// <param name="onSuccess">Function to invoke if the result is successful.</param>
-    /// <param name="onFailure">Function to invoke if the result is a failure.</param>
-    /// <returns>The result of invoking the appropriate function.</returns>
-    public TOut Match<TOut>(Func<TOut> onSuccess, Func<Error, TOut> onFailure)
-    {
-        return IsSuccess ? onSuccess() : onFailure(_error!);
-    }
 
     /// <summary>
     ///     Executes the action if the result is successful.
@@ -106,23 +84,29 @@ public readonly record struct Result : IResult
     /// <param name="action">Action to execute.</param>
     public void IfSuccess(Action action)
     {
-        if (IsSuccess) action();
+        if (IsSuccess)
+        {
+            action();
+        }
     }
 
     /// <summary>
     ///     Executes the action if the result is a failure.
     /// </summary>
     /// <param name="action">Action to execute with the error.</param>
-    public void IfFailure(Action<Error> action)
+    public void IfFailure(Action<Failure> action)
     {
-        if (!IsSuccess) action(_error!);
+        if (!IsSuccess)
+        {
+            action(_error!);
+        }
     }
 
     /// <summary>
     ///     Deconstructs the result into its error component.
     /// </summary>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
-    public void Deconstruct(out Error? error)
+    public void Deconstruct(out Failure? error)
     {
         error = _error;
     }
@@ -148,7 +132,10 @@ public readonly record struct Result : IResult
     public Result WithMetadata(IReadOnlyMetadata metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
+        foreach (var kv in metadata)
+        {
+            newMetadata[kv.Key] = kv.Value;
+        }
 
         return new Result(IsSuccess, _error, newMetadata);
     }
@@ -161,7 +148,10 @@ public readonly record struct Result : IResult
     public Result WithMetadata(IEnumerable<KeyValuePair<string, object?>> metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
+        foreach (var kv in metadata)
+        {
+            newMetadata[kv.Key] = kv.Value;
+        }
 
         return new Result(IsSuccess, _error, newMetadata);
     }
@@ -174,7 +164,10 @@ public readonly record struct Result : IResult
     public Result WithMetadata(params (string Key, object? Value)[] items)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var (key, value) in items) newMetadata[key] = value;
+        foreach (var (key, value) in items)
+        {
+            newMetadata[key] = value;
+        }
 
         return new Result(IsSuccess, _error, newMetadata);
     }
@@ -195,11 +188,11 @@ public readonly record struct Result : IResult
     /// <summary>
     ///     Implicitly converts an error to a failed result.
     /// </summary>
-    /// <param name="error">The error to wrap in a failed result.</param>
+    /// <param name="failure">The error to wrap in a failed result.</param>
     /// <returns>A failed result containing the error.</returns>
-    public static implicit operator Result(Error error)
+    public static implicit operator Result(Failure failure)
     {
-        return Failure(error);
+        return Failure(failure);
     }
 
     /// <summary>
@@ -250,17 +243,17 @@ public readonly record struct Result : IResult
     /// <returns>A failed result containing the exception.</returns>
     public static Result Failure(Exception error)
     {
-        return new Result(false, new ExceptionalError(error), null);
+        return new Result(false, new ExceptionalFailure(error), null);
     }
 
     /// <summary>
     ///     Creates a failed result from an error.
     /// </summary>
-    /// <param name="error">The error that caused the failure.</param>
+    /// <param name="failure">The error that caused the failure.</param>
     /// <returns>A failed result containing the error.</returns>
-    public static Result Failure(Error error)
+    public static Result Failure(Failure failure)
     {
-        return new Result(false, error, null);
+        return new Result(false, failure, null);
     }
 
     /// <summary>
@@ -270,7 +263,7 @@ public readonly record struct Result : IResult
     /// <returns>A failed result containing the error message.</returns>
     public static Result Failure(string message)
     {
-        return new Result(false, new ExceptionalError(new Exception(message)), null);
+        return new Result(false, new ExceptionalFailure(new Exception(message)), null);
     }
 
     /// <summary>
@@ -278,9 +271,9 @@ public readonly record struct Result : IResult
     /// </summary>
     /// <param name="errors">The collection of errors.</param>
     /// <returns>A failed result containing the aggregated errors.</returns>
-    public static Result Failure(params IEnumerable<Error> errors)
+    public static Result Failure(params IEnumerable<Failure> errors)
     {
-        return new Result(false, new AggregateError(errors), null);
+        return new Result(false, new AggregateFailure(errors), null);
     }
 
     /// <summary>
@@ -291,18 +284,18 @@ public readonly record struct Result : IResult
     /// <returns>A failed result containing the exception.</returns>
     public static Result<TValue1> Failure<TValue1>(Exception error) where TValue1 : notnull
     {
-        return new Result<TValue1>(false, default, new ExceptionalError(error), null);
+        return new Result<TValue1>(false, default, new ExceptionalFailure(error), null);
     }
 
     /// <summary>
     ///     Creates a failed result with a typed value from an error.
     /// </summary>
     /// <typeparam name="TValue1">The type of the value.</typeparam>
-    /// <param name="error">The error that caused the failure.</param>
+    /// <param name="failure">The error that caused the failure.</param>
     /// <returns>A failed result containing the error.</returns>
-    public static Result<TValue1> Failure<TValue1>(Error error) where TValue1 : notnull
+    public static Result<TValue1> Failure<TValue1>(Failure failure) where TValue1 : notnull
     {
-        return new Result<TValue1>(false, default, error, null);
+        return new Result<TValue1>(false, default, failure, null);
     }
 
     /// <summary>
@@ -313,18 +306,18 @@ public readonly record struct Result : IResult
     /// <returns>A failed result containing the error message.</returns>
     public static Result<TValue1> Failure<TValue1>(string message) where TValue1 : notnull
     {
-        return new Result<TValue1>(false, default, new ExceptionalError(new Exception(message)), null);
+        return new Result<TValue1>(false, default, new ExceptionalFailure(new Exception(message)), null);
     }
 
     /// <summary>
     ///     Creates a failed result with a typed value from multiple errors.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="errors">The collection of errors.</param>
     /// <returns>A failed result containing the aggregated errors.</returns>
-    public static Result<TValue1> Failure<TValue1>(params IEnumerable<Error> errors) where TValue1 : notnull
+    public static Result<TValue> Failure<TValue>(params IEnumerable<Failure> errors) where TValue : notnull
     {
-        return new Result<TValue1>(false, default, new AggregateError(errors), null);
+        return new Result<TValue>(false, default, new AggregateFailure(errors), null);
     }
 
     #endregion
@@ -336,14 +329,14 @@ public readonly record struct Result : IResult
 /// <typeparam name="TValue">The type of the success value.</typeparam>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ResultDebugView<>))]
-public readonly record struct Result<TValue> : IResult
+public readonly partial record struct Result<TValue> : IResult
     where TValue : notnull
 {
-    private readonly Error? _error;
+    private readonly Failure? _error;
     private readonly Metadata? _metadata;
     private readonly TValue? _value;
 
-    internal Result(bool isSuccess, TValue? value, Error? error, Metadata? metadata)
+    internal Result(bool isSuccess, TValue? value, Failure? error, Metadata? metadata)
     {
         IsSuccess = isSuccess;
         _value = value;
@@ -373,7 +366,7 @@ public readonly record struct Result<TValue> : IResult
     /// </summary>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
     /// <returns>True if the operation succeeded, false otherwise.</returns>
-    public bool TryGet([NotNullWhen(false)] out Error? error)
+    public bool TryGetError([NotNullWhen(true)] out Failure? error)
     {
         error = _error;
         return IsSuccess;
@@ -386,16 +379,18 @@ public readonly record struct Result<TValue> : IResult
         var message = string.Empty;
         var code = string.Empty;
 
-        if (TryGet(out Error? error))
+        if (!TryGetError(out var error))
         {
             reasons = 0;
         }
         else
         {
             message = $"({error?.Message ?? "Unknown error"})";
-            reasons = error is IAggregateError aggregate ? aggregate.Errors.Count() : 1;
+            reasons = error is IAggregateFailure aggregate ? aggregate.Errors.Count() : 1;
             if (error?.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
+            {
                 code = $" code={error.Code}";
+            }
         }
 
         var metaPart = Metadata.Count == 0
@@ -405,30 +400,6 @@ public readonly record struct Result<TValue> : IResult
         return $"{type}{message}{code} reasons={reasons}{metaPart}";
     }
 
-    /// <summary>
-    ///     Pattern matches the result, executing the appropriate action.
-    /// </summary>
-    /// <param name="success">Action to execute if the result is successful.</param>
-    /// <param name="failure">Action to execute if the result is a failure.</param>
-    public void Match(Action success, Action<Error> failure)
-    {
-        if (IsSuccess)
-            success();
-        else
-            failure(_error!);
-    }
-
-    /// <summary>
-    ///     Pattern matches the result, returning a value from the appropriate function.
-    /// </summary>
-    /// <typeparam name="TOut">The type of value to return.</typeparam>
-    /// <param name="success">Function to invoke if the result is successful.</param>
-    /// <param name="failure">Function to invoke if the result is a failure.</param>
-    /// <returns>The result of invoking the appropriate function.</returns>
-    public TOut Match<TOut>(Func<TOut> success, Func<Error, TOut> failure)
-    {
-        return IsSuccess ? success() : failure(_error!);
-    }
 
     /// <summary>
     ///     Executes the action if the result is successful.
@@ -436,16 +407,22 @@ public readonly record struct Result<TValue> : IResult
     /// <param name="action">Action to execute.</param>
     public void IfSuccess(Action action)
     {
-        if (IsSuccess) action();
+        if (IsSuccess)
+        {
+            action();
+        }
     }
 
     /// <summary>
     ///     Executes the action if the result is a failure.
     /// </summary>
     /// <param name="action">Action to execute with the error.</param>
-    public void IfFailure(Action<Error> action)
+    public void IfFailure(Action<Failure> action)
     {
-        if (!IsSuccess) action(_error!);
+        if (!IsSuccess)
+        {
+            action(_error!);
+        }
     }
 
     /// <summary>
@@ -453,12 +430,16 @@ public readonly record struct Result<TValue> : IResult
     /// </summary>
     /// <param name="success">Action to execute with the success value if the result is successful.</param>
     /// <param name="failure">Action to execute if the result is a failure.</param>
-    public void Match(Action<TValue> success, Action<Error> failure)
+    public void Match(Action<TValue> success, Action<Failure> failure)
     {
         if (IsSuccess)
+        {
             success(_value!);
+        }
         else
+        {
             failure(_error!);
+        }
     }
 
     /// <summary>
@@ -468,7 +449,7 @@ public readonly record struct Result<TValue> : IResult
     /// <param name="success">Function to invoke with the success value if the result is successful.</param>
     /// <param name="failure">Function to invoke if the result is a failure.</param>
     /// <returns>The result of invoking the appropriate function.</returns>
-    public TOut Match<TOut>(Func<TValue, TOut> success, Func<Error, TOut> failure)
+    public TOut Match<TOut>(Func<TValue, TOut> success, Func<Failure, TOut> failure)
     {
         return IsSuccess ? success(_value!) : failure(_error!);
     }
@@ -479,7 +460,10 @@ public readonly record struct Result<TValue> : IResult
     /// <param name="action">Action to execute with the success value.</param>
     public void IfSuccess(Action<TValue> action)
     {
-        if (IsSuccess) action(_value!);
+        if (IsSuccess)
+        {
+            action(_value!);
+        }
     }
 
     /// <summary>
@@ -489,7 +473,7 @@ public readonly record struct Result<TValue> : IResult
     /// <param name="error">The error if the operation failed, otherwise null.</param>
     /// <returns>True if the operation succeeded, false otherwise.</returns>
     public bool TryGet([NotNullWhen(true)] out TValue? value1,
-        [NotNullWhen(false)] out Error? error)
+        [NotNullWhen(false)] out Failure? error)
     {
         value1 = _value;
         error = _error;
@@ -501,7 +485,7 @@ public readonly record struct Result<TValue> : IResult
     /// </summary>
     /// <param name="value1">The success value if successful, otherwise null.</param>
     /// <returns>True if the operation succeeded, false otherwise.</returns>
-    public bool TryGet([NotNullWhen(true)] out TValue? value1)
+    public bool TryGetValue([NotNullWhen(true)] out TValue? value1)
     {
         value1 = _value;
         return IsSuccess;
@@ -512,7 +496,7 @@ public readonly record struct Result<TValue> : IResult
     /// </summary>
     /// <param name="value">The success value if successful, otherwise null.</param>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
-    public void Deconstruct(out TValue? value, out Error? error)
+    public void Deconstruct(out TValue? value, out Failure? error)
     {
         value = _value;
         error = _error;
@@ -539,7 +523,10 @@ public readonly record struct Result<TValue> : IResult
     public Result<TValue> WithMetadata(IReadOnlyMetadata metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
+        foreach (var kv in metadata)
+        {
+            newMetadata[kv.Key] = kv.Value;
+        }
 
         return new Result<TValue>(IsSuccess, _value, _error, newMetadata);
     }
@@ -552,7 +539,10 @@ public readonly record struct Result<TValue> : IResult
     public Result<TValue> WithMetadata(IEnumerable<KeyValuePair<string, object?>> metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
+        foreach (var kv in metadata)
+        {
+            newMetadata[kv.Key] = kv.Value;
+        }
 
         return new Result<TValue>(IsSuccess, _value, _error, newMetadata);
     }
@@ -565,7 +555,10 @@ public readonly record struct Result<TValue> : IResult
     public Result<TValue> WithMetadata(params (string Key, object? Value)[] items)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var (key, value) in items) newMetadata[key] = value;
+        foreach (var (key, value) in items)
+        {
+            newMetadata[key] = value;
+        }
 
         return new Result<TValue>(IsSuccess, _value, _error, newMetadata);
     }
@@ -585,12 +578,20 @@ public readonly record struct Result<TValue> : IResult
     /// <summary>
     ///     Implicitly converts a typed result to an untyped result, preserving success/failure state and metadata.
     /// </summary>
-    /// <param name="r">The typed result to convert.</param>
     /// <returns>An untyped result with the same success/failure state and metadata.</returns>
-    public static implicit operator Result(Result<TValue> r)
+    public Result ToResult()
     {
-        var baseResult = r.IsSuccess ? Result.Success() : Result.Failure(r._error!);
-        return r.Metadata.Count == 0 ? baseResult : baseResult.WithMetadata(r.Metadata);
+        Result r;
+        if (TryGetError(out var error))
+        {
+            r = Result.Failure(error);
+        }
+        else
+        {
+            r = Result.Success();
+        }
+
+        return r.Metadata.Count == 0 ? r : r.WithMetadata(Metadata);
     }
 
     /// <summary>
@@ -606,11 +607,11 @@ public readonly record struct Result<TValue> : IResult
     /// <summary>
     ///     Implicitly converts an error to a failed result.
     /// </summary>
-    /// <param name="error">The error to wrap in a failed result.</param>
+    /// <param name="failure">The error to wrap in a failed result.</param>
     /// <returns>A failed result containing the error.</returns>
-    public static implicit operator Result<TValue>(Error error)
+    public static implicit operator Result<TValue>(Failure failure)
     {
-        return Result.Failure<TValue>(error);
+        return Result.Failure<TValue>(failure);
     }
 
     /// <summary>

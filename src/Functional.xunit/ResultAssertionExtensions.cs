@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using Xunit;
 
 namespace UnambitiousFx.Functional.xunit;
@@ -58,13 +58,13 @@ public static class ResultAssertionExtensions
     /// <param name="because">An optional reason to include if the assertion fails.</param>
     /// <returns>The same FailureAssertion instance.</returns>
     public static FailureAssertion Where(this FailureAssertion assertion,
-        Func<IError, bool> predicate,
+        Func<IFailure, bool> predicate,
         string? because = null)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        if (!predicate(assertion.Error))
+        if (!predicate(assertion.Failure))
         {
-            var errorMessage = assertion.Error.Message;
+            var errorMessage = assertion.Failure.Message;
             Assert.Fail(because ?? $"Errors do not satisfy predicate. Error: '{errorMessage}'");
         }
 

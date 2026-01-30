@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -51,8 +51,8 @@ public sealed class ResultFailConflictTests
         var result = Result.FailConflict("Duplicate key");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<ConflictError>(error);
+        result.TryGetError(out Failure? error);
+        Assert.IsType<ConflictFailure>(error);
     }
 
     [Fact]
@@ -126,8 +126,8 @@ public sealed class ResultFailConflictTests
         var result = Result.FailConflict<string>("Duplicate key");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<ConflictError>(error);
+        result.TryGetError(out Failure? error);
+        Assert.IsType<ConflictFailure>(error);
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using IHttpResult = Microsoft.AspNetCore.Http.IResult;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 
@@ -41,13 +41,13 @@ public static class ResultHttpExtensions
         };
     }
 
-    private static IHttpResult MapErrorToHttpResult(Error error, IErrorHttpMapper? customMapper)
+    private static IHttpResult MapErrorToHttpResult(Failure failure, IErrorHttpMapper? customMapper)
     {
-        var mappedResponse = customMapper?.GetResponse(error);
+        var mappedResponse = customMapper?.GetResponse(failure);
         if (mappedResponse != null)
             return ResponseToHttpResult(mappedResponse.Value.StatusCode, mappedResponse.Value.Body);
 
-        var defaultResponse = DefaultErrorHttpMapper.Instance.GetResponse(error);
+        var defaultResponse = DefaultErrorHttpMapper.Instance.GetResponse(failure);
         if (defaultResponse is not null)
             return ResponseToHttpResult(defaultResponse.Value.StatusCode, defaultResponse.Value.Body);
 

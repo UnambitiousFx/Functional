@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -59,7 +59,7 @@ public sealed partial class ResultExtensions
     public void ToResult_WithFailureResult_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -75,7 +75,7 @@ public sealed partial class ResultExtensions
     public void ToResult_WithFailureResult_PreservesErrorCode()
     {
         // Arrange (Given)
-        var error = new Error("TEST_CODE", "Test error");
+        var error = new Failure("TEST_CODE", "Test error");
         var result = Result.Failure<string>(error);
 
         // Act (When)
@@ -91,7 +91,7 @@ public sealed partial class ResultExtensions
     public void ToResult_WithFailureResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error).WithMetadata("key", "value");
 
         // Act (When)

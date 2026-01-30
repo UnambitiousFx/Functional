@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -64,7 +64,7 @@ public sealed class ResultTests
     public void Failure_FromError_CreatesFailedResult()
     {
         // Arrange (Given)
-        var error = new Error("Invalid input");
+        var error = new Failure("Invalid input");
 
         // Act (When)
         var result = Result.Failure(error);
@@ -90,16 +90,16 @@ public sealed class ResultTests
     public void Failure_FromMultipleErrors_CreatesAggregateError()
     {
         // Arrange (Given)
-        var errors = new[] { new Error("Error 1"), new Error("Error 2"), new Error("Error 3") };
+        var errors = new[] { new Failure("Error 1"), new Failure("Error 2"), new Failure("Error 3") };
 
         // Act (When)
         var result = Result.Failure(errors.AsEnumerable());
 
         // Assert (Then)
         result.ShouldBe().Failure();
-        Assert.False(result.TryGet(out var error));
+        Assert.False(result.TryGetError(out var error));
         Assert.NotNull(error);
-        Assert.IsType<AggregateError>(error);
+        Assert.IsType<AggregateFailure>(error);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public sealed class ResultTests
     public void Failure_Generic_FromError_CreatesFailedResult()
     {
         // Arrange (Given)
-        var error = new Error("Invalid input");
+        var error = new Failure("Invalid input");
 
         // Act (When)
         var result = Result.Failure<string>(error);
@@ -147,7 +147,7 @@ public sealed class ResultTests
     public void Failure_Generic_FromMultipleErrors_CreatesAggregateError()
     {
         // Arrange (Given)
-        var errors = new[] { new Error("Error 1"), new Error("Error 2") };
+        var errors = new[] { new Failure("Error 1"), new Failure("Error 2") };
 
         // Act (When)
         var result = Result.Failure<int>(errors.AsEnumerable());
@@ -161,13 +161,13 @@ public sealed class ResultTests
     #region TryGet
 
     [Fact]
-    public void TryGet_WithSuccess_ReturnsTrueAndNullError()
+    public void TryGetError_WithSuccess_ReturnsTrueAndNullError()
     {
         // Arrange (Given)
         var result = Result.Success();
 
         // Act (When)
-        var success = result.TryGet(out var error);
+        var success = result.TryGetError(out var error);
 
         // Assert (Then)
         Assert.True(success);
@@ -175,14 +175,14 @@ public sealed class ResultTests
     }
 
     [Fact]
-    public void TryGet_WithFailure_ReturnsFalseAndError()
+    public void TryGetError_WithFailure_ReturnsFalseAndError()
     {
         // Arrange (Given)
-        var testError = new Error("Test error");
+        var testError = new Failure("Test error");
         var result = Result.Failure(testError);
 
         // Act (When)
-        var success = result.TryGet(out var error);
+        var success = result.TryGetError(out var error);
 
         // Assert (Then)
         Assert.False(success);
@@ -219,7 +219,7 @@ public sealed class ResultTests
         var result = Result.Failure("Error");
         var successCalled = false;
         var failureCalled = false;
-        Error? capturedError = null;
+        Failure? capturedError = null;
 
         // Act (When)
         result.Match(
@@ -318,7 +318,7 @@ public sealed class ResultTests
         // Arrange (Given)
         var result = Result.Failure("Error");
         var called = false;
-        Error? capturedError = null;
+        Failure? capturedError = null;
 
         // Act (When)
         result.IfFailure(e =>
@@ -353,7 +353,7 @@ public sealed class ResultTests
     public void Deconstruct_WithFailure_ReturnsError()
     {
         // Arrange (Given)
-        var testError = new Error("Test error");
+        var testError = new Failure("Test error");
         var result = Result.Failure(testError);
 
         // Act (When)

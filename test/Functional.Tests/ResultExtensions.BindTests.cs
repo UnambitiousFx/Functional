@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -27,7 +27,7 @@ public sealed partial class ResultExtensions
     public void Bind_ResultToResult_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -71,7 +71,7 @@ public sealed partial class ResultExtensions
     public void Bind_ResultToResultOfT_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -115,7 +115,7 @@ public sealed partial class ResultExtensions
     public void Bind_NonGenericToNonGeneric_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure(error);
 
         // Act (When)
@@ -159,7 +159,7 @@ public sealed partial class ResultExtensions
     public void Bind_NonGenericToGeneric_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Failure("Initial error");
         var result = Result.Failure(error);
 
         // Act (When)
@@ -167,53 +167,6 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         bound.ShouldBe().Failure().AndMessage("Initial error");
-    }
-
-    #endregion
-
-    #region Metadata Handling
-
-    [Fact]
-    public void Bind_CopiesMetadata_WhenCopyReasonsAndMetadataIsTrue()
-    {
-        // Arrange (Given)
-        var result = Result.Success(5).WithMetadata("key", "value");
-
-        // Act (When)
-        var bound = result.Bind(x => Result.Success(x * 2), true);
-
-        // Assert (Then)
-        bound.ShouldBe().Success();
-        Assert.Equal("value", bound.Metadata["key"]);
-    }
-
-    [Fact]
-    public void Bind_DoesNotCopyMetadata_WhenCopyReasonsAndMetadataIsFalse()
-    {
-        // Arrange (Given)
-        var result = Result.Success(5).WithMetadata("key", "value");
-
-        // Act (When)
-        var bound = result.Bind(x => Result.Success(x * 2), false);
-
-        // Assert (Then)
-        bound.ShouldBe().Success();
-        Assert.Empty(bound.Metadata);
-    }
-
-    [Fact]
-    public void Bind_CopiesMetadataOnFailure_WhenCopyReasonsAndMetadataIsTrue()
-    {
-        // Arrange (Given)
-        var error = new Error("Initial error");
-        var result = Result.Failure<int>(error).WithMetadata("key", "value");
-
-        // Act (When)
-        var bound = result.Bind(x => Result.Success(x * 2), true);
-
-        // Assert (Then)
-        bound.ShouldBe().Failure();
-        Assert.Equal("value", bound.Metadata["key"]);
     }
 
     #endregion

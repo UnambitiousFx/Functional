@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -63,8 +63,8 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated("Invalid credentials");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<UnauthenticatedError>(error);
+        result.TryGetError(out Failure? error);
+        Assert.IsType<UnauthenticatedFailure>(error);
     }
 
     [Fact]
@@ -136,8 +136,8 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated<string>("Invalid credentials");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<UnauthenticatedError>(error);
+        result.TryGetError(out Failure? error);
+        Assert.IsType<UnauthenticatedFailure>(error);
     }
 
     [Fact]

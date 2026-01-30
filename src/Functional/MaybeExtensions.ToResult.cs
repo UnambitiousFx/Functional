@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional;
 
@@ -12,13 +12,13 @@ public static partial class MaybeExtensions
         ///     Converts a Maybe to a Result. If the Maybe is Some, returns Success with the value.
         ///     If the Maybe is None, returns Failure with the provided error.
         /// </summary>
-        /// <param name="error">The error to use when the maybe is None.</param>
+        /// <param name="failure">The error to use when the maybe is None.</param>
         /// <returns>A Result that is successful if the maybe is Some; otherwise a failure with the provided error.</returns>
-        public Result<TValue> ToResult(Error error)
+        public Result<TValue> ToResult(Failures.Failure failure)
         {
             return maybe.Match(
                 some: Result.Success,
-                none: () => Result.Failure<TValue>(error));
+                none: () => Result.Failure<TValue>(failure));
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ public static partial class MaybeExtensions
         /// </summary>
         /// <param name="errorFactory">Factory function to create an error when the maybe is None.</param>
         /// <returns>A Result that is successful if the maybe is Some; otherwise a failure with the error from the factory.</returns>
-        public Result<TValue> ToResult(Func<Error> errorFactory)
+        public Result<TValue> ToResult(Func<Failure> errorFactory)
         {
             return maybe.Match(
                 some: Result.Success,

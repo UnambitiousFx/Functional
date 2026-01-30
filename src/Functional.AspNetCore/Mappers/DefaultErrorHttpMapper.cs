@@ -1,6 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Mappers;
 
@@ -16,108 +16,108 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     internal static IErrorHttpMapper Instance { get; } = new DefaultErrorHttpMapper();
 
     /// <inheritdoc />
-    public virtual (int StatusCode, object? Body)? GetResponse(IError error)
+    public virtual (int StatusCode, object? Body)? GetResponse(IFailure failure)
     {
-        var problem = error switch
+        var problem = failure switch
         {
-            ValidationError validation => FromValidationError(validation),
-            NotFoundError notFound => FromNotFoundError(notFound),
-            UnauthorizedError unauthorized => FromUnauthorizedError(unauthorized),
-            UnauthenticatedError unauthenticated => FromUnauthenticatedError(unauthenticated),
-            ConflictError conflict => FromConflictError(conflict),
-            ExceptionalError exceptional => FromExceptionalError(exceptional),
-            _ => FromError(error)
+            ValidationFailure validation => FromValidationError(validation),
+            NotFoundFailure notFound => FromNotFoundError(notFound),
+            UnauthorizedFailure unauthorized => FromUnauthorizedError(unauthorized),
+            UnauthenticatedFailure unauthenticated => FromUnauthenticatedError(unauthenticated),
+            ConflictFailure conflict => FromConflictError(conflict),
+            ExceptionalFailure exceptional => FromExceptionalError(exceptional),
+            _ => FromError(failure)
         };
 
         return (problem.Status ?? 500, problem);
     }
 
-    private static ProblemDetails FromError(IError error)
+    private static ProblemDetails FromError(IFailure failure)
     {
         return new ProblemDetails
         {
             Title = "An error occurred.",
-            Detail = error.Message,
+            Detail = failure.Message,
             Status = (int)HttpStatusCode.InternalServerError,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
         };
     }
 
-    private static ProblemDetails FromConflictError(ConflictError error)
+    private static ProblemDetails FromConflictError(ConflictFailure failure)
     {
         return new ProblemDetails
         {
             Title = "Conflict",
-            Detail = error.Message,
+            Detail = failure.Message,
             Status = (int)HttpStatusCode.Conflict,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8"
         };
     }
 
-    private static ProblemDetails FromExceptionalError(ExceptionalError error)
+    private static ProblemDetails FromExceptionalError(ExceptionalFailure failure)
     {
         return new ProblemDetails
         {
             Title = "Internal Server Error",
-            Detail = error.Message,
+            Detail = failure.Message,
             Status = (int)HttpStatusCode.InternalServerError,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
         };
     }
 
-    private static ProblemDetails FromUnauthorizedError(UnauthorizedError error)
+    private static ProblemDetails FromUnauthorizedError(UnauthorizedFailure failure)
     {
         return new ProblemDetails
         {
             Title = "Unauthorized",
-            Detail = error.Message,
+            Detail = failure.Message,
             Status = (int)HttpStatusCode.Unauthorized,
             Type = "https://tools.ietf.org/html/rfc7235#section-3.1"
         };
     }
 
-    private static ProblemDetails FromUnauthenticatedError(UnauthenticatedError error)
+    private static ProblemDetails FromUnauthenticatedError(UnauthenticatedFailure failure)
     {
         return new ProblemDetails
         {
             Title = "Unauthorized",
-            Detail = error.Message,
+            Detail = failure.Message,
             Status = (int)HttpStatusCode.Forbidden,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
         };
     }
 
-    private static ProblemDetails FromNotFoundError(NotFoundError error)
+    private static ProblemDetails FromNotFoundError(NotFoundFailure failure)
     {
         return new ProblemDetails
         {
             Title = "Not Found",
-            Detail = error.Message,
+            Detail = failure.Message,
             Status = (int)HttpStatusCode.NotFound,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
             Extensions =
             {
-                { "code", error.Code },
-                { "resource", error.Resource },
-                { "identifier", error.Identifier }
+                { "code", failure.Code },
+                { "resource", failure.Resource },
+                { "identifier", failure.Identifier }
             }
         };
     }
 
-    private static ProblemDetails FromValidationError(ValidationError error)
+    private static ProblemDetails FromValidationError(ValidationFailure failure)
     {
         var details = new ProblemDetails
         {
             Title = "Validation Error",
-            Detail = error.Message,
+            Detail = failure.Message,
             Status = (int)HttpStatusCode.BadRequest,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
             Extensions =
             {
-                { "code", error.Code }
+                { "code", failure.Code }
             }
         };
-        for (var i = 0; i < error.Failures.Count; i++) details.Extensions.Add($"failure[{i}]", error.Failures[i]);
+        for (var i = 0; i < failure.Failures.Count; i++) details.Extensions.Add($"failure[{i}]", failure.Failures[i]);
         return details;
     }
 }

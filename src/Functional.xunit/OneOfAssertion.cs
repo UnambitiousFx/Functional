@@ -48,8 +48,10 @@ public readonly struct OneOfAssertion<TValue>
     /// <param name="projector">A function that takes the current value and projects it to a new value of type TOut.</param>
     /// <returns>A new instance of <see cref="OneOfAssertion{TOut}" /> containing the projected value.</returns>
     public OneOfAssertion<TOut> Map<TOut>(Func<TValue, TOut> projector)
-        where TOut : notnull =>
-        new(projector(Value));
+        where TOut : notnull
+    {
+        return new OneOfAssertion<TOut>(projector(Value));
+    }
 }
 
 /// <summary>
@@ -84,7 +86,7 @@ public readonly struct OneOfAssertion<TFirst, TSecond>
     /// </returns>
     public OneOfAssertion<TFirst> First()
     {
-        if (!_oneOf.First(out var value))
+        if (!_oneOf.TryGetFirst(out var value))
         {
             Assert.Fail("Expected OneOf.First but was Second.");
         }
@@ -102,7 +104,7 @@ public readonly struct OneOfAssertion<TFirst, TSecond>
     /// </returns>
     public OneOfAssertion<TSecond> Second()
     {
-        if (!_oneOf.Second(out var value))
+        if (!_oneOf.TryGetSecond(out var value))
         {
             Assert.Fail("Expected OneOf.Second but was First.");
         }

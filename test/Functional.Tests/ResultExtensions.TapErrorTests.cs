@@ -1,4 +1,3 @@
-using UnambitiousFx.Functional.Errors;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -14,7 +13,7 @@ public sealed partial class ResultExtensions
     public void TapError_CanInspectErrorMetadata()
     {
         // Arrange (Given)
-        var error = new Error(
+        var error = new Functional.Failures.Failure(
             "ERR_001",
             "Test error",
             new Dictionary<string, object?> { ["timestamp"] = "2024-01-01", ["severity"] = "high" });
@@ -59,7 +58,7 @@ public sealed partial class ResultExtensions
     public void TapError_WithFailure_ExecutesSideEffect()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Functional.Failures.Failure("Test error");
         var result = Result.Failure<int>(error);
         var capturedMessage = "";
 
@@ -75,7 +74,7 @@ public sealed partial class ResultExtensions
     public void TapError_WithFailure_ReturnsOriginalResult()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Functional.Failures.Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -108,7 +107,7 @@ public sealed partial class ResultExtensions
     public void TapError_NonGeneric_WithFailure_ExecutesSideEffect()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Functional.Failures.Failure("Test error");
         var result = Result.Failure(error);
         var capturedMessage = "";
 
@@ -128,7 +127,7 @@ public sealed partial class ResultExtensions
     public void TapError_CanBeUsedForErrorLogging()
     {
         // Arrange (Given)
-        var error = new Error("Database connection failed");
+        var error = new Functional.Failures.Failure("Database connection failed");
         var result = Result.Failure<string>(error);
         var errorLog = new List<string>();
 
@@ -164,7 +163,7 @@ public sealed partial class ResultExtensions
     public void TapError_CanChainMultipleTapErrors()
     {
         // Arrange (Given)
-        var error = new Error("ERR_001", "Test error");
+        var error = new Functional.Failures.Failure("ERR_001", "Test error");
         var result = Result.Failure<int>(error);
         var log = new List<string>();
 

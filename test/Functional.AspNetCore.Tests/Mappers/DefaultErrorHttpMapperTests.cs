@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Mappers;
 
@@ -12,7 +12,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponse_ValidationError_Returns400()
     {
         // Given
-        var error = new ValidationError(["Field is required"]);
+        var error = new ValidationFailure(["Field is required"]);
 
         // When
         var response = _sut.GetResponse(error);
@@ -26,7 +26,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponse_NotFoundError_Returns404()
     {
         // Given
-        var error = new NotFoundError("User", "123");
+        var error = new NotFoundFailure("User", "123");
 
         // When
         var response = _sut.GetResponse(error);
@@ -40,7 +40,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponse_UnauthorizedError_Returns401()
     {
         // Given
-        var error = new UnauthorizedError();
+        var error = new UnauthorizedFailure();
 
         // When
         var response = _sut.GetResponse(error);
@@ -54,7 +54,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponse_UnauthenticatedError_Returns401()
     {
         // Given
-        var error = new UnauthenticatedError();
+        var error = new UnauthenticatedFailure();
 
         // When
         var response = _sut.GetResponse(error);
@@ -68,7 +68,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponse_ConflictError_Returns409()
     {
         // Given
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
 
         // When
         var response = _sut.GetResponse(error);
@@ -82,7 +82,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponse_ExceptionalError_Returns500()
     {
         // Given
-        var error = new ExceptionalError(new Exception("Internal error"));
+        var error = new ExceptionalFailure(new Exception("Internal error"));
 
         // When
         var response = _sut.GetResponse(error);
@@ -96,7 +96,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponse_CustomError_Returns500()
     {
         // Given
-        var error = new Error("CUSTOM", "Custom error message");
+        var error = new Failure("CUSTOM", "Custom error message");
 
         // When
         var response = _sut.GetResponse(error);
@@ -111,7 +111,7 @@ public class DefaultErrorHttpMapperTests
     {
         // Given
         var failures = new[] { "Field is required", "Email is invalid" };
-        var error = new ValidationError(failures);
+        var error = new ValidationFailure(failures);
 
         // When
         var response = _sut.GetResponse(error);
@@ -129,7 +129,7 @@ public class DefaultErrorHttpMapperTests
     public void GetResponseBody_NotFoundError_ReturnsResourceAndIdentifier()
     {
         // Given
-        var error = new NotFoundError("User", "123");
+        var error = new NotFoundFailure("User", "123");
 
         // When
         var response = _sut.GetResponse(error);

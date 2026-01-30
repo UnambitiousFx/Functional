@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -84,7 +84,7 @@ public sealed partial class ResultExtensions
     public void Map_WithFailureResult_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -100,7 +100,7 @@ public sealed partial class ResultExtensions
     public void Map_WithFailureResult_DoesNotExecuteMapper()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error);
         var executed = false;
 
@@ -120,7 +120,7 @@ public sealed partial class ResultExtensions
     public void Map_WithFailureResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure<int>(error).WithMetadata("key", "value");
 
         // Act (When)
@@ -243,7 +243,7 @@ public sealed partial class ResultExtensions
     public void Map_WithNonGenericFailureResult_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Operation failed");
+        var error = new Failure("Operation failed");
         var result = Result.Failure(error);
 
         // Act (When)
@@ -259,7 +259,7 @@ public sealed partial class ResultExtensions
     public void Map_WithNonGenericFailureResult_DoesNotExecuteMapper()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure(error);
         var executed = false;
 
@@ -279,7 +279,7 @@ public sealed partial class ResultExtensions
     public void Map_WithNonGenericFailureResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Failure("Test error");
         var result = Result.Failure(error).WithMetadata("key", "value");
 
         // Act (When)

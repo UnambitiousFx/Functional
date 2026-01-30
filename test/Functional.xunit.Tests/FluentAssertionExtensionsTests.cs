@@ -1,5 +1,4 @@
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
@@ -9,22 +8,22 @@ public class FluentAssertionExtensionsTests
     public void WhichIsValidationError_WhenValidationError_ReturnsValidationErrorAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Field is required"]));
+        var result = Result.Failure(new ValidationFailure(["Field is required"]));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When)
         var validationAssertion = failureAssertion.WhichIsValidationError();
 
         // Assert (Then)
-        Assert.NotNull(validationAssertion.Error);
-        Assert.IsType<ValidationError>(validationAssertion.Error);
+        Assert.NotNull(validationAssertion.Failure);
+        Assert.IsType<ValidationFailure>(validationAssertion.Failure);
     }
 
     [Fact(DisplayName = "WhichIsValidationError throws when error is not ValidationError")]
     public void WhichIsValidationError_WhenNotValidationError_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new NotFoundError("User", "123"));
+        var result = Result.Failure(new NotFoundFailure("User", "123"));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When) & Assert (Then)
@@ -36,22 +35,22 @@ public class FluentAssertionExtensionsTests
     public void WhichIsNotFoundError_WhenNotFoundError_ReturnsNotFoundErrorAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new NotFoundError("User", "123"));
+        var result = Result.Failure(new NotFoundFailure("User", "123"));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When)
         var notFoundAssertion = failureAssertion.WhichIsNotFoundError();
 
         // Assert (Then)
-        Assert.NotNull(notFoundAssertion.Error);
-        Assert.IsType<NotFoundError>(notFoundAssertion.Error);
+        Assert.NotNull(notFoundAssertion.Failure);
+        Assert.IsType<NotFoundFailure>(notFoundAssertion.Failure);
     }
 
     [Fact(DisplayName = "WhichIsNotFoundError throws when error is not NotFoundError")]
     public void WhichIsNotFoundError_WhenNotNotFoundError_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Invalid"]));
+        var result = Result.Failure(new ValidationFailure(["Invalid"]));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When) & Assert (Then)
@@ -63,22 +62,22 @@ public class FluentAssertionExtensionsTests
     public void WhichIsConflictError_WhenConflictError_ReturnsConflictErrorAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ConflictError("Resource already exists"));
+        var result = Result.Failure(new ConflictFailure("Resource already exists"));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When)
         var conflictAssertion = failureAssertion.WhichIsConflictError();
 
         // Assert (Then)
-        Assert.NotNull(conflictAssertion.Error);
-        Assert.IsType<ConflictError>(conflictAssertion.Error);
+        Assert.NotNull(conflictAssertion.Failure);
+        Assert.IsType<ConflictFailure>(conflictAssertion.Failure);
     }
 
     [Fact(DisplayName = "WhichIsConflictError throws when error is not ConflictError")]
     public void WhichIsConflictError_WhenNotConflictError_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Invalid"]));
+        var result = Result.Failure(new ValidationFailure(["Invalid"]));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When) & Assert (Then)
@@ -90,26 +89,26 @@ public class FluentAssertionExtensionsTests
     public void WhichIs_WhenErrorMatchesType_ReturnsTypedErrorAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new UnauthorizedError());
+        var result = Result.Failure(new UnauthorizedFailure());
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When)
-        var typedAssertion = failureAssertion.WhichIs<UnauthorizedError>();
+        var typedAssertion = failureAssertion.WhichIs<UnauthorizedFailure>();
 
         // Assert (Then)
         Assert.NotNull(typedAssertion.Error);
-        Assert.IsType<UnauthorizedError>(typedAssertion.Error);
+        Assert.IsType<UnauthorizedFailure>(typedAssertion.Error);
     }
 
     [Fact(DisplayName = "WhichIs<TError> throws when error does not match type")]
     public void WhichIs_WhenErrorDoesNotMatchType_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Invalid"]));
+        var result = Result.Failure(new ValidationFailure(["Invalid"]));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIs<UnauthorizedError>());
+        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIs<UnauthorizedFailure>());
         Assert.Contains("Expected UnauthorizedError but was ValidationError", exception.Message);
     }
 
@@ -117,12 +116,12 @@ public class FluentAssertionExtensionsTests
     public void WhichIs_WithCustomErrorType_WorksCorrectly()
     {
         // Arrange (Given)
-        var customError = new Error("CUSTOM", "Custom error");
+        var customError = new Failure("CUSTOM", "Custom error");
         var result = Result.Failure(customError);
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When)
-        var typedAssertion = failureAssertion.WhichIs<Error>();
+        var typedAssertion = failureAssertion.WhichIs<Failure>();
 
         // Assert (Then)
         Assert.NotNull(typedAssertion.Error);

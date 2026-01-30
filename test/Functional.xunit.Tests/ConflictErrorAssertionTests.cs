@@ -1,5 +1,4 @@
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
@@ -9,35 +8,35 @@ public class ConflictErrorAssertionTests
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
         var assertion = new ConflictErrorAssertion(error);
 
         // Act (When)
         var result = assertion.And(e => Assert.NotNull(e));
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "AndMessage succeeds when message matches")]
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
         var assertion = new ConflictErrorAssertion(error);
 
         // Act (When)
         var result = assertion.AndMessage("Resource already exists");
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "AndMessage throws when message does not match")]
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
         var assertion = new ConflictErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -48,21 +47,21 @@ public class ConflictErrorAssertionTests
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
         var assertion = new ConflictErrorAssertion(error);
 
         // Act (When)
         var result = assertion.AndCode("CONFLICT");
 
         // Assert (Then)
-        Assert.Equal(error, result.Error);
+        Assert.Equal(error, result.Failure);
     }
 
     [Fact(DisplayName = "AndCode throws when code does not match")]
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
         var assertion = new ConflictErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -73,7 +72,7 @@ public class ConflictErrorAssertionTests
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
         var assertion = new ConflictErrorAssertion(error);
 
         // Act (When) & Assert (Then)
@@ -86,7 +85,7 @@ public class ConflictErrorAssertionTests
     public void And_AllowsCustomAssertions_OnErrorProperties()
     {
         // Arrange (Given)
-        var error = new ConflictError("Resource already exists");
+        var error = new ConflictFailure("Resource already exists");
         var assertion = new ConflictErrorAssertion(error);
 
         // Act (When) & Assert (Then)

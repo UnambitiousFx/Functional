@@ -1,5 +1,5 @@
-using UnambitiousFx.Functional.Errors;
 using UnambitiousFx.Functional.xunit;
+using ExceptionalFailure = UnambitiousFx.Functional.Failures.ExceptionalFailure;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -32,9 +32,9 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         transformed.ShouldBe().Failure();
-        transformed.TryGet(out Error? error);
-        var nonGenericResult = Result.Failure(error!);
-        Assert.True(nonGenericResult.HasException<InvalidOperationException>());
+        transformed.TryGetError(out Functional.Failures.Failure? error);
+        var exceptionalError = Assert.IsType<ExceptionalFailure>(error);
+        Assert.IsType<InvalidOperationException>(exceptionalError.Exception);
     }
 
     [Fact]
@@ -61,9 +61,9 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         transformed.ShouldBe().Failure();
-        transformed.TryGet(out Error? error);
-        var nonGenericResult = Result.Failure(error!);
-        Assert.True(nonGenericResult.HasException<DivideByZeroException>());
+        transformed.TryGetError(out Functional.Failures.Failure? error);
+        var exceptionalError = Assert.IsType<ExceptionalFailure>(error);
+        Assert.IsType<DivideByZeroException>(exceptionalError.Exception);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public sealed partial class ResultExtensions
         // Assert (Then)
         tried.ShouldBe().Failure();
         Assert.False(tried.TryGet(out _, out var error));
-        Assert.IsType<ExceptionalError>(error);
+        Assert.IsType<ExceptionalFailure>(error);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed partial class ResultExtensions
     public void Try_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error = new Functional.Failures.Failure("Initial error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -188,7 +188,7 @@ public sealed partial class ResultExtensions
         // Assert (Then)
         tried.ShouldBe().Failure();
         Assert.False(tried.TryGet(out _, out var error));
-        Assert.IsType<ExceptionalError>(error);
+        Assert.IsType<ExceptionalFailure>(error);
     }
 
     [Fact]

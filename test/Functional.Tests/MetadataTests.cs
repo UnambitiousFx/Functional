@@ -344,7 +344,7 @@ public sealed class MetadataTests
         var result = Result.Success(42)
             .WithMetadata(("traceId", "abc-123"), ("userId", 99));
 
-        Assert.True(result.TryGet(out int value));
+        Assert.True(result.TryGetValue(out int value));
         Assert.Equal(42, value);
         Assert.Equal(2, result.Metadata.Count);
         Assert.Equal("abc-123", result.Metadata["traceId"]);
@@ -359,7 +359,7 @@ public sealed class MetadataTests
                 .Add("key1", "value1")
                 .AddRange(("key2", 42), ("key3", true)));
 
-        Assert.True(result.TryGet(out string? value));
+        Assert.True(result.TryGetValue(out string? value));
         Assert.Equal("test", value);
         Assert.Equal(3, result.Metadata.Count);
         Assert.Equal("value1", result.Metadata["key1"]);
@@ -418,7 +418,7 @@ public sealed class MetadataTests
                 .Add("step4", "completion")
                 .AddIf(true, "status", "success"));
 
-        Assert.True(result.TryGet(out int value));
+        Assert.True(result.TryGetValue(out int value));
         Assert.Equal(42, value);
         Assert.Equal(5, result.Metadata.Count);
         Assert.Equal("init", result.Metadata["step1"]);

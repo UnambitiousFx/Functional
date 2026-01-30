@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -51,9 +51,9 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation("Invalid input");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<ValidationError>(error);
-        var validationError = (ValidationError)error;
+        result.TryGetError(out Failure? error);
+        Assert.IsType<ValidationFailure>(error);
+        var validationError = (ValidationFailure)error;
         Assert.Single(validationError.Failures);
         Assert.Equal("Invalid input", validationError.Failures[0]);
     }
@@ -132,9 +132,9 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation<string>("Invalid input");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<ValidationError>(error);
-        var validationError = (ValidationError)error;
+        result.TryGetError(out Failure? error);
+        Assert.IsType<ValidationFailure>(error);
+        var validationError = (ValidationFailure)error;
         Assert.Single(validationError.Failures);
         Assert.Equal("Invalid input", validationError.Failures[0]);
     }

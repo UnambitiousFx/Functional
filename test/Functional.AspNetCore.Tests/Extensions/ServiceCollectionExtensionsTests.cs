@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions;
 
@@ -124,7 +124,7 @@ public class ServiceCollectionExtensionsTests
         var mapper = provider.GetRequiredService<IErrorHttpMapper>();
 
         // Act (When)
-        var error = new ExceptionalError(new Exception("Test exception"));
+        var error = new ExceptionalFailure(new Exception("Test exception"));
         var body = mapper.GetResponse(error);
 
         // Assert (Then)

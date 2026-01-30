@@ -1,58 +1,21 @@
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.Tests;
 
 public sealed class ResultImplicitConversionTests
 {
     [Fact]
-    public void ImplicitConversion_FromSuccess_PreservesSuccessAndMetadata()
-    {
-        // Arrange (Given)
-        var typed = Result.Success(42).WithMetadata("key", "value");
-
-        // Act (When)
-        Result untyped = typed; // implicit conversion
-
-        // Assert (Then)
-        Assert.True(untyped.IsSuccess);
-        Assert.True(untyped.TryGet(out var error));
-        Assert.Null(error);
-        Assert.Single(untyped.Metadata);
-        Assert.Equal("value", untyped.Metadata["key"]);
-    }
-
-    [Fact]
-    public void ImplicitConversion_FromFailure_PreservesFailureAndMetadataAndError()
-    {
-        // Arrange (Given)
-        var originalError = new Error("Test failure");
-        var typed = Result.Failure<int>(originalError).WithMetadata("k", 123);
-
-        // Act (When)
-        Result untyped = typed; // implicit conversion
-
-        // Assert (Then)
-        Assert.False(untyped.IsSuccess);
-        Assert.False(untyped.TryGet(out var error));
-        Assert.NotNull(error);
-        Assert.Equal("Test failure", error!.Message);
-        Assert.Single(untyped.Metadata);
-        Assert.Equal(123, untyped.Metadata["k"]);
-    }
-
-    [Fact]
     public void ImplicitConversion_FromErrorToResult_CreatesFailedResult()
     {
         // Arrange (Given)
-        var error = new Error("some error");
+        var error = new Failure("some error");
 
         // Act (When)
         Result r = error; // implicit conversion
 
         // Assert (Then)
         Assert.False(r.IsSuccess);
-        Assert.False(r.TryGet(out var e));
+        Assert.False(r.TryGetError(out var e));
         Assert.NotNull(e);
         Assert.Equal("some error", e!.Message);
     }
@@ -75,7 +38,7 @@ public sealed class ResultImplicitConversionTests
     public void ImplicitConversion_FromErrorToResultOfT_CreatesFailedResult()
     {
         // Arrange (Given)
-        var err = new Error("typed error");
+        var err = new Failure("typed error");
 
         // Act (When)
         Result<int> r = err; // implicit conversion

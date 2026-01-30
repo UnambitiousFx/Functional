@@ -1,4 +1,3 @@
-using UnambitiousFx.Functional.xunit.Tasks;
 using UnambitiousFx.Functional.xunit.ValueTasks;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
@@ -26,9 +25,9 @@ public sealed class MaybeAssertionTests
     }
 
     [Fact]
-    public async Task Async_Task_EnsureSome()
+    public async Task Async_ValueTask_EnsureSome()
     {
-        await Task.FromResult(Maybe<int>.Some(7))
+        await new ValueTask<Maybe<int>>(Maybe<int>.Some(7))
             .ShouldBe()
             .Some()
             .And(v => Assert.Equal(7, v));
@@ -37,7 +36,7 @@ public sealed class MaybeAssertionTests
     [Fact]
     public async Task Async_ValueTask_EnsureNone()
     {
-        await ValueTask.FromResult(Maybe<int>.None())
+        await new ValueTask<Maybe<int>>(Maybe<int>.None())
             .ShouldBe()
             .None();
     }

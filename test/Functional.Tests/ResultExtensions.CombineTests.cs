@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -35,8 +35,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         combined.ShouldBe().Failure();
-        Assert.False(combined.TryGet(out var error));
-        Assert.IsType<AggregateError>(error);
+        Assert.False(combined.TryGetError(out var error));
+        Assert.IsType<AggregateFailure>(error);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public sealed partial class ResultExtensions
         // Assert (Then)
         combined.ShouldBe().Failure();
         Assert.False(combined.TryGet(out _, out var error));
-        Assert.IsType<AggregateError>(error);
+        Assert.IsType<AggregateFailure>(error);
     }
 
     [Fact]

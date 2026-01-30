@@ -1,6 +1,6 @@
 using NSubstitute;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Options;
 
@@ -132,7 +132,7 @@ public class ResultHttpOptionsTests
         // Arrange (Given)
         var options = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
-        var error = new ValidationError(["Test"]);
+        var error = new ValidationFailure(["Test"]);
 
         customMapper.GetResponse(error).Returns((999, null));
         options.AddMapper(customMapper);
@@ -172,7 +172,7 @@ public class ResultHttpOptionsTests
 
         // Act (When)
         var mapper = options.BuildMapper();
-        var error = new ExceptionalError(new Exception("Test"));
+        var error = new ExceptionalFailure(new Exception("Test"));
         var body = mapper.GetResponse(error);
 
         // Assert (Then)

@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using Xunit;
 
 namespace UnambitiousFx.Functional.xunit;
@@ -14,15 +14,15 @@ public readonly struct ConflictErrorAssertion
     /// <summary>
     ///     Represents a fluent assertion mechanism for handling ConflictError cases in test results.
     /// </summary>
-    internal ConflictErrorAssertion(ConflictError error)
+    internal ConflictErrorAssertion(ConflictFailure failure)
     {
-        Error = error;
+        Failure = failure;
     }
 
     /// <summary>
     ///     Gets the ConflictError associated with this assertion.
     /// </summary>
-    public ConflictError Error { get; }
+    public ConflictFailure Failure { get; }
 
     /// <summary>
     ///     Applies the specified assertion action to the ConflictError and returns the current assertion
@@ -30,9 +30,9 @@ public readonly struct ConflictErrorAssertion
     /// </summary>
     /// <param name="assert">The action to be applied to the ConflictError.</param>
     /// <returns>The current <see cref="ConflictErrorAssertion" /> instance to allow method chaining.</returns>
-    public ConflictErrorAssertion And(Action<ConflictError> assert)
+    public ConflictErrorAssertion And(Action<ConflictFailure> assert)
     {
-        assert(Error);
+        assert(Failure);
         return this;
     }
 
@@ -43,7 +43,7 @@ public readonly struct ConflictErrorAssertion
     /// <returns>The current instance of <see cref="ConflictErrorAssertion" /> for further chaining.</returns>
     public ConflictErrorAssertion AndMessage(string expected)
     {
-        Assert.Equal(expected, Error.Message);
+        Assert.Equal(expected, Failure.Message);
         return this;
     }
 
@@ -54,7 +54,7 @@ public readonly struct ConflictErrorAssertion
     /// <returns>The current instance of <see cref="ConflictErrorAssertion" /> for further chaining.</returns>
     public ConflictErrorAssertion AndCode(string expected)
     {
-        Assert.Equal(expected, Error.Code);
+        Assert.Equal(expected, Failure.Code);
         return this;
     }
 }

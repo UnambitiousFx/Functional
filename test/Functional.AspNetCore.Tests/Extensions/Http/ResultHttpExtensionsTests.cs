@@ -2,7 +2,11 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Http;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
+using ConflictFailure = UnambitiousFx.Functional.Failures.ConflictFailure;
+using NotFoundFailure = UnambitiousFx.Functional.Failures.NotFoundFailure;
+using UnauthenticatedFailure = UnambitiousFx.Functional.Failures.UnauthenticatedFailure;
+using ValidationFailure = UnambitiousFx.Functional.Failures.ValidationFailure;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Http;
 
@@ -25,7 +29,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_FailureResult_Returns400()
     {
         // Given
-        var result = Result.Failure(new ValidationError(["Invalid input"]));
+        var result = Result.Failure(new ValidationFailure(["Invalid input"]));
 
         // When
         var httpResult = result.ToHttpResult();
@@ -51,7 +55,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_Generic_NotFoundError_Returns404()
     {
         // Given
-        var result = Result.Failure<int>(new NotFoundError("Item", "123"));
+        var result = Result.Failure<int>(new NotFoundFailure("Item", "123"));
 
         // When
         var httpResult = result.ToHttpResult();
@@ -119,7 +123,7 @@ public class ResultHttpExtensionsTests
     public void ToCreatedHttpResult_Failure_ReturnsErrorResult()
     {
         // Given
-        var result = Result.Failure<int>(new ValidationError(["Invalid input"]));
+        var result = Result.Failure<int>(new ValidationFailure(["Invalid input"]));
 
         // When
         var httpResult = result.ToCreatedHttpResult(id => $"/items/{id}");
@@ -132,7 +136,7 @@ public class ResultHttpExtensionsTests
     public void ToCreatedHttpResult_WithDtoMapperAndFailure_ReturnsErrorResult()
     {
         // Given
-        var result = Result.Failure<int>(new NotFoundError("Item", "123"));
+        var result = Result.Failure<int>(new NotFoundFailure("Item", "123"));
 
         // When
         var httpResult = result.ToCreatedHttpResult(
@@ -147,7 +151,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithUnauthenticatedError_Returns401()
     {
         // Given
-        var result = Result.Failure(new UnauthenticatedError("User not authenticated"));
+        var result = Result.Failure(new UnauthenticatedFailure("User not authenticated"));
 
         // When
         var httpResult = result.ToHttpResult();
@@ -160,7 +164,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithConflictError_Returns409()
     {
         // Given
-        var result = Result.Failure(new ConflictError("Conflict detected"));
+        var result = Result.Failure(new ConflictFailure("Conflict detected"));
 
         // When
         var httpResult = result.ToHttpResult();
@@ -173,7 +177,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithProblemDetailsMapper_ReturnsProblemDetails()
     {
         // Given
-        var result = Result.Failure(new ValidationError(["Invalid input"]));
+        var result = Result.Failure(new ValidationFailure(["Invalid input"]));
         var customMapper = new CustomProblemDetailsMapper();
 
         // When
@@ -187,7 +191,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomMapperReturningNull_FallsBackToDefault()
     {
         // Given
-        var result = Result.Failure(new ValidationError(["Invalid input"]));
+        var result = Result.Failure(new ValidationFailure(["Invalid input"]));
         var customMapper = new NullReturningMapper();
 
         // When
@@ -201,7 +205,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithUnsupportedErrorStatusCode_Returns500()
     {
         // Given
-        var result = Result.Failure(new CustomError(418, "I'm a teapot"));
+        var result = Result.Failure(new CustomFailure(418, "I'm a teapot"));
         var customMapper = new CustomStatusCodeMapper();
 
         // When
@@ -215,7 +219,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithError500AndBody_ReturnsProblem()
     {
         // Given
-        var result = Result.Failure(new CustomError(500, "Internal server error"));
+        var result = Result.Failure(new CustomFailure(500, "Internal server error"));
         var customMapper = new CustomStatusCodeMapper();
 
         // When
@@ -229,7 +233,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomErrorMapper400_ReturnsBadRequestObjectResult()
     {
         // Given
-        var result = Result.Failure<int>(new CustomError(400, "Invalid input"));
+        var result = Result.Failure<int>(new CustomFailure(400, "Invalid input"));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -244,7 +248,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomErrorMapper401_ReturnsUnauthorizedObjectResult()
     {
         // Given
-        var result = Result.Failure<int>(new CustomError(401, "Invalid input"));
+        var result = Result.Failure<int>(new CustomFailure(401, "Invalid input"));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -259,7 +263,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomErrorMapper402_ReturnsForbidResult()
     {
         // Given
-        var result = Result.Failure<int>(new CustomError(403, "Invalid input"));
+        var result = Result.Failure<int>(new CustomFailure(403, "Invalid input"));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -273,7 +277,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomErrorMapper404_ReturnsNotFoundObjectResult()
     {
         // Given
-        var result = Result.Failure<int>(new CustomError(404, "Invalid input"));
+        var result = Result.Failure<int>(new CustomFailure(404, "Invalid input"));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -287,7 +291,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomErrorMapper409_ReturnsConflictObjectResult()
     {
         // Given
-        var result = Result.Failure<int>(new CustomError(409, "Invalid input"));
+        var result = Result.Failure<int>(new CustomFailure(409, "Invalid input"));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -301,7 +305,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomErrorMapper500_ReturnsObjectResult()
     {
         // Given
-        var result = Result.Failure<int>(new CustomError(500, "Invalid input"));
+        var result = Result.Failure<int>(new CustomFailure(500, "Invalid input"));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -315,7 +319,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomErrorMapperNullBody_ReturnsStatusCodeResult()
     {
         // Given
-        var result = Result.Failure<int>(new CustomError(500, string.Empty));
+        var result = Result.Failure<int>(new CustomFailure(500, string.Empty));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -329,9 +333,9 @@ public class ResultHttpExtensionsTests
 
     private class CustomProblemDetailsMapper : IErrorHttpMapper
     {
-        public (int StatusCode, object? Body)? GetResponse(IError error)
+        public (int StatusCode, object? Body)? GetResponse(IFailure failure)
         {
-            if (error is ValidationError)
+            if (failure is ValidationFailure)
                 return (400, new ProblemDetails
                 {
                     Title = "Validation Error",
@@ -344,20 +348,20 @@ public class ResultHttpExtensionsTests
 
     private class NullReturningMapper : IErrorHttpMapper
     {
-        public (int StatusCode, object? Body)? GetResponse(IError error)
+        public (int StatusCode, object? Body)? GetResponse(IFailure failure)
         {
             return null;
         }
     }
 
-    private record CustomError(int StatusCode, string Message) : Error(Message);
+    private record CustomFailure(int StatusCode, string Message) : Failure(Message);
 
     private class CustomStatusCodeMapper : IErrorHttpMapper
     {
-        public (int StatusCode, object? Body)? GetResponse(IError error)
+        public (int StatusCode, object? Body)? GetResponse(IFailure failure)
         {
-            var body = string.IsNullOrWhiteSpace(error.Message) ? null : new { error.Message };
-            if (error is CustomError customError) return (customError.StatusCode, body);
+            var body = string.IsNullOrWhiteSpace(failure.Message) ? null : new { failure.Message };
+            if (failure is CustomFailure customError) return (customError.StatusCode, body);
             return null;
         }
     }

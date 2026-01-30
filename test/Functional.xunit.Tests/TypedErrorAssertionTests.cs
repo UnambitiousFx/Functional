@@ -1,5 +1,4 @@
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
@@ -9,8 +8,8 @@ public class TypedErrorAssertionTests
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
         var result = assertion.And(e => Assert.NotNull(e));
@@ -23,8 +22,8 @@ public class TypedErrorAssertionTests
     public void Where_WhenPredicateSatisfied_Succeeds()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
         var result = assertion.Where(e => e.Code == "UNAUTHORIZED");
@@ -37,8 +36,8 @@ public class TypedErrorAssertionTests
     public void Where_WhenPredicateNotSatisfied_Throws()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
         var exception = Assert.Throws<Xunit.Sdk.FailException>(() => assertion.Where(e => e.Code == "WRONG_CODE"));
@@ -49,8 +48,8 @@ public class TypedErrorAssertionTests
     public void Where_WithBecauseMessage_IncludesInFailure()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
         var exception = Assert.Throws<Xunit.Sdk.FailException>(() =>
@@ -62,8 +61,8 @@ public class TypedErrorAssertionTests
     public void Where_WhenPredicateNull_ThrowsArgumentNullException()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<ArgumentNullException>(() => assertion.Where(null!));
@@ -73,8 +72,8 @@ public class TypedErrorAssertionTests
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
         var result = assertion.AndMessage("Unauthorized");
@@ -87,8 +86,8 @@ public class TypedErrorAssertionTests
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.AndMessage("Wrong message"));
@@ -98,8 +97,8 @@ public class TypedErrorAssertionTests
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
         var result = assertion.AndCode("UNAUTHORIZED");
@@ -112,8 +111,8 @@ public class TypedErrorAssertionTests
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.AndCode("WRONG_CODE"));
@@ -123,8 +122,8 @@ public class TypedErrorAssertionTests
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
-        var error = new UnauthorizedError();
-        var assertion = new TypedErrorAssertion<UnauthorizedError>(error);
+        var error = new UnauthorizedFailure();
+        var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
         assertion
@@ -137,8 +136,8 @@ public class TypedErrorAssertionTests
     public void WorksWithCustomErrorTypes_Correctly()
     {
         // Arrange (Given)
-        var customError = new Error("CUSTOM", "Custom error message");
-        var assertion = new TypedErrorAssertion<Error>(customError);
+        var customError = new Failure("CUSTOM", "Custom error message");
+        var assertion = new TypedErrorAssertion<Failure>(customError);
 
         // Act (When) & Assert (Then)
         assertion
@@ -151,8 +150,8 @@ public class TypedErrorAssertionTests
     public void And_AllowsComplexCustomAssertions()
     {
         // Arrange (Given)
-        var error = new ValidationError(["Field1 is required", "Field2 is invalid"]);
-        var assertion = new TypedErrorAssertion<ValidationError>(error);
+        var error = new ValidationFailure(["Field1 is required", "Field2 is invalid"]);
+        var assertion = new TypedErrorAssertion<ValidationFailure>(error);
 
         // Act (When) & Assert (Then)
         assertion.And(e =>

@@ -50,7 +50,7 @@ public readonly struct ResultAssertion
     /// </returns>
     public FailureAssertion Failure()
     {
-        if (_result.TryGet(out var error))
+        if (!_result.TryGetError(out var error))
         {
             Assert.Fail("Expected failure result but was success.");
         }
@@ -95,7 +95,7 @@ public readonly struct ResultAssertion<TValue> where TValue : notnull
     /// </exception>
     public SuccessAssertion<TValue> Success()
     {
-        if (!_result.TryGet(out TValue? value))
+        if (!_result.TryGetValue(out var value))
         {
             Assert.Fail("Expected success result but was failure.");
         }

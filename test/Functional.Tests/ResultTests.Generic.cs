@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -75,7 +75,7 @@ public sealed class ResultOfTValueTests
     public void TryGet_WithFailure_ReturnsFalseAndError()
     {
         // Arrange (Given)
-        var testError = new Error("Test error");
+        var testError = new Failure("Test error");
         var result = Result.Failure<int>(testError);
 
         // Act (When)
@@ -320,7 +320,7 @@ public sealed class ResultOfTValueTests
     public void Deconstruct_WithFailure_ReturnsDefaultValueAndError()
     {
         // Arrange (Given)
-        var testError = new Error("Test error");
+        var testError = new Failure("Test error");
         var result = Result.Failure<int>(testError);
 
         // Act (When)

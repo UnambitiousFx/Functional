@@ -1,6 +1,6 @@
 using UnambitiousFx.Functional.AspNetCore.Http.ValueTasks;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Http.ValueTasks;
 
@@ -23,7 +23,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_FailureResult_ReturnsError()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure(new ValidationError(["Invalid input"])));
+        var result = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
 
         // Act (When)
         var httpResult = await result.ToHttpResultAsync();
@@ -49,7 +49,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_Generic_Failure_ReturnsError()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure<int>(new NotFoundError("Item", "123")));
+        var result = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
 
         // Act (When)
         var httpResult = await result.ToHttpResultAsync();
@@ -75,7 +75,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_WithDtoMapper_Failure_ReturnsError()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure(new ValidationError(["Invalid data"])));
+        var result = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid data"])));
 
         // Act (When)
         var httpResult = await result.ToHttpResultAsync(() => new { Status = "Success" });
@@ -128,7 +128,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToCreatedHttpResultAsync_Failure_ReturnsError()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure<int>(new ValidationError(["Invalid"])));
+        var result = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid"])));
 
         // Act (When)
         var httpResult = await result.ToCreatedHttpResultAsync(id => $"/items/{id}");
@@ -209,7 +209,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_WithCustomHttpMapper_Failure_ReturnsError()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure(new ValidationError(["Validation failed"])));
+        var result = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Validation failed"])));
 
         // Act (When)
         var httpResult = await result.ToHttpResultAsync(
@@ -223,7 +223,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_WithCustomHttpMapperAndErrorMapper_UsesCustomErrorMapping()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure(new CustomError(418, "I'm a teapot")));
+        var result = ValueTask.FromResult(Result.Failure(new CustomFailure(418, "I'm a teapot")));
         var errorMapper = new CustomStatusCodeMapper();
 
         // Act (When)
@@ -254,7 +254,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_Generic_WithDtoMapperAndHttpMapper_Failure_ReturnsError()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure(new NotFoundError("Resource", "123")));
+        var result = ValueTask.FromResult(Result.Failure(new NotFoundFailure("Resource", "123")));
 
         // Act (When)
         var httpResult = await result.ToHttpResultAsync(
@@ -269,7 +269,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_Generic_WithDtoMapperHttpMapperAndErrorMapper_UsesCustomErrorMapping()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure(new CustomError(418, "Custom error")));
+        var result = ValueTask.FromResult(Result.Failure(new CustomFailure(418, "Custom error")));
         var errorMapper = new CustomStatusCodeMapper();
 
         // Act (When)
@@ -301,7 +301,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_GenericWithDto_WithDtoMapperAndHttpMapper_Failure_ReturnsError()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure<int>(new ValidationError(["Invalid value"])));
+        var result = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid value"])));
 
         // Act (When)
         var httpResult = await result.ToHttpResultAsync(
@@ -316,7 +316,7 @@ public class ResultHttpExtensionsAsyncTests
     public async Task ToHttpResultAsync_GenericWithDto_WithDtoMapperHttpMapperAndErrorMapper_UsesCustomErrorMapping()
     {
         // Arrange (Given)
-        var result = ValueTask.FromResult(Result.Failure<int>(new CustomError(418, "Custom error")));
+        var result = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(418, "Custom error")));
         var errorMapper = new CustomStatusCodeMapper();
 
         // Act (When)
@@ -331,14 +331,14 @@ public class ResultHttpExtensionsAsyncTests
 
     #region Helper classes for testing
 
-    private record CustomError(int StatusCode, string Message) : Error(Message);
+    private record CustomFailure(int StatusCode, string Message) : Failure(Message);
 
     private class CustomStatusCodeMapper : IErrorHttpMapper
     {
-        public (int StatusCode, object? Body)? GetResponse(IError error)
+        public (int StatusCode, object? Body)? GetResponse(IFailure failure)
         {
-            var body = string.IsNullOrWhiteSpace(error.Message) ? null : new { error.Message };
-            if (error is CustomError customError) return (customError.StatusCode, body);
+            var body = string.IsNullOrWhiteSpace(failure.Message) ? null : new { failure.Message };
+            if (failure is CustomFailure customError) return (customError.StatusCode, body);
             return null;
         }
     }

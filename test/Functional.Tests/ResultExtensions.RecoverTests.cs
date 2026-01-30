@@ -1,4 +1,3 @@
-using UnambitiousFx.Functional.Errors;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -55,7 +54,7 @@ public sealed partial class ResultExtensions
     public void Recover_WithFailure_ReturnsFallback()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Functional.Failures.Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -69,7 +68,7 @@ public sealed partial class ResultExtensions
     public void Recover_WithFailure_StringType_ReturnsFallback()
     {
         // Arrange (Given)
-        var error = new Error("Database error");
+        var error = new Functional.Failures.Failure("Database error");
         var result = Result.Failure<string>(error);
 
         // Act (When)
@@ -106,7 +105,7 @@ public sealed partial class ResultExtensions
     public void Recover_WithFactory_WithFailure_CallsFactory()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Functional.Failures.Failure("Test error");
         var result = Result.Failure<int>(error);
         var factoryCalled = false;
 
@@ -126,7 +125,7 @@ public sealed partial class ResultExtensions
     public void Recover_WithFactory_ReceivesError()
     {
         // Arrange (Given)
-        var error = new Error("ERR_404", "Not found");
+        var error = new Functional.Failures.Failure("ERR_404", "Not found");
         var result = Result.Failure<int>(error);
         var capturedErrorCode = "";
 
@@ -150,7 +149,7 @@ public sealed partial class ResultExtensions
     public void Recover_CanProvideErrorSpecificFallback()
     {
         // Arrange (Given)
-        var error = new Error("TIMEOUT", "Connection timeout");
+        var error = new Functional.Failures.Failure("TIMEOUT", "Connection timeout");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -165,7 +164,7 @@ public sealed partial class ResultExtensions
     public void Recover_CanUseErrorMessageInFallback()
     {
         // Arrange (Given)
-        var error = new Error("Database connection failed");
+        var error = new Functional.Failures.Failure("Database connection failed");
         var result = Result.Failure<string>(error);
 
         // Act (When)
@@ -200,7 +199,7 @@ public sealed partial class ResultExtensions
     public void Recover_MultipleTimes_UsesFirstRecovery()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error = new Functional.Failures.Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -221,7 +220,7 @@ public sealed partial class ResultExtensions
     public void Recover_WithComplexType_WorksCorrectly()
     {
         // Arrange (Given)
-        var error = new Error("Not found");
+        var error = new Functional.Failures.Failure("Not found");
         var result = Result.Failure<(string Name, int Age)>(error);
         var fallback = (Name: "Default", Age: 0);
 
@@ -239,7 +238,7 @@ public sealed partial class ResultExtensions
     public void Recover_WithFactory_CanCreateComplexFallback()
     {
         // Arrange (Given)
-        var error = new Error("User not found");
+        var error = new Functional.Failures.Failure("User not found");
         var result = Result.Failure<(string Name, int Age)>(error);
 
         // Act (When)
