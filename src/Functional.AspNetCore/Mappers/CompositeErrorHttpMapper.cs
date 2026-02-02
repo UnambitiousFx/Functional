@@ -32,12 +32,15 @@ public sealed class CompositeErrorHttpMapper : IErrorHttpMapper
 
 
     /// <inheritdoc />
-    public (int StatusCode, object? Body)? GetResponse(IFailure failure)
+    public ErrorHttpResponse? GetErrorResponse(IFailure failure)
     {
         foreach (var mapper in _mappers)
         {
-            var mappedResponse = mapper.GetResponse(failure);
-            if (mappedResponse is not null) return mappedResponse;
+            var mappedResponse = mapper.GetErrorResponse(failure);
+            if (mappedResponse is not null)
+            {
+                return mappedResponse;
+            }
         }
 
         return null;

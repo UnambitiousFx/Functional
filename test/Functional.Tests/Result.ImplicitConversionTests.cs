@@ -15,7 +15,7 @@ public sealed class ResultImplicitConversionTests
 
         // Assert (Then)
         Assert.False(r.IsSuccess);
-        Assert.False(r.TryGetError(out var e));
+        Assert.True(r.TryGetError(out var e));
         Assert.NotNull(e);
         Assert.Equal("some error", e!.Message);
     }

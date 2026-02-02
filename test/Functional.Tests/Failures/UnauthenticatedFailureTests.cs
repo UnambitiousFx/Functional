@@ -4,7 +4,7 @@ using UnauthenticatedFailure = UnambitiousFx.Functional.Failures.Unauthenticated
 namespace UnambitiousFx.Functional.Tests.Failures;
 
 /// <summary>
-/// Tests for UnauthenticatedError type.
+///     Tests for UnauthenticatedError type.
 /// </summary>
 public class UnauthenticatedFailureTests
 {
@@ -47,7 +47,7 @@ public class UnauthenticatedFailureTests
     public void UnauthenticatedError_WithNullReason_UsesDefaultMessage()
     {
         // Arrange & Act (Given/When)
-        var error = new UnauthenticatedFailure(null);
+        var error = new UnauthenticatedFailure();
 
         // Assert (Then)
         Assert.Equal((string?)"Unauthenticated", (string?)error.Message);
@@ -118,8 +118,8 @@ public class UnauthenticatedFailureTests
         var result = Result.Failure<string>(unauthenticatedError);
 
         // Assert (Then)
-        Assert.True(result.IsFaulted);
-        result.TryGetError(out Failure? error);
+        Assert.True(result.IsFailure);
+        result.TryGetError(out var error);
         Assert.IsType<UnauthenticatedFailure>(error);
         var typedError = (UnauthenticatedFailure)error;
         Assert.Equal((string?)"Missing authentication header", (string?)typedError.Message);
@@ -150,7 +150,8 @@ public class UnauthenticatedFailureTests
     public void UnauthenticatedError_WithComplexReasonMessage_PreservesMessage()
     {
         // Arrange (Given)
-        var complexReason = "Authentication failed: JWT token signature verification failed. Token may have been tampered with.";
+        var complexReason =
+            "Authentication failed: JWT token signature verification failed. Token may have been tampered with.";
 
         // Act (When)
         var error = new UnauthenticatedFailure(complexReason);

@@ -12,8 +12,8 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Http;
 
 public class ResultHttpExtensionsTests
 {
-    [Fact(DisplayName = "ToHttpResult returns 200 OK for success Result")]
-    public void ToHttpResult_SuccessResult_Returns200()
+    [Fact(DisplayName = "ToHttpResult returns NoContent for success Result")]
+    public void ToHttpResult_SuccessResult_ReturnsNoContent()
     {
         // Given
         var result = Result.Success();
@@ -22,11 +22,11 @@ public class ResultHttpExtensionsTests
         var httpResult = result.ToHttpResult();
 
         // Then
-        Assert.NotNull(httpResult);
+        Assert.IsType<NoContent>(httpResult);
     }
 
-    [Fact(DisplayName = "ToHttpResult returns 400 BadRequest for ValidationError")]
-    public void ToHttpResult_FailureResult_Returns400()
+    [Fact(DisplayName = "ToHttpResult returns ProblemDetails for ValidationError")]
+    public void ToHttpResult_FailureResult_ReturnsProblemDetails()
     {
         // Given
         var result = Result.Failure(new ValidationFailure(["Invalid input"]));
@@ -35,7 +35,7 @@ public class ResultHttpExtensionsTests
         var httpResult = result.ToHttpResult();
 
         // Then
-        Assert.NotNull(httpResult);
+        Assert.IsType<ProblemHttpResult>(httpResult);
     }
 
     [Fact(DisplayName = "ToHttpResult<T> returns 200 OK with value for success")]
@@ -45,36 +45,39 @@ public class ResultHttpExtensionsTests
         var result = Result.Success(42);
 
         // When
-        var httpResult = result.ToHttpResult();
+        var httpResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v));
 
         // Then
-        Assert.NotNull(httpResult);
+        var okResult = Assert.IsType<Ok<int>>(httpResult);
+        Assert.Equal(42, okResult.Value);
     }
 
-    [Fact(DisplayName = "ToHttpResult<T> returns 404 for NotFoundError")]
-    public void ToHttpResult_Generic_NotFoundError_Returns404()
+    [Fact(DisplayName = "ToHttpResult<T> returns ProblemDetails for NotFoundError")]
+    public void ToHttpResult_Generic_NotFoundError_ReturnsProblemDetails()
     {
         // Given
         var result = Result.Failure<int>(new NotFoundFailure("Item", "123"));
 
         // When
-        var httpResult = result.ToHttpResult();
+        var httpResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v));
 
         // Then
-        Assert.NotNull(httpResult);
+        Assert.IsType<ProblemHttpResult>(httpResult);
     }
 
-    [Fact(DisplayName = "ToHttpResult with DTO mapper transforms value")]
-    public void ToHttpResult_WithDtoMapper_TransformsValue()
+    [Fact(DisplayName = "ToHttpResult with custom success mapper transforms value")]
+    public void ToHttpResult_WithCustomSuccessMapper_TransformsValue()
     {
         // Given
         var result = Result.Success(42);
 
         // When
-        var httpResult = result.ToHttpResult(x => new { Value = x.ToString() });
+        var httpResult = result.ToHttpResult(x => Microsoft.AspNetCore.Http.Results.Ok(new { Value = x.ToString() }));
 
         // Then
         Assert.NotNull(httpResult);
+        // The result is Ok<T> where T is the anonymous type, not Ok<object>
+        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
     }
 
     [Fact(DisplayName = "ToCreatedHttpResult returns 201 Created with location")]
@@ -88,39 +91,26 @@ public class ResultHttpExtensionsTests
 
         // Then
         Assert.NotNull(httpResult);
+        Assert.IsType<Created<int>>(httpResult);
     }
 
-    [Fact(DisplayName = "ToCreatedHttpResult with DTO mapper transforms value")]
-    public void ToCreatedHttpResult_WithDtoMapper_TransformsValue()
-    {
-        // Given
-        var result = Result.Success(42);
-
-        // When
-        var httpResult = result.ToCreatedHttpResult(
-            id => $"/items/{id}",
-            x => new { Id = x, Name = "Item" });
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with non-generic Result and DTO mapper returns 200 OK")]
-    public void ToHttpResult_NonGenericWithDtoMapper_Returns200()
+    [Fact(DisplayName = "ToHttpResult with non-generic Result and custom success mapper returns custom result")]
+    public void ToHttpResult_NonGenericWithCustomSuccessMapper_ReturnsCustomResult()
     {
         // Given
         var result = Result.Success();
 
         // When
-        var httpResult = result.ToHttpResult(() => new { Message = "Success" });
+        var httpResult = result.ToHttpResult(() => Microsoft.AspNetCore.Http.Results.Ok(new { Message = "Success" }));
 
         // Then
         Assert.NotNull(httpResult);
+        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
     }
 
 
-    [Fact(DisplayName = "ToCreatedHttpResult with failure returns error result")]
-    public void ToCreatedHttpResult_Failure_ReturnsErrorResult()
+    [Fact(DisplayName = "ToCreatedHttpResult with failure returns ProblemDetails")]
+    public void ToCreatedHttpResult_Failure_ReturnsProblemDetails()
     {
         // Given
         var result = Result.Failure<int>(new ValidationFailure(["Invalid input"]));
@@ -130,21 +120,7 @@ public class ResultHttpExtensionsTests
 
         // Then
         Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToCreatedHttpResult with DTO mapper and failure returns error result")]
-    public void ToCreatedHttpResult_WithDtoMapperAndFailure_ReturnsErrorResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new NotFoundFailure("Item", "123"));
-
-        // When
-        var httpResult = result.ToCreatedHttpResult(
-            id => $"/items/{id}",
-            x => new { Id = x, Name = "Item" });
-
-        // Then
-        Assert.NotNull(httpResult);
+        Assert.IsType<ProblemHttpResult>(httpResult);
     }
 
     [Fact(DisplayName = "ToHttpResult with custom mapper for UnauthenticatedError returns 401")]
@@ -181,7 +157,7 @@ public class ResultHttpExtensionsTests
         var customMapper = new CustomProblemDetailsMapper();
 
         // When
-        var httpResult = result.ToHttpResult(customMapper);
+        var httpResult = result.ToHttpResult(null, customMapper);
 
         // Then
         Assert.NotNull(httpResult);
@@ -195,7 +171,7 @@ public class ResultHttpExtensionsTests
         var customMapper = new NullReturningMapper();
 
         // When
-        var httpResult = result.ToHttpResult(customMapper);
+        var httpResult = result.ToHttpResult(null, customMapper);
 
         // Then
         Assert.NotNull(httpResult);
@@ -209,7 +185,7 @@ public class ResultHttpExtensionsTests
         var customMapper = new CustomStatusCodeMapper();
 
         // When
-        var httpResult = result.ToHttpResult(customMapper);
+        var httpResult = result.ToHttpResult(null, customMapper);
 
         // Then
         Assert.NotNull(httpResult);
@@ -223,7 +199,7 @@ public class ResultHttpExtensionsTests
         var customMapper = new CustomStatusCodeMapper();
 
         // When
-        var httpResult = result.ToHttpResult(customMapper);
+        var httpResult = result.ToHttpResult(null, customMapper);
 
         // Then
         Assert.NotNull(httpResult);
@@ -237,7 +213,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(mapper);
+        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
 
         // Then
         var objectResult = Assert.IsType<BadRequest<object>>(actionResult);
@@ -252,7 +228,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(mapper);
+        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
 
         // Then
         var objectResult = Assert.IsType<UnauthorizedHttpResult>(actionResult);
@@ -267,7 +243,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(mapper);
+        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<ForbidHttpResult>(actionResult);
@@ -281,7 +257,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(mapper);
+        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<NotFound<object>>(actionResult);
@@ -295,7 +271,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(mapper);
+        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<Conflict<object>>(actionResult);
@@ -309,7 +285,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(mapper);
+        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<ProblemHttpResult>(actionResult);
@@ -323,32 +299,160 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(mapper);
+        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<StatusCodeHttpResult>(actionResult);
     }
 
+    #region Async (ResultTask) Tests
+
+    [Fact(DisplayName = "ResultTask ToHttpResult returns NoContent for success")]
+    public async Task ResultTask_ToHttpResult_Success_ReturnsNoContent()
+    {
+        // Given
+        ResultTask resultTask = Result.Success();
+
+        // When
+        var httpResult = await resultTask.ToHttpResult();
+
+        // Then
+        Assert.IsType<NoContent>(httpResult);
+    }
+
+    [Fact(DisplayName = "ResultTask ToHttpResult with custom success mapper returns custom result")]
+    public async Task ResultTask_ToHttpResult_WithCustomSuccessMapper_ReturnsCustomResult()
+    {
+        // Given
+        ResultTask resultTask = Result.Success();
+
+        // When
+        var httpResult = await resultTask.ToHttpResult(() => Microsoft.AspNetCore.Http.Results.Ok(new { Message = "Success" }));
+
+        // Then
+        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
+    }
+
+    [Fact(DisplayName = "ResultTask ToHttpResult with failure returns ProblemDetails")]
+    public async Task ResultTask_ToHttpResult_Failure_ReturnsProblemDetails()
+    {
+        // Given
+        ResultTask resultTask = Result.Failure(new ValidationFailure(["Invalid input"]));
+
+        // When
+        var httpResult = await resultTask.ToHttpResult();
+
+        // Then
+        Assert.IsType<ProblemHttpResult>(httpResult);
+    }
+
+    [Fact(DisplayName = "ResultTask<T> ToHttpResult returns 200 OK with value for success")]
+    public async Task ResultTaskGeneric_ToHttpResult_Success_Returns200WithValue()
+    {
+        // Given
+        ResultTask<int> resultTask = Result.Success(42);
+
+        // When
+        var httpResult = await resultTask.ToHttpResult();
+
+        // Then
+        var okResult = Assert.IsType<Ok<int>>(httpResult);
+        Assert.Equal(42, okResult.Value);
+    }
+
+    [Fact(DisplayName = "ResultTask<T> ToHttpResult with custom success mapper transforms value")]
+    public async Task ResultTaskGeneric_ToHttpResult_WithCustomSuccessMapper_TransformsValue()
+    {
+        // Given
+        ResultTask<int> resultTask = Result.Success(42);
+
+        // When
+        var httpResult = await resultTask.ToHttpResult(x => Microsoft.AspNetCore.Http.Results.Ok(new { Value = x.ToString() }));
+
+        // Then
+        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
+    }
+
+    [Fact(DisplayName = "ResultTask<T> ToHttpResult with failure returns ProblemDetails")]
+    public async Task ResultTaskGeneric_ToHttpResult_Failure_ReturnsProblemDetails()
+    {
+        // Given
+        ResultTask<int> resultTask = Result.Failure<int>(new NotFoundFailure("Item", "123"));
+
+        // When
+        var httpResult = await resultTask.ToHttpResult();
+
+        // Then
+        Assert.IsType<ProblemHttpResult>(httpResult);
+    }
+
+    [Fact(DisplayName = "ResultTask<T> ToCreatedHttpResult returns 201 Created with location")]
+    public async Task ResultTaskGeneric_ToCreatedHttpResult_Success_Returns201WithLocation()
+    {
+        // Given
+        ResultTask<int> resultTask = Result.Success(42);
+
+        // When
+        var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
+
+        // Then
+        var createdResult = Assert.IsType<Created<int>>(httpResult);
+        Assert.Equal(42, createdResult.Value);
+    }
+
+    [Fact(DisplayName = "ResultTask<T> ToCreatedHttpResult with failure returns ProblemDetails")]
+    public async Task ResultTaskGeneric_ToCreatedHttpResult_Failure_ReturnsProblemDetails()
+    {
+        // Given
+        ResultTask<int> resultTask = Result.Failure<int>(new ValidationFailure(["Invalid input"]));
+
+        // When
+        var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
+
+        // Then
+        Assert.IsType<ProblemHttpResult>(httpResult);
+    }
+
+    [Fact(DisplayName = "ResultTask<T> ToCreatedHttpResult with custom error mapper")]
+    public async Task ResultTaskGeneric_ToCreatedHttpResult_WithCustomErrorMapper_ReturnsCustomError()
+    {
+        // Given
+        ResultTask<int> resultTask = Result.Failure<int>(new CustomFailure(409, "Conflict"));
+        var mapper = new CustomStatusCodeMapper();
+
+        // When
+        var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}", mapper);
+
+        // Then
+        Assert.IsType<Conflict<object>>(httpResult);
+    }
+
+    #endregion
+
     #region Helper classes for testing
 
     private class CustomProblemDetailsMapper : IErrorHttpMapper
     {
-        public (int StatusCode, object? Body)? GetResponse(IFailure failure)
+        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
         {
             if (failure is ValidationFailure)
-                return (400, new ProblemDetails
+                return new ErrorHttpResponse
                 {
-                    Title = "Validation Error",
-                    Status = 400,
-                    Detail = "One or more validation errors occurred."
-                });
+                    StatusCode = 400,
+                    Body = new ProblemDetails
+                    {
+                        Title = "Validation Error",
+                        Status = 400,
+                        Detail = "One or more validation errors occurred."
+                    }
+                };
             return null;
         }
     }
 
     private class NullReturningMapper : IErrorHttpMapper
     {
-        public (int StatusCode, object? Body)? GetResponse(IFailure failure)
+        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
         {
             return null;
         }
@@ -358,10 +462,15 @@ public class ResultHttpExtensionsTests
 
     private class CustomStatusCodeMapper : IErrorHttpMapper
     {
-        public (int StatusCode, object? Body)? GetResponse(IFailure failure)
+        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
         {
             var body = string.IsNullOrWhiteSpace(failure.Message) ? null : new { failure.Message };
-            if (failure is CustomFailure customError) return (customError.StatusCode, body);
+            if (failure is CustomFailure customError)
+                return new ErrorHttpResponse
+                {
+                    StatusCode = customError.StatusCode,
+                    Body = body
+                };
             return null;
         }
     }

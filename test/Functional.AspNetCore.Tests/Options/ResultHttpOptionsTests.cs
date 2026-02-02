@@ -134,16 +134,16 @@ public class ResultHttpOptionsTests
         var customMapper = Substitute.For<IErrorHttpMapper>();
         var error = new ValidationFailure(["Test"]);
 
-        customMapper.GetResponse(error).Returns((999, null));
+        customMapper.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 999 });
         options.AddMapper(customMapper);
 
         // Act (When)
         var compositeMapper = options.BuildMapper();
-        var response = compositeMapper.GetResponse(error);
+        var response = compositeMapper.GetErrorResponse(error);
 
         // Assert (Then)
         Assert.NotNull(response);
-        Assert.Equal(999, response.Value.StatusCode);
+        Assert.Equal(999, response.StatusCode);
     }
 
     [Fact(DisplayName = "BuildMapper with UseProblemDetails and custom mapper returns CompositeMapper")]
@@ -173,10 +173,10 @@ public class ResultHttpOptionsTests
         // Act (When)
         var mapper = options.BuildMapper();
         var error = new ExceptionalFailure(new Exception("Test"));
-        var body = mapper.GetResponse(error);
+        var response = mapper.GetErrorResponse(error);
 
         // Assert (Then)
-        Assert.NotNull(body);
+        Assert.NotNull(response);
     }
 
     [Fact(DisplayName = "CustomMappers returns read-only collection")]

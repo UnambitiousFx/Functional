@@ -111,7 +111,7 @@ public class ErrorDebugViewTests
     public void AggregateErrorDebugView_Errors_HasDebuggerBrowsableAttribute()
     {
         // Arrange (Given)
-        var debugViewType = GetDebugViewType("AggregateErrorDebugView");
+        var debugViewType = GetDebugViewType("AggregateFailureDebugView");
 
         // Act (When)
         var errorsProperty = debugViewType.GetProperty("Errors");
@@ -284,20 +284,20 @@ public class ErrorDebugViewTests
 
     private static object CreateAggregateErrorDebugView(AggregateFailure failure)
     {
-        var debugViewType = GetDebugViewType("AggregateErrorDebugView");
+        var debugViewType = GetDebugViewType("AggregateFailureDebugView");
         return Activator.CreateInstance(debugViewType, failure)!;
     }
 
     private static object CreateExceptionalErrorDebugView(ExceptionalFailure failure)
     {
-        var debugViewType = GetDebugViewType("ExceptionalErrorDebugView");
+        var debugViewType = GetDebugViewType("ExceptionalFailureDebugView");
         return Activator.CreateInstance(debugViewType, failure)!;
     }
 
     private static Type GetDebugViewType(string typeName)
     {
         var assembly = typeof(Failure).Assembly;
-        var fullTypeName = $"UnambitiousFx.Functional.Errors.{typeName}";
+        var fullTypeName = $"UnambitiousFx.Functional.Failures.{typeName}";
         return assembly.GetType(fullTypeName, throwOnError: true)!;
     }
 

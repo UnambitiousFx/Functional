@@ -11,7 +11,7 @@ public interface IResult
     /// <summary>
     ///     Gets a value indicating whether the result represents a fault or error state.
     /// </summary>
-    bool IsFaulted { get; }
+    bool IsFailure { get; }
 
     /// <summary>
     ///     Gets a value indicating whether the result represents a successful state.

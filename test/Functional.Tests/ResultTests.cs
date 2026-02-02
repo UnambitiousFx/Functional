@@ -15,7 +15,7 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.True(result.IsSuccess);
-        Assert.False(result.IsFaulted);
+        Assert.False(result.IsFailure);
         result.ShouldBe().Success();
     }
 
@@ -27,7 +27,7 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.True(result.IsSuccess);
-        Assert.False(result.IsFaulted);
+        Assert.False(result.IsFailure);
         result.ShouldBe().Success().And(v => Assert.Equal(42, v));
     }
 
@@ -56,7 +56,7 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.False(result.IsSuccess);
-        Assert.True(result.IsFaulted);
+        Assert.True(result.IsFailure);
         result.ShouldBe().Failure();
     }
 
@@ -97,7 +97,7 @@ public sealed class ResultTests
 
         // Assert (Then)
         result.ShouldBe().Failure();
-        Assert.False(result.TryGetError(out var error));
+        Assert.True(result.TryGetError(out var error));
         Assert.NotNull(error);
         Assert.IsType<AggregateFailure>(error);
     }
@@ -113,7 +113,7 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.False(result.IsSuccess);
-        Assert.True(result.IsFaulted);
+        Assert.True(result.IsFailure);
         result.ShouldBe().Failure();
     }
 
@@ -161,31 +161,31 @@ public sealed class ResultTests
     #region TryGet
 
     [Fact]
-    public void TryGetError_WithSuccess_ReturnsTrueAndNullError()
+    public void TryGetError_WithSuccess_ReturnsFalseAndNullError()
     {
         // Arrange (Given)
         var result = Result.Success();
 
         // Act (When)
-        var success = result.TryGetError(out var error);
+        var hasError = result.TryGetError(out var error);
 
         // Assert (Then)
-        Assert.True(success);
+        Assert.False(hasError);
         Assert.Null(error);
     }
 
     [Fact]
-    public void TryGetError_WithFailure_ReturnsFalseAndError()
+    public void TryGetError_WithFailure_ReturnsTrueAndError()
     {
         // Arrange (Given)
         var testError = new Failure("Test error");
         var result = Result.Failure(testError);
 
         // Act (When)
-        var success = result.TryGetError(out var error);
+        var hasError = result.TryGetError(out var error);
 
         // Assert (Then)
-        Assert.False(success);
+        Assert.True(hasError);
         Assert.NotNull(error);
         Assert.Equal("Test error", error.Message);
     }

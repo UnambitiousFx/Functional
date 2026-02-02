@@ -16,7 +16,7 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     internal static IErrorHttpMapper Instance { get; } = new DefaultErrorHttpMapper();
 
     /// <inheritdoc />
-    public virtual (int StatusCode, object? Body)? GetResponse(IFailure failure)
+    public virtual ErrorHttpResponse? GetErrorResponse(IFailure failure)
     {
         var problem = failure switch
         {
@@ -29,7 +29,11 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
             _ => FromError(failure)
         };
 
-        return (problem.Status ?? 500, problem);
+        return new ErrorHttpResponse
+        {
+            StatusCode = problem.Status ?? 500,
+            Body = problem
+        };
     }
 
     private static ProblemDetails FromError(IFailure failure)

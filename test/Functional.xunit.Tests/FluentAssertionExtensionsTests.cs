@@ -28,7 +28,7 @@ public class FluentAssertionExtensionsTests
 
         // Act (When) & Assert (Then)
         var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsValidationError());
-        Assert.Contains("Expected ValidationError but was NotFoundError", exception.Message);
+        Assert.Contains("Expected ValidationError but was NotFoundFailure", exception.Message);
     }
 
     [Fact(DisplayName = "WhichIsNotFoundError returns NotFoundErrorAssertion when error is NotFoundError")]
@@ -55,7 +55,7 @@ public class FluentAssertionExtensionsTests
 
         // Act (When) & Assert (Then)
         var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsNotFoundError());
-        Assert.Contains("Expected NotFoundError but was ValidationError", exception.Message);
+        Assert.Contains("Expected NotFoundError but was ValidationFailure", exception.Message);
     }
 
     [Fact(DisplayName = "WhichIsConflictError returns ConflictErrorAssertion when error is ConflictError")]
@@ -82,7 +82,7 @@ public class FluentAssertionExtensionsTests
 
         // Act (When) & Assert (Then)
         var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsConflictError());
-        Assert.Contains("Expected ConflictError but was ValidationError", exception.Message);
+        Assert.Contains("Expected ConflictError but was ValidationFailure", exception.Message);
     }
 
     [Fact(DisplayName = "WhichIs<TError> returns TypedErrorAssertion when error matches type")]
@@ -109,7 +109,7 @@ public class FluentAssertionExtensionsTests
 
         // Act (When) & Assert (Then)
         var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIs<UnauthorizedFailure>());
-        Assert.Contains("Expected UnauthorizedError but was ValidationError", exception.Message);
+        Assert.Contains("Expected UnauthorizedFailure but was ValidationFailure", exception.Message);
     }
 
     [Fact(DisplayName = "WhichIs<TError> works with custom error types")]

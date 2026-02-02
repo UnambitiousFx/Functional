@@ -13,7 +13,7 @@ internal sealed class ResultDebugView<TValue>
     }
 
     public bool IsSuccess => _result.IsSuccess;
-    public bool IsFaulted => _result.IsFaulted;
+    public bool IsFaulted => _result.IsFailure;
 
     public TValue? Value => _result.TryGetValue(out var value) ? value : default;
 
@@ -56,7 +56,7 @@ internal sealed class ResultDebugView
     }
 
     public bool IsSuccess => _result.IsSuccess;
-    public bool IsFaulted => _result.IsFaulted;
+    public bool IsFaulted => _result.IsFailure;
 
     public Failure? Error => !_result.TryGetError(out var error) ? null : error;
 

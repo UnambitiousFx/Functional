@@ -11,7 +11,7 @@ public static partial class ResultExtensions
     /// <returns>A new result from the transformation function, or the original result if it is faulted.</returns>
     public static Result Then(this Result result, Func<Result> func)
     {
-        if (result.IsFaulted)
+        if (result.IsFailure)
         {
             return result;
         }

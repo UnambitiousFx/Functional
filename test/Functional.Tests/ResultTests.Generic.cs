@@ -21,7 +21,7 @@ public sealed class ResultOfTValueTests
 
         // Assert (Then)
         Assert.True(result.IsSuccess);
-        Assert.False(result.IsFaulted);
+        Assert.False(result.IsFailure);
         result.ShouldBe().Success().And(v => Assert.Equal(42, v));
     }
 
@@ -103,10 +103,7 @@ public sealed class ResultOfTValueTests
         // Act (When)
         result.Match(
             () => successCalled = true,
-            _ =>
-            {
-                failureCalled = true;
-            });
+            _ => { failureCalled = true; });
 
         // Assert (Then)
         Assert.True(successCalled);
@@ -124,10 +121,7 @@ public sealed class ResultOfTValueTests
         // Act (When)
         result.Match(
             () => successCalled = true,
-            _ =>
-            {
-                failureCalled = true;
-            });
+            _ => { failureCalled = true; });
 
         // Assert (Then)
         Assert.False(successCalled);

@@ -16,7 +16,7 @@ public static partial class ResultTaskExtensions
         static async ValueTask<Result> TryCore(ResultTask self, Action action)
         {
             var source = await self;
-            if (source.IsFaulted)
+            if (source.IsFailure)
             {
                 return source;
             }
@@ -47,7 +47,7 @@ public static partial class ResultTaskExtensions
         static async ValueTask<Result> TryCore(ResultTask self, Func<ValueTask> action)
         {
             var source = await self;
-            if (source.IsFaulted)
+            if (source.IsFailure)
             {
                 return source;
             }

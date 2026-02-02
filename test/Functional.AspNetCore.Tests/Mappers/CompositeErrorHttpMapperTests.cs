@@ -6,148 +6,138 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Mappers;
 
 public class CompositeErrorHttpMapperTests
 {
-    [Fact(DisplayName = "GetResponse returns status from first mapper that provides one")]
-    public void GetResponse_FirstMapperReturnsStatus_ReturnsFirstStatus()
+    [Fact(DisplayName = "GetErrorResponse returns status from first mapper that provides one")]
+    public void GetErrorResponse_FirstMapperReturnsStatus_ReturnsFirstStatus()
     {
         // Arrange (Given)
         var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetResponse(error).Returns((400, null));
+        mapper1.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400 });
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetResponse(error).Returns((500, null));
+        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 500 });
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
         // Act (When)
-        var response = sut.GetResponse(error);
+        var response = sut.GetErrorResponse(error);
 
         // Assert (Then)
         Assert.NotNull(response);
-        Assert.Equal(400, response.Value.StatusCode);
-        mapper1.Received(1).GetResponse(error);
-        mapper2.DidNotReceive().GetResponse(Arg.Any<IFailure>());
+        Assert.Equal(400, response.StatusCode);
+        mapper1.Received(1).GetErrorResponse(error);
+        mapper2.DidNotReceive().GetErrorResponse(Arg.Any<IFailure>());
     }
 
-    [Fact(DisplayName = "GetResponse tries next mapper when first returns null")]
-    public void GetResponse_FirstMapperReturnsNull_TriesNextMapper()
+    [Fact(DisplayName = "GetErrorResponse tries next mapper when first returns null")]
+    public void GetErrorResponse_FirstMapperReturnsNull_TriesNextMapper()
     {
         // Arrange (Given)
         var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetResponse(error).Returns(((int StatusCode, object? Body)?)null);
+        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetResponse(error).Returns((400, null));
+        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400 });
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
         // Act (When)
-        var response = sut.GetResponse(error);
+        var response = sut.GetErrorResponse(error);
 
         // Assert (Then)
         Assert.NotNull(response);
-        Assert.Equal(400, response.Value.StatusCode);
-        mapper1.Received(1).GetResponse(error);
-        mapper2.Received(1).GetResponse(error);
+        Assert.Equal(400, response.StatusCode);
     }
 
-    [Fact(DisplayName = "GetResponse returns null when all mappers return null")]
-    public void GetResponse_AllMappersReturnNull_ReturnsNull()
+    [Fact(DisplayName = "GetErrorResponse returns null when all mappers return null")]
+    public void GetErrorResponse_AllMappersReturnNull_ReturnsNull()
     {
         // Arrange (Given)
         var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetResponse(error).Returns(((int StatusCode, object? Body)?)null);
+        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetResponse(error).Returns(((int StatusCode, object? Body)?)null);
+        mapper2.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
         // Act (When)
-        var statusCode = sut.GetResponse(error);
-
-        // Assert (Then)
-        Assert.Null(statusCode);
-        mapper1.Received(1).GetResponse(error);
-        mapper2.Received(1).GetResponse(error);
-    }
-
-    [Fact(DisplayName = "GetResponseBody returns body from first mapper that provides one")]
-    public void GetResponseBody_FirstMapperReturnsBody_ReturnsFirstBody()
-    {
-        // Arrange (Given)
-        var error = new ValidationFailure(["Field is required"]);
-        var expectedBody = new { error = "validation_error" };
-
-        var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetResponse(error).Returns((400, expectedBody));
-
-        var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetResponse(error).Returns((400, new { error = "other_error" }));
-
-        var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
-
-        // Act (When)
-        var response = sut.GetResponse(error);
-
-        // Assert (Then)
-        Assert.NotNull(response);
-        Assert.Same(expectedBody, response.Value.Body);
-        mapper1.Received(1).GetResponse(error);
-        mapper2.DidNotReceive().GetResponse(Arg.Any<IFailure>());
-    }
-
-    [Fact(DisplayName = "GetResponseBody tries next mapper when first returns null")]
-    public void GetResponseBody_FirstMapperReturnsNull_TriesNextMapper()
-    {
-        // Arrange (Given)
-        var error = new ValidationFailure(["Field is required"]);
-        var expectedBody = new { error = "validation_error" };
-
-        var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetResponse(error).Returns((object?)null);
-
-        var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetResponse(error).Returns((400, expectedBody));
-
-        var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
-
-        // Act (When)
-        var response = sut.GetResponse(error);
-
-        // Assert (Then)
-        Assert.NotNull(response);
-        Assert.Same(expectedBody, response.Value.Body);
-        mapper1.Received(1).GetResponse(error);
-        mapper2.Received(1).GetResponse(error);
-    }
-
-    [Fact(DisplayName = "GetResponseBody returns null when all mappers return null")]
-    public void GetResponseBody_AllMappersReturnNull_ReturnsNull()
-    {
-        // Arrange (Given)
-        var error = new ValidationFailure(["Field is required"]);
-
-        var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetResponse(error).Returns((object?)null);
-
-        var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetResponse(error).Returns((object?)null);
-
-        var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
-
-        // Act (When)
-        var response = sut.GetResponse(error);
+        var response = sut.GetErrorResponse(error);
 
         // Assert (Then)
         Assert.Null(response);
-        mapper1.Received(1).GetResponse(error);
-        mapper2.Received(1).GetResponse(error);
+    }
+
+    [Fact(DisplayName = "GetErrorResponse returns body from first mapper that provides one")]
+    public void GetErrorResponse_FirstMapperReturnsBody_ReturnsFirstBody()
+    {
+        // Arrange (Given)
+        var error = new ValidationFailure(["Field is required"]);
+        var expectedBody = new { error = "validation_error" };
+
+        var mapper1 = Substitute.For<IErrorHttpMapper>();
+        mapper1.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400, Body = expectedBody });
+
+        var mapper2 = Substitute.For<IErrorHttpMapper>();
+        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400, Body = new { error = "other_error" } });
+
+        var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
+
+        // Act (When)
+        var response = sut.GetErrorResponse(error);
+
+        // Assert (Then)
+        Assert.NotNull(response);
+        Assert.Same(expectedBody, response.Body);
+    }
+
+    [Fact(DisplayName = "GetErrorResponse tries next mapper when first returns null for body")]
+    public void GetErrorResponse_FirstMapperReturnsNull_TriesNextMapper_ForBody()
+    {
+        // Arrange (Given)
+        var error = new ValidationFailure(["Field is required"]);
+        var expectedBody = new { error = "validation_error" };
+
+        var mapper1 = Substitute.For<IErrorHttpMapper>();
+        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+
+        var mapper2 = Substitute.For<IErrorHttpMapper>();
+        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400, Body = expectedBody });
+
+        var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
+
+        // Act (When)
+        var response = sut.GetErrorResponse(error);
+
+        // Assert (Then)
+        Assert.NotNull(response);
+        Assert.Same(expectedBody, response.Body);
+    }
+
+    [Fact(DisplayName = "GetErrorResponse returns null when all mappers return null for body")]
+    public void GetErrorResponse_AllMappersReturnNull_ReturnsNull_ForBody()
+    {
+        // Arrange (Given)
+        var error = new ValidationFailure(["Field is required"]);
+
+        var mapper1 = Substitute.For<IErrorHttpMapper>();
+        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+
+        var mapper2 = Substitute.For<IErrorHttpMapper>();
+        mapper2.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+
+        var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
+
+        // Act (When)
+        var response = sut.GetErrorResponse(error);
+
+        // Assert (Then)
+        Assert.Null(response);
     }
 
     [Fact(DisplayName = "Constructor with params array creates mapper correctly")]

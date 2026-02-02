@@ -31,7 +31,7 @@ public readonly partial record struct Result : IResult
     /// <summary>
     ///     Gets a value indicating whether the operation failed.
     /// </summary>
-    public bool IsFaulted => !IsSuccess;
+    public bool IsFailure => !IsSuccess;
 
     /// <summary>
     ///     Gets a value indicating whether the operation succeeded.
@@ -42,11 +42,11 @@ public readonly partial record struct Result : IResult
     ///     Attempts to extract the error if the operation failed.
     /// </summary>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
-    /// <returns>True if the operation succeeded, false otherwise.</returns>
+    /// <returns>True if the operation failed, false otherwise.</returns>
     public bool TryGetError([NotNullWhen(true)] out Failure? error)
     {
         error = _error;
-        return IsSuccess;
+        return IsFailure;
     }
 
     private string BuildDebuggerDisplay()
@@ -58,13 +58,9 @@ public readonly partial record struct Result : IResult
 
         if (TryGetError(out var error))
         {
-            reasons = 0;
-        }
-        else
-        {
-            message = $"({error?.Message ?? "Unknown error"})";
+            message = $"({error.Message})";
             reasons = error is IAggregateFailure aggregate ? aggregate.Errors.Count() : 1;
-            if (error?.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
+            if (error.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
             {
                 code = $" code={error.Code}";
             }
@@ -354,7 +350,7 @@ public readonly partial record struct Result<TValue> : IResult
     /// <summary>
     ///     Gets a value indicating whether the operation failed.
     /// </summary>
-    public bool IsFaulted => !IsSuccess;
+    public bool IsFailure => !IsSuccess;
 
     /// <summary>
     ///     Gets a value indicating whether the operation succeeded.
@@ -365,11 +361,11 @@ public readonly partial record struct Result<TValue> : IResult
     ///     Attempts to extract the error if the operation failed.
     /// </summary>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
-    /// <returns>True if the operation succeeded, false otherwise.</returns>
+    /// <returns>True if the operation failed, false otherwise.</returns>
     public bool TryGetError([NotNullWhen(true)] out Failure? error)
     {
         error = _error;
-        return IsSuccess;
+        return IsFailure;
     }
 
     private string BuildDebuggerDisplay()
@@ -379,15 +375,11 @@ public readonly partial record struct Result<TValue> : IResult
         var message = string.Empty;
         var code = string.Empty;
 
-        if (!TryGetError(out var error))
+        if (TryGetError(out var error))
         {
-            reasons = 0;
-        }
-        else
-        {
-            message = $"({error?.Message ?? "Unknown error"})";
+            message = $"({error.Message})";
             reasons = error is IAggregateFailure aggregate ? aggregate.Errors.Count() : 1;
-            if (error?.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
+            if (error.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
             {
                 code = $" code={error.Code}";
             }
@@ -591,7 +583,7 @@ public readonly partial record struct Result<TValue> : IResult
             r = Result.Success();
         }
 
-        return r.Metadata.Count == 0 ? r : r.WithMetadata(Metadata);
+        return Metadata.Count == 0 ? r : r.WithMetadata(Metadata);
     }
 
     /// <summary>

@@ -110,7 +110,7 @@ public static partial class ResultTaskExtensions
             static async ValueTask<Result> TapErrorCore(ResultTask self, Action<Failure> tap)
             {
                 var source = await self;
-                if (source.IsFaulted && source.TryGetError(out var error))
+                if (source.IsFailure && source.TryGetError(out var error))
                 {
                     tap(error);
                 }
@@ -131,7 +131,7 @@ public static partial class ResultTaskExtensions
             static async ValueTask<Result> TapErrorCore(ResultTask self, Func<Failure, ValueTask> tap)
             {
                 var source = await self;
-                if (source.IsFaulted && source.TryGetError(out var error))
+                if (source.IsFailure && source.TryGetError(out var error))
                 {
                     await tap(error);
                 }
@@ -328,7 +328,7 @@ public static partial class ResultTaskExtensions
             static async ValueTask<Result<TValue>> TapErrorCore(ResultTask<TValue> self, Action<Failure> tap)
             {
                 var source = await self;
-                if (source.IsFaulted && source.TryGetError(out var error))
+                if (source.IsFailure && source.TryGetError(out var error))
                 {
                     tap(error);
                 }
@@ -349,7 +349,7 @@ public static partial class ResultTaskExtensions
             static async ValueTask<Result<TValue>> TapErrorCore(ResultTask<TValue> self, Func<Failure, ValueTask> tap)
             {
                 var source = await self;
-                if (source.IsFaulted && source.TryGetError(out var error))
+                if (source.IsFailure && source.TryGetError(out var error))
                 {
                     await tap(error);
                 }

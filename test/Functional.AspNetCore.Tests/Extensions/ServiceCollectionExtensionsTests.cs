@@ -125,10 +125,10 @@ public class ServiceCollectionExtensionsTests
 
         // Act (When)
         var error = new ExceptionalFailure(new Exception("Test exception"));
-        var body = mapper.GetResponse(error);
+        var response = mapper.GetErrorResponse(error);
 
         // Assert (Then)
-        Assert.NotNull(body);
+        Assert.NotNull(response);
     }
 
     [Fact(DisplayName = "AddResultHttp can be called multiple times without error")]

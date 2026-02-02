@@ -28,7 +28,7 @@ public static partial class ResultTaskExtensions
             static async ValueTask<Result> ThenCore(ResultTask self, Func<Result> func)
             {
                 var source = await self;
-                if (source.IsFaulted)
+                if (source.IsFailure)
                 {
                     return source;
                 }
@@ -56,7 +56,7 @@ public static partial class ResultTaskExtensions
             static async ValueTask<Result> ThenCore(ResultTask self, Func<ResultTask> func)
             {
                 var source = await self;
-                if (source.IsFaulted)
+                if (source.IsFailure)
                 {
                     return source;
                 }

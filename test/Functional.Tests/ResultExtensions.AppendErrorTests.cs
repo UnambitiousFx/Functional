@@ -71,7 +71,7 @@ public sealed partial class ResultExtensions
         var code = details?.GetType().GetProperty("Code")?.GetValue(details) as string;
         var message = details?.GetType().GetProperty("Message")?.GetValue(details) as string;
 
-        Assert.Equal("Error", type);
+        Assert.Equal("Failure", type);
         Assert.Equal("VALIDATION_001", code);
         Assert.Equal("msg", message);
     }
@@ -142,7 +142,7 @@ public sealed partial class ResultExtensions
         var code = details?.GetType().GetProperty("Code")?.GetValue(details) as string;
         var message = details?.GetType().GetProperty("Message")?.GetValue(details) as string;
 
-        Assert.Equal("Error", type);
+        Assert.Equal("Failure", type);
         Assert.Equal("VALIDATION_001", code);
         Assert.Equal("msg", message);
     }

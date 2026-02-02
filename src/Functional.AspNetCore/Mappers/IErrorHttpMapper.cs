@@ -8,10 +8,10 @@ namespace UnambitiousFx.Functional.AspNetCore.Mappers;
 public interface IErrorHttpMapper
 {
     /// <summary>
-    ///     Creates the response body for the specified error.
+    ///     Creates a complete HTTP error response for the specified error, including status code, body, headers, and content type.
     ///     Returns null if this mapper cannot handle the error type.
     /// </summary>
     /// <param name="failure">The error to map.</param>
-    /// <returns>A tuple containing the HTTP status code and the response body, or null if not handled.</returns>
-    (int StatusCode, object? Body)? GetResponse(IFailure failure);
+    /// <returns>An <see cref="ErrorHttpResponse"/> containing the complete HTTP response details, or null if not handled.</returns>
+    ErrorHttpResponse? GetErrorResponse(IFailure failure);
 }

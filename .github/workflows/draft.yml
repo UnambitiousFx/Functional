@@ -1,0 +1,58 @@
+name: Draft Release
+
+on:
+  push:
+    branches:
+      - 'draft/**'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  draft:
+    name: Build and Publish Draft
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate draft version
+        id: get_version
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/draft/}
+          BASE_VERSION=${BRANCH_NAME#v}
+
+          # Normalize version to Major.Minor.Patch format
+          IFS='.' read -ra VERSION_PARTS <<< "$BASE_VERSION"
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+          NORMALIZED_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          VERSION="${NORMALIZED_VERSION}-draft.${TIMESTAMP}.${SHORT_SHA}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing draft version: $VERSION"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore Functional.slnx
+
+      - name: Build
+        run: dotnet build Functional.slnx --no-restore --configuration Release /p:Version=${{ steps.get_version.outputs.VERSION }}
+
+      - name: Publish to MyGet
+        run: |
+          dotnet nuget push ./local_packages/*.nupkg --api-key ${{ secrets.MYGET_API_KEY }} --source ${{ vars.MYGET_FEED }} --skip-duplicate

@@ -110,7 +110,7 @@ public readonly struct ResultAssertion<TValue> where TValue : notnull
     /// <returns>A <see cref="FailureAssertion" /> instance allowing further inspection or validation of the associated error.</returns>
     public FailureAssertion Failure()
     {
-        if (_result.TryGet(out _, out var error))
+        if (!_result.TryGetError(out var error))
         {
             Assert.Fail("Expected failure result but was success.");
         }

@@ -4,7 +4,7 @@ using TimeoutFailure = UnambitiousFx.Functional.Failures.TimeoutFailure;
 namespace UnambitiousFx.Functional.Tests.Failures;
 
 /// <summary>
-/// Tests for TimeoutError type.
+///     Tests for TimeoutError type.
 /// </summary>
 public class TimeoutFailureTests
 {
@@ -130,8 +130,8 @@ public class TimeoutFailureTests
         var result = Result.Failure<string>(timeoutError);
 
         // Assert (Then)
-        Assert.True(result.IsFaulted);
-        result.TryGetError(out Failure? error);
+        Assert.True(result.IsFailure);
+        result.TryGetError(out var error);
         Assert.IsType<TimeoutFailure>(error);
         var typedError = (TimeoutFailure)error;
         Assert.Equal(configuredTimeout, typedError.ConfiguredTimeout);
