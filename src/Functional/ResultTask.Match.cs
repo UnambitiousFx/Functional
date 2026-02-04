@@ -87,7 +87,7 @@ public readonly partial struct ResultTask<TValue>
     /// <returns>A <see cref="ValueTask" /> representing the asynchronous operation.</returns>
     public async ValueTask Match(Action<TValue> onSuccess, Action<Failure> onFailure)
     {
-        var result = await _resultTask;
+        var result = await _inner;
         result.Match(onSuccess, onFailure);
     }
 
@@ -106,7 +106,7 @@ public readonly partial struct ResultTask<TValue>
     /// <returns>A <see cref="ValueTask" /> representing the asynchronous operation.</returns>
     public async ValueTask Match(Func<TValue, ValueTask> onSuccess, Func<Failure, ValueTask> onFailure)
     {
-        var result = await _resultTask;
+        var result = await _inner;
         await result.Match(onSuccess, onFailure);
     }
 
@@ -121,7 +121,7 @@ public readonly partial struct ResultTask<TValue>
     /// <returns>An awaitable <see cref="Task" />.</returns>
     public async Task Match(Func<TValue, Task> onSuccess, Func<Failure, Task> onFailure)
     {
-        var result = await _resultTask;
+        var result = await _inner;
         await result.Match(onSuccess, onFailure);
     }
 
@@ -134,7 +134,7 @@ public readonly partial struct ResultTask<TValue>
     /// <returns>A task representing the result of invoking the appropriate function.</returns>
     public async ValueTask<TOut> Match<TOut>(Func<TValue, TOut> onSuccess, Func<Failure, TOut> onFailure)
     {
-        var result = await _resultTask;
+        var result = await _inner;
         return result.Match(onSuccess, onFailure);
     }
 
@@ -154,7 +154,7 @@ public readonly partial struct ResultTask<TValue>
     public async ValueTask<TOut> Match<TOut>(Func<TValue, ValueTask<TOut>> onSuccess,
         Func<Failure, ValueTask<TOut>> onFailure)
     {
-        var result = await _resultTask;
+        var result = await _inner;
         return await result.Match(onSuccess, onFailure);
     }
 }

@@ -39,6 +39,17 @@ public readonly partial struct ResultTask
     }
 
     /// <summary>
+    /// Converts the underlying <see cref="ValueTask{TResult}" /> to a <see cref="Task{TResult}" />.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Task{TResult}" /> representing the asynchronous operation that yields a <see cref="Result" />.
+    /// </returns>
+    public Task<Result> AsTask()
+    {
+        return _inner.AsTask();
+    }
+
+    /// <summary>
     ///     Implicitly converts a <see cref="Result" /> to a <see cref="ResultTask" />.
     /// </summary>
     /// <param name="result">The result to wrap.</param>
@@ -77,15 +88,15 @@ public readonly partial struct ResultTask
 [StructLayout(LayoutKind.Auto)]
 public readonly partial struct ResultTask<TValue> where TValue : notnull
 {
-    private readonly ValueTask<Result<TValue>> _resultTask;
+    private readonly ValueTask<Result<TValue>> _inner;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ResultTask{TValue}" /> struct.
     /// </summary>
-    /// <param name="resultTask">The underlying result task.</param>
-    public ResultTask(ValueTask<Result<TValue>> resultTask)
+    /// <param name="inner">The underlying result task.</param>
+    public ResultTask(ValueTask<Result<TValue>> inner)
     {
-        _resultTask = resultTask;
+        _inner = inner;
     }
 
     /// <summary>
@@ -94,7 +105,7 @@ public readonly partial struct ResultTask<TValue> where TValue : notnull
     /// <returns>The awaiter for the wrapped task.</returns>
     public ValueTaskAwaiter<Result<TValue>> GetAwaiter()
     {
-        return _resultTask.GetAwaiter();
+        return _inner.GetAwaiter();
     }
 
     /// <summary>
@@ -103,7 +114,18 @@ public readonly partial struct ResultTask<TValue> where TValue : notnull
     /// <returns>The wrapped task.</returns>
     public ValueTask<Result<TValue>> AsValueTask()
     {
-        return _resultTask;
+        return _inner;
+    }
+
+    /// <summary>
+    /// Converts the underlying <see cref="ValueTask{TResult}" /> to a <see cref="Task{TResult}" />.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Task{TResult}" /> instance containing the result of the awaitable operation.
+    /// </returns>
+    public Task<Result<TValue>> AsTask()
+    {
+        return _inner.AsTask();
     }
 
     /// <summary>
@@ -143,6 +165,6 @@ public readonly partial struct ResultTask<TValue> where TValue : notnull
     /// <returns>The underlying task.</returns>
     public static implicit operator ValueTask<Result<TValue>>(ResultTask<TValue> resultTask)
     {
-        return resultTask._resultTask;
+        return resultTask._inner;
     }
 }
