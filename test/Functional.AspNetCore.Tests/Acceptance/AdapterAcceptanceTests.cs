@@ -16,7 +16,8 @@ public class AdapterAcceptanceTests
         yield return [new ConflictFailure("Conflict"), StatusCodes.Status409Conflict];
         yield return [new UnauthorizedFailure("Unauthorized"), StatusCodes.Status401Unauthorized];
         yield return [new UnauthenticatedFailure("Forbidden"), StatusCodes.Status403Forbidden];
-        yield return [new ExceptionalFailure(new InvalidOperationException("Boom")), StatusCodes.Status500InternalServerError];
+        yield return
+            [new ExceptionalFailure(new InvalidOperationException("Boom")), StatusCodes.Status500InternalServerError];
     }
 
     [Theory(DisplayName = "Same failure maps to equivalent status code in Minimal API and MVC")]
@@ -60,21 +61,20 @@ public class AdapterAcceptanceTests
 
     private static int GetMinimalStatusCode(IHttpResult result)
     {
-        if (result is IStatusCodeHttpResult statusCodeHttpResult && statusCodeHttpResult.StatusCode is int statusCode)
-        {
-            return statusCode;
-        }
-
-        throw new InvalidOperationException($"Unable to resolve status code from minimal result type: {result.GetType().Name}");
+        return result is IStatusCodeHttpResult { StatusCode: { } statusCode }
+            ? statusCode
+            : throw new InvalidOperationException(
+                $"Unable to resolve status code from minimal result type: {result.GetType().Name}");
     }
 
     private static int GetMvcStatusCode(IActionResult result)
     {
         return result switch
         {
-            ObjectResult objectResult when objectResult.StatusCode is int statusCode => statusCode,
+            ObjectResult { StatusCode: { } statusCode } => statusCode,
             StatusCodeResult statusCodeResult => statusCodeResult.StatusCode,
-            _ => throw new InvalidOperationException($"Unable to resolve status code from MVC result type: {result.GetType().Name}")
+            _ => throw new InvalidOperationException(
+                $"Unable to resolve status code from MVC result type: {result.GetType().Name}")
         };
     }
 }

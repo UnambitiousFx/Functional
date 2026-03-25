@@ -60,10 +60,7 @@ public readonly partial record struct Result : IResult
         {
             message = $"({error.Message})";
             reasons = error is IAggregateFailure aggregate ? aggregate.Errors.Count() : 1;
-            if (error.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
-            {
-                code = $" code={error.Code}";
-            }
+            if (error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception) code = $" code={error.Code}";
         }
 
         var metaPart = Metadata.Count == 0
@@ -80,10 +77,7 @@ public readonly partial record struct Result : IResult
     /// <param name="action">Action to execute.</param>
     public void IfSuccess(Action action)
     {
-        if (IsSuccess)
-        {
-            action();
-        }
+        if (IsSuccess) action();
     }
 
     /// <summary>
@@ -92,10 +86,7 @@ public readonly partial record struct Result : IResult
     /// <param name="action">Action to execute with the error.</param>
     public void IfFailure(Action<Failure> action)
     {
-        if (!IsSuccess)
-        {
-            action(_error!);
-        }
+        if (!IsSuccess) action(_error!);
     }
 
     /// <summary>
@@ -115,8 +106,10 @@ public readonly partial record struct Result : IResult
     /// <returns>A new result with the added metadata.</returns>
     public Result WithMetadata(string key, object? value)
     {
-        var newMetadata = new Metadata(Metadata);
-        newMetadata[key] = value;
+        var newMetadata = new Metadata(Metadata)
+        {
+            [key] = value
+        };
         return new Result(IsSuccess, _error, newMetadata);
     }
 
@@ -128,10 +121,7 @@ public readonly partial record struct Result : IResult
     public Result WithMetadata(IReadOnlyMetadata metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata)
-        {
-            newMetadata[kv.Key] = kv.Value;
-        }
+        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
 
         return new Result(IsSuccess, _error, newMetadata);
     }
@@ -144,10 +134,7 @@ public readonly partial record struct Result : IResult
     public Result WithMetadata(IEnumerable<KeyValuePair<string, object?>> metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata)
-        {
-            newMetadata[kv.Key] = kv.Value;
-        }
+        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
 
         return new Result(IsSuccess, _error, newMetadata);
     }
@@ -160,10 +147,7 @@ public readonly partial record struct Result : IResult
     public Result WithMetadata(params (string Key, object? Value)[] items)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var (key, value) in items)
-        {
-            newMetadata[key] = value;
-        }
+        foreach (var (key, value) in items) newMetadata[key] = value;
 
         return new Result(IsSuccess, _error, newMetadata);
     }
@@ -229,21 +213,21 @@ public readonly partial record struct Result : IResult
     /// <summary>
     ///     Creates a successful result with a value.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="value1">The success value.</param>
     /// <returns>A successful result containing the value.</returns>
-    public static Result<TValue1> Success<TValue1>(TValue1 value1) where TValue1 : notnull
+    public static Result<TValue> Success<TValue>(TValue value1) where TValue : notnull
     {
-        return new Result<TValue1>(true, value1, null, null);
+        return new Result<TValue>(true, value1, null, null);
     }
 
     /// <summary>
     ///     Creates a successful result with a value.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="value1">The success value.</param>
     /// <returns>A successful result containing the value.</returns>
-    public static Result<TValue1> Ok<TValue1>(TValue1 value1) where TValue1 : notnull
+    public static Result<TValue> Ok<TValue>(TValue value1) where TValue : notnull
     {
         return Success(value1);
     }
@@ -335,67 +319,67 @@ public readonly partial record struct Result : IResult
     /// <summary>
     ///     Creates a failed result with a typed value from an exception.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="error">The exception that caused the failure.</param>
     /// <returns>A failed result containing the exception.</returns>
-    public static Result<TValue1> Failure<TValue1>(Exception error) where TValue1 : notnull
+    public static Result<TValue> Failure<TValue>(Exception error) where TValue : notnull
     {
-        return new Result<TValue1>(false, default, new ExceptionalFailure(error), null);
+        return new Result<TValue>(false, default, new ExceptionalFailure(error), null);
     }
 
     /// <summary>
     ///     Creates a failed result with a typed value from an exception.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="error">The exception that caused the failure.</param>
     /// <returns>A failed result containing the exception.</returns>
-    public static Result<TValue1> Fail<TValue1>(Exception error) where TValue1 : notnull
+    public static Result<TValue> Fail<TValue>(Exception error) where TValue : notnull
     {
-        return Failure<TValue1>(error);
+        return Failure<TValue>(error);
     }
 
     /// <summary>
     ///     Creates a failed result with a typed value from an error.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="failure">The error that caused the failure.</param>
     /// <returns>A failed result containing the error.</returns>
-    public static Result<TValue1> Failure<TValue1>(Failure failure) where TValue1 : notnull
+    public static Result<TValue> Failure<TValue>(Failure failure) where TValue : notnull
     {
-        return new Result<TValue1>(false, default, failure, null);
+        return new Result<TValue>(false, default, failure, null);
     }
 
     /// <summary>
     ///     Creates a failed result with a typed value from an error.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="failure">The error that caused the failure.</param>
     /// <returns>A failed result containing the error.</returns>
-    public static Result<TValue1> Fail<TValue1>(Failure failure) where TValue1 : notnull
+    public static Result<TValue> Fail<TValue>(Failure failure) where TValue : notnull
     {
-        return Failure<TValue1>(failure);
+        return Failure<TValue>(failure);
     }
 
     /// <summary>
     ///     Creates a failed result with a typed value from an error message.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="message">The error message.</param>
     /// <returns>A failed result containing the error message.</returns>
-    public static Result<TValue1> Failure<TValue1>(string message) where TValue1 : notnull
+    public static Result<TValue> Failure<TValue>(string message) where TValue : notnull
     {
-        return new Result<TValue1>(false, default, new ExceptionalFailure(new Exception(message)), null);
+        return new Result<TValue>(false, default, new ExceptionalFailure(new Exception(message)), null);
     }
 
     /// <summary>
     ///     Creates a failed result with a typed value from an error message.
     /// </summary>
-    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="message">The error message.</param>
     /// <returns>A failed result containing the error message.</returns>
-    public static Result<TValue1> Fail<TValue1>(string message) where TValue1 : notnull
+    public static Result<TValue> Fail<TValue>(string message) where TValue : notnull
     {
-        return Failure<TValue1>(message);
+        return Failure<TValue>(message);
     }
 
     /// <summary>
@@ -483,10 +467,7 @@ public readonly partial record struct Result<TValue> : IResult
         {
             message = $"({error.Message})";
             reasons = error is IAggregateFailure aggregate ? aggregate.Errors.Count() : 1;
-            if (error.Code is not null && error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception)
-            {
-                code = $" code={error.Code}";
-            }
+            if (error.Code != ErrorCodes.Error && error.Code != ErrorCodes.Exception) code = $" code={error.Code}";
         }
 
         var metaPart = Metadata.Count == 0
@@ -503,10 +484,7 @@ public readonly partial record struct Result<TValue> : IResult
     /// <param name="action">Action to execute.</param>
     public void IfSuccess(Action action)
     {
-        if (IsSuccess)
-        {
-            action();
-        }
+        if (IsSuccess) action();
     }
 
     /// <summary>
@@ -515,10 +493,7 @@ public readonly partial record struct Result<TValue> : IResult
     /// <param name="action">Action to execute with the error.</param>
     public void IfFailure(Action<Failure> action)
     {
-        if (!IsSuccess)
-        {
-            action(_error!);
-        }
+        if (!IsSuccess) action(_error!);
     }
 
     /// <summary>
@@ -529,13 +504,9 @@ public readonly partial record struct Result<TValue> : IResult
     public void Match(Action<TValue> success, Action<Failure> failure)
     {
         if (IsSuccess)
-        {
             success(_value!);
-        }
         else
-        {
             failure(_error!);
-        }
     }
 
     /// <summary>
@@ -556,10 +527,7 @@ public readonly partial record struct Result<TValue> : IResult
     /// <param name="action">Action to execute with the success value.</param>
     public void IfSuccess(Action<TValue> action)
     {
-        if (IsSuccess)
-        {
-            action(_value!);
-        }
+        if (IsSuccess) action(_value!);
     }
 
     /// <summary>
@@ -606,8 +574,10 @@ public readonly partial record struct Result<TValue> : IResult
     /// <returns>A new result with the added metadata.</returns>
     public Result<TValue> WithMetadata(string key, object? value)
     {
-        var newMetadata = new Metadata(Metadata);
-        newMetadata[key] = value;
+        var newMetadata = new Metadata(Metadata)
+        {
+            [key] = value
+        };
         return new Result<TValue>(IsSuccess, _value, _error, newMetadata);
     }
 
@@ -619,10 +589,7 @@ public readonly partial record struct Result<TValue> : IResult
     public Result<TValue> WithMetadata(IReadOnlyMetadata metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata)
-        {
-            newMetadata[kv.Key] = kv.Value;
-        }
+        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
 
         return new Result<TValue>(IsSuccess, _value, _error, newMetadata);
     }
@@ -635,10 +602,7 @@ public readonly partial record struct Result<TValue> : IResult
     public Result<TValue> WithMetadata(IEnumerable<KeyValuePair<string, object?>> metadata)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var kv in metadata)
-        {
-            newMetadata[kv.Key] = kv.Value;
-        }
+        foreach (var kv in metadata) newMetadata[kv.Key] = kv.Value;
 
         return new Result<TValue>(IsSuccess, _value, _error, newMetadata);
     }
@@ -651,10 +615,7 @@ public readonly partial record struct Result<TValue> : IResult
     public Result<TValue> WithMetadata(params (string Key, object? Value)[] items)
     {
         var newMetadata = new Metadata(Metadata);
-        foreach (var (key, value) in items)
-        {
-            newMetadata[key] = value;
-        }
+        foreach (var (key, value) in items) newMetadata[key] = value;
 
         return new Result<TValue>(IsSuccess, _value, _error, newMetadata);
     }
@@ -677,16 +638,7 @@ public readonly partial record struct Result<TValue> : IResult
     /// <returns>An untyped result with the same success/failure state and metadata.</returns>
     public Result ToResult()
     {
-        Result r;
-        if (TryGetError(out var error))
-        {
-            r = Result.Failure(error);
-        }
-        else
-        {
-            r = Result.Success();
-        }
-
+        var r = TryGetError(out var error) ? Result.Failure(error) : Result.Success();
         return Metadata.Count == 0 ? r : r.WithMetadata(Metadata);
     }
 

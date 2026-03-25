@@ -26,7 +26,6 @@ internal sealed class ResultDebugView<TValue>
         get
         {
             if (!_result.TryGet(out _, out var error))
-            {
                 return error switch
                 {
                     AggregateFailure agg => new
@@ -39,7 +38,6 @@ internal sealed class ResultDebugView<TValue>
                     },
                     _ => new { Type = error.GetType().Name, error.Code, error.Message }
                 };
-            }
 
             return null;
         }
@@ -66,10 +64,7 @@ internal sealed class ResultDebugView
     {
         get
         {
-            if (!_result.TryGetError(out var error))
-            {
-                return null;
-            }
+            if (!_result.TryGetError(out var error)) return null;
 
             return error switch
             {
@@ -81,7 +76,7 @@ internal sealed class ResultDebugView
                 {
                     Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType().Name
                 },
-                _ => new { Type = error?.GetType().Name, error?.Code, error?.Message }
+                _ => new { Type = error.GetType().Name, error.Code, error.Message }
             };
         }
     }

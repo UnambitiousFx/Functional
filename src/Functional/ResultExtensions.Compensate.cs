@@ -15,7 +15,7 @@ public partial class ResultExtensions
     ///     The original result if successful; the original result if rollback succeeds;
     ///     or a failure with an <see cref="Failures.AggregateFailure" /> containing both errors if rollback fails.
     /// </returns>
-    public static Result Compensate(this Result result, Func<Failures.Failure, Result> rollback)
+    public static Result Compensate(this Result result, Func<Failure, Result> rollback)
     {
         return result.Match(
             () => result,

@@ -16,7 +16,7 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     internal static IErrorHttpMapper Instance { get; } = new DefaultErrorHttpMapper();
 
     /// <inheritdoc />
-    public virtual ErrorHttpResponse? GetErrorResponse(IFailure failure)
+    public virtual ErrorHttpResponse GetErrorResponse(IFailure failure)
     {
         var problem = failure switch
         {

@@ -14,11 +14,11 @@ public static partial class MaybeExtensions
         /// </summary>
         /// <param name="failure">The error to use when the maybe is None.</param>
         /// <returns>A Result that is successful if the maybe is Some; otherwise a failure with the provided error.</returns>
-        public Result<TValue> ToResult(Failures.Failure failure)
+        public Result<TValue> ToResult(Failure failure)
         {
             return maybe.Match(
-                some: Result.Success,
-                none: () => Result.Failure<TValue>(failure));
+                Result.Success,
+                () => Result.Failure<TValue>(failure));
         }
 
         /// <summary>
@@ -30,8 +30,8 @@ public static partial class MaybeExtensions
         public Result<TValue> ToResult(Func<Failure> errorFactory)
         {
             return maybe.Match(
-                some: Result.Success,
-                none: () => Result.Failure<TValue>(errorFactory()));
+                Result.Success,
+                () => Result.Failure<TValue>(errorFactory()));
         }
 
         /// <summary>
@@ -43,8 +43,8 @@ public static partial class MaybeExtensions
         public Result<TValue> ToResult(string message)
         {
             return maybe.Match(
-                some: Result.Success,
-                none: () => Result.Failure<TValue>(message));
+                Result.Success,
+                () => Result.Failure<TValue>(message));
         }
     }
 }

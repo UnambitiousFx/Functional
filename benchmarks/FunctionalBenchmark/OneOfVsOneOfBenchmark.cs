@@ -3,7 +3,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
-using OneOf;
+using UnambitiousFx.Functional;
 
 namespace UnambitiousFx.Benchmarks.FunctionalBenchmark;
 
@@ -15,40 +15,36 @@ public class OneOfVsOneOfBenchmark
 {
     private const int A = 42;
     private const string Message = "test";
+    private readonly OneOf<string, int> _ourFirst = OneOf<string, int>.FromFirst(Message);
+    private readonly OneOf<string, int> _ourSecond = OneOf<string, int>.FromSecond(A);
 
-    private readonly OneOf<string, int> _theirFirst = OneOf<string, int>.FromT0(Message);
-    private readonly OneOf<string, int> _theirSecond = OneOf<string, int>.FromT1(A);
-    private readonly Functional.OneOf<string, int> _ourFirst = Functional.OneOf<string, int>.FromFirst(Message);
-    private readonly Functional.OneOf<string, int> _ourSecond = Functional.OneOf<string, int>.FromSecond(A);
-
-    public OneOfVsOneOfBenchmark()
-    {
-    }
+    private readonly OneOf.OneOf<string, int> _theirFirst = OneOf.OneOf<string, int>.FromT0(Message);
+    private readonly OneOf.OneOf<string, int> _theirSecond = OneOf.OneOf<string, int>.FromT1(A);
 
     // Creation (First)
     [Benchmark(Description = "Create First (Our)")]
-    public Functional.OneOf<string, int> Create_First_Our()
+    public OneOf<string, int> Create_First_Our()
     {
-        return Functional.OneOf<string, int>.FromFirst(Message);
+        return OneOf<string, int>.FromFirst(Message);
     }
 
     [Benchmark(Description = "Create First (OneOf)")]
-    public OneOf<string, int> Create_First_Their()
+    public OneOf.OneOf<string, int> Create_First_Their()
     {
-        return OneOf<string, int>.FromT0(Message);
+        return OneOf.OneOf<string, int>.FromT0(Message);
     }
 
     // Creation (Second)
     [Benchmark(Description = "Create Second (Our)")]
-    public Functional.OneOf<string, int> Create_Second_Our()
+    public OneOf<string, int> Create_Second_Our()
     {
-        return Functional.OneOf<string, int>.FromSecond(A);
+        return OneOf<string, int>.FromSecond(A);
     }
 
     [Benchmark(Description = "Create Second (OneOf)")]
-    public OneOf<string, int> Create_Second_Their()
+    public OneOf.OneOf<string, int> Create_Second_Their()
     {
-        return OneOf<string, int>.FromT1(A);
+        return OneOf.OneOf<string, int>.FromT1(A);
     }
 
     // Match on First
