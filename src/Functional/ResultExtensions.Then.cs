@@ -9,10 +9,10 @@ public static partial class ResultExtensions
     /// <param name="result">The current result instance.</param>
     /// <param name="func">The transformation function to execute on the result.</param>
     /// <returns>A new result from the transformation function, or the original result if it is faulted.</returns>
-    public static Result Then(this Result result, Func<Result> func)
+    public static Result Then(this Result  result,
+                              Func<Result> func)
     {
-        if (result.IsFailure)
-        {
+        if (result.IsFailure) {
             return result;
         }
 
@@ -21,7 +21,8 @@ public static partial class ResultExtensions
 
     /// <param name="result">The result instance.</param>
     /// <typeparam name="TValue">Value type</typeparam>
-    extension<TValue>(Result<TValue> result) where TValue : notnull
+    extension<TValue>(Result<TValue> result)
+        where TValue : notnull
     {
         /// <summary>
         ///     Chains a transformation that returns a Result of the same type.
@@ -30,8 +31,7 @@ public static partial class ResultExtensions
         /// <returns>A new result from the then function.</returns>
         public Result<TValue> Then(Func<TValue, Result<TValue>> then)
         {
-            if (!result.TryGetValue(out var value))
-            {
+            if (!result.TryGetValue(out var value)) {
                 return result;
             }
 
@@ -49,14 +49,12 @@ public static partial class ResultExtensions
         /// </returns>
         public Result<TValue> Then(Func<TValue, Result> then)
         {
-            if (!result.TryGetValue(out var value))
-            {
+            if (!result.TryGetValue(out var value)) {
                 return result;
             }
 
             var thenResult = then(value);
-            if (!thenResult.TryGetError(out var error))
-            {
+            if (!thenResult.TryGetError(out var error)) {
                 return result;
             }
 

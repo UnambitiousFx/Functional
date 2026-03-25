@@ -26,7 +26,7 @@ public sealed class ExceptionWrappingExtensionsTests
         var exception = new InvalidOperationException("Original message");
 
         // Act (When)
-        var failure = exception.Wrap(messageOverride: "Custom message");
+        var failure = exception.Wrap("Custom message");
 
         // Assert (Then)
         Assert.Equal("Custom message", failure.Message);
@@ -38,7 +38,7 @@ public sealed class ExceptionWrappingExtensionsTests
     {
         // Arrange (Given)
         var exception = new InvalidOperationException("Test error");
-        var extra = new Dictionary<string, object?> { ["key1"] = "value1", ["key2"] = 42 };
+        var extra     = new Dictionary<string, object?> { ["key1"] = "value1", ["key2"] = 42 };
 
         // Act (When)
         var failure = exception.Wrap(extra: extra);
@@ -74,7 +74,7 @@ public sealed class ExceptionWrappingExtensionsTests
         var exception = new InvalidOperationException("Original message");
 
         // Act (When)
-        var failure = exception.AsError(messageOverride: "Custom message");
+        var failure = exception.AsError("Custom message");
 
         // Assert (Then)
         Assert.Equal("Custom message", failure.Message);
@@ -85,7 +85,7 @@ public sealed class ExceptionWrappingExtensionsTests
     {
         // Arrange (Given)
         var exception = new InvalidOperationException("Test error");
-        var extra = new Dictionary<string, object?> { ["key"] = "value" };
+        var extra     = new Dictionary<string, object?> { ["key"] = "value" };
 
         // Act (When)
         var failure = exception.AsError(extra: extra);
@@ -145,7 +145,7 @@ public sealed class ExceptionWrappingExtensionsTests
         var exception = new InvalidOperationException("Original message");
 
         // Act (When)
-        var failure = exception.WrapAndPrepend("Context: ", messageOverride: "Custom message");
+        var failure = exception.WrapAndPrepend("Context: ", "Custom message");
 
         // Assert (Then)
         Assert.Equal("Context: Custom message", failure.Message);
@@ -156,7 +156,7 @@ public sealed class ExceptionWrappingExtensionsTests
     {
         // Arrange (Given)
         var exception = new InvalidOperationException("Test error");
-        var extra = new Dictionary<string, object?> { ["key"] = "value" };
+        var extra     = new Dictionary<string, object?> { ["key"] = "value" };
 
         // Act (When)
         var failure = exception.WrapAndPrepend("Context: ", extra: extra);

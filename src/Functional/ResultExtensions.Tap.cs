@@ -25,12 +25,12 @@ public static partial class ResultExtensions
         /// <param name="predicate">Function to evaluate a condition.</param>
         /// <param name="tap">Action to execute if the predicate evaluates to true.</param>
         /// <returns>The original result unchanged.</returns>
-        public Result TapIf(Func<bool> predicate, Action tap)
+        public Result TapIf(Func<bool> predicate,
+                            Action     tap)
         {
             return result.Tap(() =>
             {
-                if (predicate())
-                {
+                if (predicate()) {
                     tap();
                 }
             });
@@ -48,10 +48,10 @@ public static partial class ResultExtensions
         }
     }
 
-
     /// <param name="result">The result instance.</param>
     /// <typeparam name="TValue">Value type 1.</typeparam>
-    extension<TValue>(Result<TValue> result) where TValue : notnull
+    extension<TValue>(Result<TValue> result)
+        where TValue : notnull
     {
         /// <summary>
         ///     Executes a side effect if the result is successful, then returns the original result.
@@ -84,12 +84,12 @@ public static partial class ResultExtensions
         /// </param>
         /// <param name="tap">The action to execute if the predicate evaluates to true.</param>
         /// <returns>The original result unchanged.</returns>
-        public Result<TValue> TapIf(Func<TValue, bool> predicate, Action<TValue> tap)
+        public Result<TValue> TapIf(Func<TValue, bool> predicate,
+                                    Action<TValue>     tap)
         {
             return result.Tap(v =>
             {
-                if (predicate(v))
-                {
+                if (predicate(v)) {
                     tap(v);
                 }
             });
@@ -102,12 +102,12 @@ public static partial class ResultExtensions
         /// <param name="predicate">The predicate function to evaluate the value.</param>
         /// <param name="tap">The action to execute if the predicate is true.</param>
         /// <returns>The original result unchanged.</returns>
-        public Result<TValue> TapIf(Func<TValue, bool> predicate, Action tap)
+        public Result<TValue> TapIf(Func<TValue, bool> predicate,
+                                    Action             tap)
         {
             return result.Tap(v =>
             {
-                if (predicate(v))
-                {
+                if (predicate(v)) {
                     tap();
                 }
             });

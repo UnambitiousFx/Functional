@@ -15,7 +15,7 @@ public class UnauthenticatedFailureTests
         var error = new UnauthenticatedFailure();
 
         // Assert (Then)
-        Assert.Equal((string?)"Unauthenticated", (string?)error.Message);
+        Assert.Equal((string?)"Unauthenticated",          (string?)error.Message);
         Assert.Equal((string?)ErrorCodes.Unauthenticated, (string?)error.Code);
     }
 
@@ -30,7 +30,7 @@ public class UnauthenticatedFailureTests
 
         // Assert (Then)
         Assert.Equal((string?)"Invalid authentication token", (string?)error.Message);
-        Assert.Equal((string?)ErrorCodes.Unauthenticated, (string?)error.Code);
+        Assert.Equal((string?)ErrorCodes.Unauthenticated,     (string?)error.Code);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class UnauthenticatedFailureTests
         // Arrange (Given)
         var extra = new Dictionary<string, object?>
         {
-            ["userId"] = "user123",
+            ["userId"]            = "user123",
             ["attemptedResource"] = "/api/secure"
         };
 
@@ -69,7 +69,7 @@ public class UnauthenticatedFailureTests
         // Assert (Then)
         Assert.Equal((string?)"Session expired", (string?)error.Message);
         Assert.NotNull(error.Metadata);
-        Assert.Equal<object>("user123", error.Metadata["userId"]);
+        Assert.Equal<object>("user123",     error.Metadata["userId"]);
         Assert.Equal<object>("/api/secure", error.Metadata["attemptedResource"]);
     }
 
@@ -123,7 +123,7 @@ public class UnauthenticatedFailureTests
         Assert.IsType<UnauthenticatedFailure>(error);
         var typedError = (UnauthenticatedFailure)error;
         Assert.Equal((string?)"Missing authentication header", (string?)typedError.Message);
-        Assert.Equal((string?)ErrorCodes.Unauthenticated, (string?)typedError.Code);
+        Assert.Equal((string?)ErrorCodes.Unauthenticated,      (string?)typedError.Code);
     }
 
     [Fact]

@@ -5,7 +5,7 @@ using UnambitiousFx.Functional.Failures;
 namespace UnambitiousFx.Functional.Tests.Failures;
 
 /// <summary>
-/// Tests for Error debug view types.
+///     Tests for Error debug view types.
 /// </summary>
 public class ErrorDebugViewTests
 {
@@ -15,8 +15,8 @@ public class ErrorDebugViewTests
     public void AggregateErrorDebugView_Constructor_InitializesError()
     {
         // Arrange (Given)
-        var error1 = new Failure("Error 1");
-        var error2 = new Failure("Error 2");
+        var error1         = new Failure("Error 1");
+        var error2         = new Failure("Error 2");
         var aggregateError = new AggregateFailure(error1, error2);
 
         // Act (When)
@@ -30,17 +30,17 @@ public class ErrorDebugViewTests
     public void AggregateErrorDebugView_Errors_ReturnsErrorArray()
     {
         // Arrange (Given)
-        var error1 = new Failure("Error 1");
-        var error2 = new Failure("Error 2");
+        var error1         = new Failure("Error 1");
+        var error2         = new Failure("Error 2");
         var aggregateError = new AggregateFailure(error1, error2);
-        var debugView = CreateAggregateErrorDebugView(aggregateError);
+        var debugView      = CreateAggregateErrorDebugView(aggregateError);
 
         // Act (When)
         var errors = GetDebugViewProperty<Failure[]>(debugView, "Errors");
 
         // Assert (Then)
         Assert.NotNull(errors);
-        Assert.Equal(2, errors.Length);
+        Assert.Equal(2,                  errors.Length);
         Assert.Equal((string?)"Error 1", (string?)errors[0].Message);
         Assert.Equal((string?)"Error 2", (string?)errors[1].Message);
     }
@@ -49,9 +49,9 @@ public class ErrorDebugViewTests
     public void AggregateErrorDebugView_Code_ReturnsErrorCode()
     {
         // Arrange (Given)
-        var error1 = new Failure("Error 1");
+        var error1         = new Failure("Error 1");
         var aggregateError = new AggregateFailure(error1);
-        var debugView = CreateAggregateErrorDebugView(aggregateError);
+        var debugView      = CreateAggregateErrorDebugView(aggregateError);
 
         // Act (When)
         var code = GetDebugViewProperty<string>(debugView, "Code");
@@ -64,9 +64,9 @@ public class ErrorDebugViewTests
     public void AggregateErrorDebugView_Message_ReturnsErrorMessage()
     {
         // Arrange (Given)
-        var error1 = new Failure("Error 1");
+        var error1         = new Failure("Error 1");
         var aggregateError = new AggregateFailure(error1);
-        var debugView = CreateAggregateErrorDebugView(aggregateError);
+        var debugView      = CreateAggregateErrorDebugView(aggregateError);
 
         // Act (When)
         var message = GetDebugViewProperty<string>(debugView, "Message");
@@ -79,9 +79,9 @@ public class ErrorDebugViewTests
     public void AggregateErrorDebugView_Metadata_ReturnsErrorMetadata()
     {
         // Arrange (Given)
-        var error1 = new Failure("Error 1");
+        var error1         = new Failure("Error 1");
         var aggregateError = new AggregateFailure(error1);
-        var debugView = CreateAggregateErrorDebugView(aggregateError);
+        var debugView      = CreateAggregateErrorDebugView(aggregateError);
 
         // Act (When)
         var metadata = GetDebugViewProperty<Metadata>(debugView, "Metadata");
@@ -94,11 +94,11 @@ public class ErrorDebugViewTests
     public void AggregateErrorDebugView_ErrorCount_ReturnsCorrectCount()
     {
         // Arrange (Given)
-        var error1 = new Failure("Error 1");
-        var error2 = new Failure("Error 2");
-        var error3 = new Failure("Error 3");
+        var error1         = new Failure("Error 1");
+        var error2         = new Failure("Error 2");
+        var error3         = new Failure("Error 3");
         var aggregateError = new AggregateFailure(error1, error2, error3);
-        var debugView = CreateAggregateErrorDebugView(aggregateError);
+        var debugView      = CreateAggregateErrorDebugView(aggregateError);
 
         // Act (When)
         var errorCount = GetDebugViewProperty<int>(debugView, "ErrorCount");
@@ -115,7 +115,7 @@ public class ErrorDebugViewTests
 
         // Act (When)
         var errorsProperty = debugViewType.GetProperty("Errors");
-        var attribute = errorsProperty?.GetCustomAttribute<DebuggerBrowsableAttribute>();
+        var attribute      = errorsProperty?.GetCustomAttribute<DebuggerBrowsableAttribute>();
 
         // Assert (Then)
         Assert.NotNull(attribute);
@@ -130,7 +130,7 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_Constructor_InitializesError()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
 
         // Act (When)
@@ -144,9 +144,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_Exception_ReturnsWrappedException()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var returnedException = GetDebugViewProperty<Exception>(debugView, "Exception");
@@ -159,9 +159,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_ExceptionType_ReturnsExceptionTypeName()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var exceptionType = GetDebugViewProperty<string>(debugView, "ExceptionType");
@@ -174,9 +174,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_Message_ReturnsExceptionMessage()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var message = GetDebugViewProperty<string>(debugView, "Message");
@@ -189,9 +189,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_Code_ReturnsExceptionCode()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var code = GetDebugViewProperty<string>(debugView, "Code");
@@ -204,9 +204,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_MessageOverride_ReturnsNullWhenNotProvided()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var messageOverride = GetDebugViewProperty<string?>(debugView, "MessageOverride");
@@ -219,9 +219,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_MessageOverride_ReturnsOverrideWhenProvided()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception, "Custom message");
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var messageOverride = GetDebugViewProperty<string?>(debugView, "MessageOverride");
@@ -234,9 +234,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_Metadata_ReturnsErrorMetadata()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var metadata = GetDebugViewProperty<Metadata>(debugView, "Metadata");
@@ -249,9 +249,9 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_Extra_ReturnsNullWhenNotProvided()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
+        var exception        = new InvalidOperationException("Test exception");
         var exceptionalError = new ExceptionalFailure(exception);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var extra = GetDebugViewProperty<IReadOnlyDictionary<string, object?>?>(debugView, "Extra");
@@ -264,10 +264,10 @@ public class ErrorDebugViewTests
     public void ExceptionalErrorDebugView_Extra_ReturnsExtraDataWhenProvided()
     {
         // Arrange (Given)
-        var exception = new InvalidOperationException("Test exception");
-        var extraData = new Dictionary<string, object?> { ["key"] = "value" };
+        var exception        = new InvalidOperationException("Test exception");
+        var extraData        = new Dictionary<string, object?> { ["key"] = "value" };
         var exceptionalError = new ExceptionalFailure(exception, extra: extraData);
-        var debugView = CreateExceptionalErrorDebugView(exceptionalError);
+        var debugView        = CreateExceptionalErrorDebugView(exceptionalError);
 
         // Act (When)
         var extra = GetDebugViewProperty<IReadOnlyDictionary<string, object?>?>(debugView, "Extra");
@@ -296,14 +296,16 @@ public class ErrorDebugViewTests
 
     private static Type GetDebugViewType(string typeName)
     {
-        var assembly = typeof(Failure).Assembly;
+        var assembly     = typeof(Failure).Assembly;
         var fullTypeName = $"UnambitiousFx.Functional.Failures.{typeName}";
-        return assembly.GetType(fullTypeName, throwOnError: true)!;
+        return assembly.GetType(fullTypeName, true)!;
     }
 
-    private static T GetDebugViewProperty<T>(object debugView, string propertyName)
+    private static T GetDebugViewProperty<T>(object debugView,
+                                             string propertyName)
     {
-        var property = debugView.GetType().GetProperty(propertyName);
+        var property = debugView.GetType()
+                                .GetProperty(propertyName);
         Assert.NotNull(property);
         return (T)property.GetValue(debugView)!;
     }

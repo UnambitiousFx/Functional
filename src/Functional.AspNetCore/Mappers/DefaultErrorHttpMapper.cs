@@ -20,19 +20,19 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         var problem = failure switch
         {
-            ValidationFailure validation => FromValidationError(validation),
-            NotFoundFailure notFound => FromNotFoundError(notFound),
-            UnauthorizedFailure unauthorized => FromUnauthorizedError(unauthorized),
+            ValidationFailure validation           => FromValidationError(validation),
+            NotFoundFailure notFound               => FromNotFoundError(notFound),
+            UnauthorizedFailure unauthorized       => FromUnauthorizedError(unauthorized),
             UnauthenticatedFailure unauthenticated => FromUnauthenticatedError(unauthenticated),
-            ConflictFailure conflict => FromConflictError(conflict),
-            ExceptionalFailure exceptional => FromExceptionalError(exceptional),
-            _ => FromError(failure)
+            ConflictFailure conflict               => FromConflictError(conflict),
+            ExceptionalFailure exceptional         => FromExceptionalError(exceptional),
+            _                                      => FromError(failure)
         };
 
         return new ErrorHttpResponse
         {
             StatusCode = problem.Status ?? 500,
-            Body = problem
+            Body       = problem
         };
     }
 
@@ -40,10 +40,10 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         return new ProblemDetails
         {
-            Title = "An error occurred.",
+            Title  = "An error occurred.",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.InternalServerError,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+            Type   = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
         };
     }
 
@@ -51,10 +51,10 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         return new ProblemDetails
         {
-            Title = "Conflict",
+            Title  = "Conflict",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.Conflict,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8"
+            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.8"
         };
     }
 
@@ -62,10 +62,10 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         return new ProblemDetails
         {
-            Title = "Internal Server Error",
+            Title  = "Internal Server Error",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.InternalServerError,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+            Type   = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
         };
     }
 
@@ -73,10 +73,10 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         return new ProblemDetails
         {
-            Title = "Unauthorized",
+            Title  = "Unauthorized",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.Unauthorized,
-            Type = "https://tools.ietf.org/html/rfc7235#section-3.1"
+            Type   = "https://tools.ietf.org/html/rfc7235#section-3.1"
         };
     }
 
@@ -84,10 +84,10 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         return new ProblemDetails
         {
-            Title = "Unauthorized",
+            Title  = "Unauthorized",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.Forbidden,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
         };
     }
 
@@ -95,10 +95,10 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         return new ProblemDetails
         {
-            Title = "Not Found",
+            Title  = "Not Found",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.NotFound,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
             Extensions =
             {
                 { "code", failure.Code },
@@ -112,16 +112,19 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
     {
         var details = new ProblemDetails
         {
-            Title = "Validation Error",
+            Title  = "Validation Error",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.BadRequest,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
             Extensions =
             {
                 { "code", failure.Code }
             }
         };
-        for (var i = 0; i < failure.Failures.Count; i++) details.Extensions.Add($"failure[{i}]", failure.Failures[i]);
+        for (var i = 0; i < failure.Failures.Count; i++) {
+            details.Extensions.Add($"failure[{i}]", failure.Failures[i]);
+        }
+
         return details;
     }
 }

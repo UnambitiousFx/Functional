@@ -12,8 +12,10 @@ public static partial class ResultExtensions
         /// <returns>The result from the bind function, or a failure result.</returns>
         public Result Bind(Func<Result> bind)
         {
-            return result.Match(() => bind().WithMetadata(result.Metadata),
-                err => Result.Failure(err).WithMetadata(result.Metadata));
+            return result.Match(() => bind()
+                                   .WithMetadata(result.Metadata),
+                                err => Result.Failure(err)
+                                             .WithMetadata(result.Metadata));
         }
 
         /// <summary>
@@ -22,10 +24,13 @@ public static partial class ResultExtensions
         /// <typeparam name="TOut">Output value type 1.</typeparam>
         /// <param name="bind">The function to execute if the result is successful.</param>
         /// <returns>The result from the bind function, or a failure result.</returns>
-        public Result<TOut> Bind<TOut>(Func<Result<TOut>> bind) where TOut : notnull
+        public Result<TOut> Bind<TOut>(Func<Result<TOut>> bind)
+            where TOut : notnull
         {
-            return result.Match(() => bind().WithMetadata(result.Metadata),
-                err => Result.Failure<TOut>(err).WithMetadata(result.Metadata));
+            return result.Match(() => bind()
+                                   .WithMetadata(result.Metadata),
+                                err => Result.Failure<TOut>(err)
+                                             .WithMetadata(result.Metadata));
         }
 
         /// <summary>
@@ -36,11 +41,12 @@ public static partial class ResultExtensions
         public ValueTask<Result> Bind(Func<ValueTask<Result>> bind)
         {
             return result.Match<ValueTask<Result>>(async () =>
-                {
-                    var bound = await bind();
-                    return bound.WithMetadata(result.Metadata);
-                },
-                err => ValueTask.FromResult(Result.Failure(err).WithMetadata(result.Metadata)));
+                                                   {
+                                                       var bound = await bind();
+                                                       return bound.WithMetadata(result.Metadata);
+                                                   },
+                                                   err => ValueTask.FromResult(Result.Failure(err)
+                                                                                     .WithMetadata(result.Metadata)));
         }
 
         /// <summary>
@@ -52,17 +58,19 @@ public static partial class ResultExtensions
             where TOut : notnull
         {
             return result.Match<ValueTask<Result<TOut>>>(async () =>
-                {
-                    var bound = await bind();
-                    return bound.WithMetadata(result.Metadata);
-                },
-                err => ValueTask.FromResult(Result.Failure<TOut>(err).WithMetadata(result.Metadata)));
+                                                         {
+                                                             var bound = await bind();
+                                                             return bound.WithMetadata(result.Metadata);
+                                                         },
+                                                         err => ValueTask.FromResult(Result.Failure<TOut>(err)
+                                                                                           .WithMetadata(result.Metadata)));
         }
     }
 
     /// <param name="result">The result instance.</param>
     /// <typeparam name="TValue">Input value type 1.</typeparam>
-    extension<TValue>(Result<TValue> result) where TValue : notnull
+    extension<TValue>(Result<TValue> result)
+        where TValue : notnull
     {
         /// <summary>
         ///     Chains a function that returns a Result, propagating failures.
@@ -71,8 +79,10 @@ public static partial class ResultExtensions
         /// <returns>The result from the bind function, or a failure result.</returns>
         public Result Bind(Func<TValue, Result> bind)
         {
-            return result.Match(v => bind(v).WithMetadata(result.Metadata),
-                err => Result.Failure(err).WithMetadata(result.Metadata));
+            return result.Match(v => bind(v)
+                                   .WithMetadata(result.Metadata),
+                                err => Result.Failure(err)
+                                             .WithMetadata(result.Metadata));
         }
 
         /// <summary>
@@ -81,10 +91,13 @@ public static partial class ResultExtensions
         /// <typeparam name="TOut">Output value type 1.</typeparam>
         /// <param name="bind">The function to execute if the result is successful.</param>
         /// <returns>The result from the bind function, or a failure result.</returns>
-        public Result<TOut> Bind<TOut>(Func<TValue, Result<TOut>> bind) where TOut : notnull
+        public Result<TOut> Bind<TOut>(Func<TValue, Result<TOut>> bind)
+            where TOut : notnull
         {
-            return result.Match(v => bind(v).WithMetadata(result.Metadata),
-                err => Result.Failure<TOut>(err).WithMetadata(result.Metadata));
+            return result.Match(v => bind(v)
+                                   .WithMetadata(result.Metadata),
+                                err => Result.Failure<TOut>(err)
+                                             .WithMetadata(result.Metadata));
         }
 
         /// <summary>
@@ -101,7 +114,7 @@ public static partial class ResultExtensions
             }, err =>
             {
                 var response = Result.Failure(err)
-                    .WithMetadata(result.Metadata);
+                                     .WithMetadata(result.Metadata);
                 return ValueTask.FromResult(response);
             });
         }
@@ -112,7 +125,8 @@ public static partial class ResultExtensions
         /// <typeparam name="TOut">Output value type 1.</typeparam>
         /// <param name="bind">The async function to execute if the result is successful.</param>
         /// <returns>A task with the result from the bind function.</returns>
-        public ValueTask<Result<TOut>> Bind<TOut>(Func<TValue, ValueTask<Result<TOut>>> bind) where TOut : notnull
+        public ValueTask<Result<TOut>> Bind<TOut>(Func<TValue, ValueTask<Result<TOut>>> bind)
+            where TOut : notnull
         {
             return result.Match<ValueTask<Result<TOut>>>(async v =>
             {
@@ -120,7 +134,8 @@ public static partial class ResultExtensions
                 return response.WithMetadata(result.Metadata);
             }, err =>
             {
-                var response = Result.Failure<TOut>(err).WithMetadata(result.Metadata);
+                var response = Result.Failure<TOut>(err)
+                                     .WithMetadata(result.Metadata);
                 return ValueTask.FromResult(response);
             });
         }

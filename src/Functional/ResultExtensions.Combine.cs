@@ -12,17 +12,15 @@ public static partial class ResultExtensions
     public static Result Combine(this IEnumerable<Result> results)
     {
         var errors = new List<Failure>();
-        foreach (var result in results)
-        {
-            if (result.TryGetError(out var err))
-            {
+        foreach (var result in results) {
+            if (result.TryGetError(out var err)) {
                 errors.Add(err);
             }
         }
 
         return errors.Count != 0
-            ? new AggregateFailure(errors)
-            : Result.Success();
+                   ? new AggregateFailure(errors)
+                   : Result.Success();
     }
 
     /// <summary>
@@ -41,20 +39,17 @@ public static partial class ResultExtensions
     {
         var errors = new List<Failure>();
         var values = new List<TValue>();
-        foreach (var result in results)
-        {
-            if (!result.TryGet(out var value, out var err))
-            {
+        foreach (var result in results) {
+            if (!result.TryGet(out var value, out var err)) {
                 errors.Add(err);
             }
-            else
-            {
+            else {
                 values.Add(value);
             }
         }
 
         return errors.Count != 0
-            ? new AggregateFailure(errors)
-            : values;
+                   ? new AggregateFailure(errors)
+                   : values;
     }
 }

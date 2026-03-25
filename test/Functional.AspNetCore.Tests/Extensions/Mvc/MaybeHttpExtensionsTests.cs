@@ -36,7 +36,7 @@ public class MaybeHttpExtensionsTests
     public async Task ValueTaskMaybe_ToActionResult_WithSome_ReturnsOkObjectResult()
     {
         // Arrange (Given)
-        ValueTask<Maybe<int>> maybeTask = ValueTask.FromResult(Maybe.Some(42));
+        var maybeTask = ValueTask.FromResult(Maybe.Some(42));
 
         // Act (When)
         var actionResult = await maybeTask.ToActionResult();
@@ -58,7 +58,7 @@ public class MaybeHttpExtensionsTests
         // Assert (Then)
         var created = Assert.IsType<CreatedAtActionResult>(actionResult);
         Assert.Equal("GetItem", created.ActionName);
-        Assert.Equal(42, created.Value);
+        Assert.Equal(42,        created.Value);
     }
 
     [Fact]

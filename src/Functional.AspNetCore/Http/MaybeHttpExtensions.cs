@@ -14,18 +14,17 @@ public static class MaybeHttpExtensions
         return effectivePolicy.MaybeNoneBehavior switch
         {
             MaybeNoneHttpBehavior.NoContent => HttpResults.NoContent,
-            _ => () => HttpResults.NotFound()
+            _                               => () => HttpResults.NotFound()
         };
     }
 
     /// <summary>
     ///     Converts an asynchronous Maybe value to an <see cref="IHttpResult" />.
     /// </summary>
-    public static async ValueTask<IHttpResult> ToHttpResult<TValue>(
-        this ValueTask<Maybe<TValue>> maybeTask,
-        Func<TValue, IHttpResult>? someHttpMapper = null,
-        Func<IHttpResult>? noneHttpMapper = null,
-        ResultHttpAdapterPolicy? policy = null)
+    public static async ValueTask<IHttpResult> ToHttpResult<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
+                                                                    Func<TValue, IHttpResult>?    someHttpMapper = null,
+                                                                    Func<IHttpResult>?            noneHttpMapper = null,
+                                                                    ResultHttpAdapterPolicy?      policy         = null)
         where TValue : notnull
     {
         var maybe = await maybeTask;
@@ -35,11 +34,10 @@ public static class MaybeHttpExtensions
     /// <summary>
     ///     Converts an asynchronous Maybe value to a 201 Created response when Some, otherwise to NotFound.
     /// </summary>
-    public static async ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(
-        this ValueTask<Maybe<TValue>> maybeTask,
-        Func<TValue, string> locationFactory,
-        Func<IHttpResult>? noneHttpMapper = null,
-        ResultHttpAdapterPolicy? policy = null)
+    public static async ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
+                                                                           Func<TValue, string>          locationFactory,
+                                                                           Func<IHttpResult>?            noneHttpMapper = null,
+                                                                           ResultHttpAdapterPolicy?      policy         = null)
         where TValue : notnull
     {
         var maybe = await maybeTask;
@@ -49,11 +47,10 @@ public static class MaybeHttpExtensions
     /// <summary>
     ///     Converts an asynchronous Maybe value to an <see cref="IHttpResult" />.
     /// </summary>
-    public static ValueTask<IHttpResult> ToHttpResult<TValue>(
-        this Task<Maybe<TValue>> maybeTask,
-        Func<TValue, IHttpResult>? someHttpMapper = null,
-        Func<IHttpResult>? noneHttpMapper = null,
-        ResultHttpAdapterPolicy? policy = null)
+    public static ValueTask<IHttpResult> ToHttpResult<TValue>(this Task<Maybe<TValue>>   maybeTask,
+                                                              Func<TValue, IHttpResult>? someHttpMapper = null,
+                                                              Func<IHttpResult>?         noneHttpMapper = null,
+                                                              ResultHttpAdapterPolicy?   policy         = null)
         where TValue : notnull
     {
         return new ValueTask<Maybe<TValue>>(maybeTask).ToHttpResult(someHttpMapper, noneHttpMapper, policy);
@@ -62,11 +59,10 @@ public static class MaybeHttpExtensions
     /// <summary>
     ///     Converts an asynchronous Maybe value to a 201 Created response when Some, otherwise to NotFound.
     /// </summary>
-    public static ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(
-        this Task<Maybe<TValue>> maybeTask,
-        Func<TValue, string> locationFactory,
-        Func<IHttpResult>? noneHttpMapper = null,
-        ResultHttpAdapterPolicy? policy = null)
+    public static ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(this Task<Maybe<TValue>> maybeTask,
+                                                                     Func<TValue, string>     locationFactory,
+                                                                     Func<IHttpResult>?       noneHttpMapper = null,
+                                                                     ResultHttpAdapterPolicy? policy         = null)
         where TValue : notnull
     {
         return new ValueTask<Maybe<TValue>>(maybeTask).ToCreatedHttpResult(locationFactory, noneHttpMapper, policy);
@@ -74,7 +70,8 @@ public static class MaybeHttpExtensions
 
     /// <param name="maybe">The maybe value to convert.</param>
     /// <typeparam name="TValue">The contained value type.</typeparam>
-    extension<TValue>(Maybe<TValue> maybe) where TValue : notnull
+    extension<TValue>(Maybe<TValue> maybe)
+        where TValue : notnull
     {
         /// <summary>
         ///     Converts a Maybe value to an <see cref="IHttpResult" />.
@@ -84,10 +81,9 @@ public static class MaybeHttpExtensions
         /// <param name="noneHttpMapper">Optional mapper for None values.</param>
         /// <param name="policy">Optional adapter policy controlling default None behavior.</param>
         /// <returns>The mapped HTTP result.</returns>
-        public IHttpResult ToHttpResult(
-            Func<TValue, IHttpResult>? someHttpMapper = null,
-            Func<IHttpResult>? noneHttpMapper = null,
-            ResultHttpAdapterPolicy? policy = null)
+        public IHttpResult ToHttpResult(Func<TValue, IHttpResult>? someHttpMapper = null,
+                                        Func<IHttpResult>?         noneHttpMapper = null,
+                                        ResultHttpAdapterPolicy?   policy         = null)
         {
             someHttpMapper ??= HttpResults.Ok;
             noneHttpMapper ??= BuildDefaultNoneMapper(policy);
@@ -101,10 +97,9 @@ public static class MaybeHttpExtensions
         /// <param name="noneHttpMapper">Optional mapper for None values.</param>
         /// <param name="policy">Optional adapter policy controlling default None behavior.</param>
         /// <returns>The mapped HTTP result.</returns>
-        public IHttpResult ToCreatedHttpResult(
-            Func<TValue, string> locationFactory,
-            Func<IHttpResult>? noneHttpMapper = null,
-            ResultHttpAdapterPolicy? policy = null)
+        public IHttpResult ToCreatedHttpResult(Func<TValue, string>     locationFactory,
+                                               Func<IHttpResult>?       noneHttpMapper = null,
+                                               ResultHttpAdapterPolicy? policy         = null)
         {
             ArgumentNullException.ThrowIfNull(locationFactory);
             noneHttpMapper ??= BuildDefaultNoneMapper(policy);

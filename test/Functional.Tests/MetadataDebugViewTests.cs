@@ -21,8 +21,8 @@ public sealed class MetadataDebugViewTests
         // Arrange (Given)
         var metadata = Metadata.From(
             ("key1", "value1"),
-            ("key2", (object?)42),
-            ("key3", (object?)true));
+            ("key2", 42),
+            ("key3", true));
         var debugView = new MetadataDebugView(metadata);
 
         // Act (When)
@@ -30,16 +30,16 @@ public sealed class MetadataDebugViewTests
 
         // Assert (Then)
         Assert.Equal(3, items.Length);
-        Assert.Contains(items, kvp => kvp.Key == "key1" && kvp.Value as string == "value1");
-        Assert.Contains(items, kvp => kvp.Key == "key2" && kvp.Value is int && (int)kvp.Value == 42);
-        Assert.Contains(items, kvp => kvp.Key == "key3" && kvp.Value is bool && (bool)kvp.Value == true);
+        Assert.Contains(items, kvp => kvp.Key == "key1" && kvp.Value as string                 == "value1");
+        Assert.Contains(items, kvp => kvp.Key == "key2" && kvp.Value is int  && (int)kvp.Value == 42);
+        Assert.Contains(items, kvp => kvp.Key == "key3" && kvp.Value is bool && (bool)kvp.Value);
     }
 
     [Fact]
     public void Items_WithEmptyMetadata_ReturnsEmptyArray()
     {
         // Arrange (Given)
-        var metadata = Metadata.Empty;
+        var metadata  = Metadata.Empty;
         var debugView = new MetadataDebugView(metadata);
 
         // Act (When)
@@ -53,7 +53,7 @@ public sealed class MetadataDebugViewTests
     public void Items_PreservesKeyValuePairs()
     {
         // Arrange (Given)
-        var metadata = Metadata.From(("testKey", "testValue"));
+        var metadata  = Metadata.From(("testKey", "testValue"));
         var debugView = new MetadataDebugView(metadata);
 
         // Act (When)
@@ -61,7 +61,7 @@ public sealed class MetadataDebugViewTests
 
         // Assert (Then)
         Assert.Single(items);
-        Assert.Equal("testKey", items[0].Key);
+        Assert.Equal("testKey",   items[0].Key);
         Assert.Equal("testValue", items[0].Value);
     }
 }

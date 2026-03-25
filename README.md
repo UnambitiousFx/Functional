@@ -7,12 +7,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
 
-A lightweight, modern functional programming library for .NET that makes error handling and optional values elegant and type-safe.
+A lightweight, modern functional programming library for .NET that makes error handling and optional values elegant and
+type-safe.
 
 ## 🔧 Compatibility & support
 
 - **Dependency-free**: No external runtime dependencies — the library is dependency-less at runtime.
-- **Supported .NET versions**: Supports all Microsoft LTS releases **and** the latest non-LTS release. See the CI matrix or the Releases page for exact versions.
+- **Supported .NET versions**: Supports all Microsoft LTS releases **and** the latest non-LTS release. See the CI matrix
+  or the Releases page for exact versions.
 
 ## 🎯 Features
 
@@ -35,11 +37,13 @@ dotnet add package UnambitiousFx.Functional
 ```
 
 For ASP.NET Core integration:
+
 ```bash
 dotnet add package UnambitiousFx.Functional.AspNetCore
 ```
 
 For xUnit testing utilities:
+
 ```bash
 dotnet add package UnambitiousFx.Functional.xunit
 ```
@@ -149,6 +153,7 @@ response.Match(
 ### Result<T> Operations
 
 #### Transformation
+
 ```csharp
 // Map - Transform success value
 Result<int> result = Result.Success(5);
@@ -164,6 +169,7 @@ Result<int> flat = nested.Flatten(); // Success(42)
 ```
 
 #### Error Handling
+
 ```csharp
 // Recover - Provide fallback on error
 Result<User> result = GetUser(id)
@@ -179,6 +185,7 @@ Result<User> result = GetUser(id)
 ```
 
 #### Side Effects
+
 ```csharp
 // Tap - Execute side effect on success
 Result<Order> result = CreateOrder(request)
@@ -197,6 +204,7 @@ Result<Order> result = CreateOrder(request)
 ```
 
 #### Value Access
+
 ```csharp
 // TryGet - Safe value extraction
 if (result.TryGet(out var value, out var error))
@@ -392,7 +400,8 @@ public void FindUser_WhenNotExists_ReturnsNone()
 
 This library embraces:
 
-- **Railway-Oriented Programming** - Operations form a "railway track" where success continues down the happy path and errors short-circuit to the failure path
+- **Railway-Oriented Programming** - Operations form a "railway track" where success continues down the happy path and
+  errors short-circuit to the failure path
 - **Explicit Error Handling** - Errors are values, not exceptions. They're part of your type signatures
 - **Composition Over Conditionals** - Chain operations naturally using Bind, Map, and other combinators
 - **Type Safety** - Compiler enforces error handling, reducing runtime surprises
@@ -401,11 +410,13 @@ This library embraces:
 ## 📊 Performance
 
 We take performance seriously. Check our [benchmarks](benchmarks/FunctionalBenchmark) comparing against:
+
 - Traditional exception-based code
 - FluentResults
 - Ardalis.Result
 
 Key highlights:
+
 - Zero allocations for success paths in many scenarios
 - `readonly struct` value types minimize heap pressure
 - Lazy error aggregation
@@ -425,7 +436,8 @@ Check out our [good first issues](https://github.com/UnambitiousFx/Functional/la
 
 ## 📝 Release notes
 
-See the Releases page on GitHub for detailed release notes and version history: https://github.com/UnambitiousFx/Functional/releases
+See the Releases page on GitHub for detailed release notes and version
+history: https://github.com/UnambitiousFx/Functional/releases
 
 ## 📄 License
 
@@ -434,6 +446,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 Inspired by:
+
 - [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) by Scott Wlaschin
 - F# Result type
 - Rust's Result and Option types

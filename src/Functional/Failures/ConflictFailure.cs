@@ -5,7 +5,6 @@ namespace UnambitiousFx.Functional.Failures;
 /// </summary>
 /// <param name="Message">The error message describing the conflict.</param>
 /// <param name="Extra">Optional additional metadata about the conflict.</param>
-public sealed record ConflictFailure(
-    string Message,
-    IReadOnlyDictionary<string, object?>? Extra = null)
+public sealed record ConflictFailure(string                                Message,
+                                     IReadOnlyDictionary<string, object?>? Extra = null)
     : Failure(ErrorCodes.Conflict, Message, Merge(Extra, []));

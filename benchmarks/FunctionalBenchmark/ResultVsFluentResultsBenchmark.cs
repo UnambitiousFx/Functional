@@ -18,8 +18,8 @@ public class ResultComparisonBenchmark
 
     private const string ErrorMessage = "boom";
 
-    private readonly Result<int> _ardalisFailure;
-    private readonly Result<int> _ardalisSuccess;
+    private readonly Result<int>               _ardalisFailure;
+    private readonly Result<int>               _ardalisSuccess;
     private readonly FluentResults.Result<int> _fluentFailure;
     private readonly FluentResults.Result<int> _fluentSuccess = FluentResult.Ok(A);
 
@@ -30,8 +30,8 @@ public class ResultComparisonBenchmark
     public ResultComparisonBenchmark()
     {
         // Use string-based failure to keep all libraries comparable
-        _ourFailure = Functional.Result.Failure<int>(ErrorMessage);
-        _fluentFailure = FluentResult.Fail<int>(ErrorMessage);
+        _ourFailure     = Functional.Result.Failure<int>(ErrorMessage);
+        _fluentFailure  = FluentResult.Fail<int>(ErrorMessage);
         _ardalisFailure = Result<int>.Error(ErrorMessage);
         _ardalisSuccess = Result<int>.Success(A);
     }
@@ -85,16 +85,16 @@ public class ResultComparisonBenchmark
     public int Access_Success_Fluent()
     {
         return _fluentSuccess.IsSuccess
-            ? _fluentSuccess.Value + 1
-            : 0;
+                   ? _fluentSuccess.Value + 1
+                   : 0;
     }
 
     [Benchmark(Description = "Access Success (Ardalis: IsSuccess/Value)")]
     public int Access_Success_Ardalis()
     {
         return _ardalisSuccess.IsSuccess
-            ? _ardalisSuccess.Value + 1
-            : 0;
+                   ? _ardalisSuccess.Value + 1
+                   : 0;
     }
 
     // Match/Access on Failure
@@ -108,16 +108,16 @@ public class ResultComparisonBenchmark
     public int Access_Failure_Fluent()
     {
         return _fluentFailure.IsSuccess
-            ? _fluentFailure.Value + 1
-            : -1;
+                   ? _fluentFailure.Value + 1
+                   : -1;
     }
 
     [Benchmark(Description = "Access Failure (Ardalis: IsSuccess)")]
     public int Access_Failure_Ardalis()
     {
         return _ardalisFailure.IsSuccess
-            ? _ardalisFailure.Value + 1
-            : -1;
+                   ? _ardalisFailure.Value + 1
+                   : -1;
     }
 
     // Ok/TryGet-like on Success
@@ -131,8 +131,7 @@ public class ResultComparisonBenchmark
     [Benchmark(Description = "Ok Success (FluentResults: IsSuccess + Value)")]
     public int Ok_Success_Fluent()
     {
-        if (_fluentSuccess.IsSuccess)
-        {
+        if (_fluentSuccess.IsSuccess) {
             var value = _fluentSuccess.Value;
             return value + 1;
         }
@@ -143,8 +142,7 @@ public class ResultComparisonBenchmark
     [Benchmark(Description = "Ok Success (Ardalis: IsSuccess + Value)")]
     public int Ok_Success_Ardalis()
     {
-        if (_ardalisSuccess.IsSuccess)
-        {
+        if (_ardalisSuccess.IsSuccess) {
             var value = _ardalisSuccess.Value;
             return value + 1;
         }
@@ -156,7 +154,7 @@ public class ResultComparisonBenchmark
     [Benchmark(Description = "Ok Failure (Our)")]
     public bool Ok_Failure_Our()
     {
-        return _ourFailure.TryGetValue(out var _);
+        return _ourFailure.TryGetValue(out _);
     }
 
     [Benchmark(Description = "Ok Failure (FluentResults: IsSuccess)")]
@@ -176,7 +174,7 @@ public class ResultComparisonBenchmark
         public Config()
         {
             AddJob(Job.Default
-                .WithToolchain(InProcessEmitToolchain.Instance));
+                      .WithToolchain(InProcessEmitToolchain.Instance));
         }
     }
 }

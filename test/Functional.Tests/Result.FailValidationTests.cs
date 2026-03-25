@@ -17,7 +17,8 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation("Invalid input");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -28,8 +29,8 @@ public sealed class ResultFailValidationTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Validation);
+              .Failure()
+              .AndCode(ErrorCodes.Validation);
     }
 
     [Fact]
@@ -40,8 +41,8 @@ public sealed class ResultFailValidationTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Email must be valid");
+              .Failure()
+              .AndMessage("Email must be valid");
     }
 
     [Fact]
@@ -51,7 +52,7 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation("Invalid input");
 
         // Assert (Then)
-        result.TryGetError(out Failure? error);
+        result.TryGetError(out var error);
         Assert.IsType<ValidationFailure>(error);
         var validationError = (ValidationFailure)error;
         Assert.Single(validationError.Failures);
@@ -66,25 +67,26 @@ public sealed class ResultFailValidationTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .WhichIsValidationError()
-            .WithFailureCount(1)
-            .WithFailureContaining("");
+              .Failure()
+              .WhichIsValidationError()
+              .WithFailureCount(1)
+              .WithFailureContaining("");
     }
 
     [Fact]
     public void FailValidation_WithLongMessage_PreservesEntireMessage()
     {
         // Arrange (Given)
-        var longMessage = "This is a very long validation error message that contains detailed information about what went wrong with the user's input and suggestions for how to fix it.";
+        var longMessage =
+            "This is a very long validation error message that contains detailed information about what went wrong with the user's input and suggestions for how to fix it.";
 
         // Act (When)
         var result = Result.FailValidation(longMessage);
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage(longMessage);
+              .Failure()
+              .AndMessage(longMessage);
     }
 
     #endregion
@@ -98,7 +100,8 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation<string>("Invalid input");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -109,8 +112,8 @@ public sealed class ResultFailValidationTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Validation);
+              .Failure()
+              .AndCode(ErrorCodes.Validation);
     }
 
     [Fact]
@@ -121,8 +124,8 @@ public sealed class ResultFailValidationTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Email must be valid");
+              .Failure()
+              .AndMessage("Email must be valid");
     }
 
     [Fact]
@@ -132,7 +135,7 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation<string>("Invalid input");
 
         // Assert (Then)
-        result.TryGetError(out Failure? error);
+        result.TryGetError(out var error);
         Assert.IsType<ValidationFailure>(error);
         var validationError = (ValidationFailure)error;
         Assert.Single(validationError.Failures);
@@ -146,7 +149,8 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation<Dictionary<string, object>>("Validation failed");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -154,12 +158,12 @@ public sealed class ResultFailValidationTests
     {
         // Arrange & Act (Given/When)
         var result = Result.FailValidation<int>("Invalid number")
-            .Recover(_ => 42);
+                           .Recover(_ => 42);
 
         // Assert (Then)
         result.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal(42, value));
+              .Success()
+              .And(value => Assert.Equal(42, value));
     }
 
     #endregion
@@ -174,8 +178,8 @@ public sealed class ResultFailValidationTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Invalid: value contains <>&\"'");
+              .Failure()
+              .AndMessage("Invalid: value contains <>&\"'");
     }
 
     [Fact]
@@ -189,8 +193,8 @@ public sealed class ResultFailValidationTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage(message);
+              .Failure()
+              .AndMessage(message);
     }
 
     [Fact]
@@ -201,14 +205,14 @@ public sealed class ResultFailValidationTests
 
         // Act (When)
         var result = successResult.Bind(value =>
-            value > 50
-                ? Result.Success(value)
-                : Result.FailValidation<int>("Value must be greater than 50"));
+                                            value > 50
+                                                ? Result.Success(value)
+                                                : Result.FailValidation<int>("Value must be greater than 50"));
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Validation);
+              .Failure()
+              .AndCode(ErrorCodes.Validation);
     }
 
     #endregion

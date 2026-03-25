@@ -11,12 +11,12 @@ public static partial class MaybeExtensions
     /// <param name="map">The mapping function to apply if a value is present.</param>
     /// <returns>A Maybe containing the mapped value if present; otherwise, None.</returns>
     public static Maybe<TOut> Map<TIn, TOut>(this Maybe<TIn> maybe,
-        Func<TIn, TOut> map)
+                                             Func<TIn, TOut> map)
         where TIn : notnull
         where TOut : notnull
     {
         return maybe.Match(
-            some: value => Maybe.Some(map(value)),
-            none: Maybe.None<TOut>);
+            value => Maybe.Some(map(value)),
+            Maybe.None<TOut>);
     }
 }

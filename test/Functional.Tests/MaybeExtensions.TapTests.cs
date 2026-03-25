@@ -8,7 +8,7 @@ public sealed class MaybeExtensionsTapTests
     public void Tap_WithSome_ExecutesAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe    = Maybe.Some(42);
         var executed = false;
         var captured = 0;
 
@@ -21,8 +21,8 @@ public sealed class MaybeExtensionsTapTests
 
         // Assert (Then)
         tapped.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(42, v));
+              .Some()
+              .And(v => Assert.Equal(42, v));
         Assert.True(executed);
         Assert.Equal(42, captured);
     }
@@ -31,7 +31,7 @@ public sealed class MaybeExtensionsTapTests
     public void Tap_WithNone_DoesNotExecuteAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -39,7 +39,7 @@ public sealed class MaybeExtensionsTapTests
 
         // Assert (Then)
         tapped.ShouldBe()
-            .None();
+              .None();
         Assert.False(executed);
     }
 }

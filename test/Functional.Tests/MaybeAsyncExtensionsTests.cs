@@ -9,19 +9,21 @@ public sealed class MaybeAsyncExtensionsTests
     public async Task ValueTaskMaybe_Pipeline_CanBindMapTapSomeTapNoneWithoutWrapper()
     {
         // Arrange (Given)
-        ValueTask<Maybe<int>> start = ValueTask.FromResult(Maybe.Some(2));
-        var seen = 0;
+        var start   = ValueTask.FromResult(Maybe.Some(2));
+        var seen    = 0;
         var noneHit = false;
 
         // Act (When)
         var maybe = await start
-            .Bind(v => ValueTask.FromResult(Maybe.Some(v + 1)))
-            .Map(v => v * 10)
-            .TapSome(v => seen = v)
-            .TapNone(() => noneHit = true);
+                         .Bind(v => ValueTask.FromResult(Maybe.Some(v + 1)))
+                         .Map(v => v * 10)
+                         .TapSome(v => seen = v)
+                         .TapNone(() => noneHit = true);
 
         // Assert (Then)
-        maybe.ShouldBe().Some().And(v => Assert.Equal(30, v));
+        maybe.ShouldBe()
+             .Some()
+             .And(v => Assert.Equal(30, v));
         Assert.Equal(30, seen);
         Assert.False(noneHit);
     }
@@ -30,12 +32,14 @@ public sealed class MaybeAsyncExtensionsTests
     public async Task TaskMaybe_ToResult_UsesDirectAsyncExtensions()
     {
         // Arrange (Given)
-        Task<Maybe<int>> start = Task.FromResult(Maybe.None<int>());
+        var start = Task.FromResult(Maybe.None<int>());
 
         // Act (When)
         var result = await start.ToResult(new ValidationFailure("missing"));
 
         // Assert (Then)
-        result.ShouldBe().Failure().AndCode(ErrorCodes.Validation);
+        result.ShouldBe()
+              .Failure()
+              .AndCode(ErrorCodes.Validation);
     }
 }

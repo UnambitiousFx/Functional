@@ -30,7 +30,8 @@ public sealed class MetadataBuilder
     /// <param name="key">The key</param>
     /// <param name="value">The value</param>
     /// <returns>The current builder instance for method chaining</returns>
-    public MetadataBuilder Add(string key, object? value)
+    public MetadataBuilder Add(string  key,
+                               object? value)
     {
         _metadata[key] = value;
         return this;
@@ -43,10 +44,11 @@ public sealed class MetadataBuilder
     /// <param name="key">The key</param>
     /// <param name="value">The value</param>
     /// <returns>The current builder instance for method chaining</returns>
-    public MetadataBuilder AddIf(bool condition, string key, object? value)
+    public MetadataBuilder AddIf(bool    condition,
+                                 string  key,
+                                 object? value)
     {
-        if (condition)
-        {
+        if (condition) {
             _metadata[key] = value;
         }
 
@@ -60,10 +62,11 @@ public sealed class MetadataBuilder
     /// <param name="key">The key</param>
     /// <param name="value">The value</param>
     /// <returns>The current builder instance for method chaining</returns>
-    public MetadataBuilder AddIf(Func<bool> condition, string key, object? value)
+    public MetadataBuilder AddIf(Func<bool> condition,
+                                 string     key,
+                                 object?    value)
     {
-        if (condition())
-        {
+        if (condition()) {
             _metadata[key] = value;
         }
 
@@ -77,8 +80,7 @@ public sealed class MetadataBuilder
     /// <returns>The current builder instance for method chaining</returns>
     public MetadataBuilder AddRange(IEnumerable<KeyValuePair<string, object?>> items)
     {
-        foreach (var item in items)
-        {
+        foreach (var item in items) {
             _metadata[item.Key] = item.Value;
         }
 
@@ -92,8 +94,7 @@ public sealed class MetadataBuilder
     /// <returns>The current builder instance for method chaining</returns>
     public MetadataBuilder AddRange(IReadOnlyMetadata metadata)
     {
-        foreach (var item in metadata)
-        {
+        foreach (var item in metadata) {
             _metadata[item.Key] = item.Value;
         }
 
@@ -107,8 +108,7 @@ public sealed class MetadataBuilder
     /// <returns>The current builder instance for method chaining</returns>
     public MetadataBuilder AddRange(params (string Key, object? Value)[] items)
     {
-        foreach (var (key, value) in items)
-        {
+        foreach (var (key, value) in items) {
             _metadata[key] = value;
         }
 
@@ -132,8 +132,7 @@ public sealed class MetadataBuilder
     /// <returns>The current builder instance for method chaining</returns>
     public MetadataBuilder Clear()
     {
-        foreach (var key in _metadata.Keys.ToList())
-        {
+        foreach (var key in _metadata.Keys.ToList()) {
             _metadata.TryGetValue(key, out _);
         }
 
@@ -144,11 +143,17 @@ public sealed class MetadataBuilder
     ///     Builds and returns the final Metadata instance.
     /// </summary>
     /// <returns>A new Metadata instance with all added values</returns>
-    public Metadata Build() => new(_metadata);
+    public Metadata Build()
+    {
+        return new Metadata(_metadata);
+    }
 
     /// <summary>
     ///     Implicitly converts a MetadataBuilder to Metadata.
     /// </summary>
     /// <param name="builder">The builder to convert</param>
-    public static implicit operator Metadata(MetadataBuilder builder) => builder.Build();
+    public static implicit operator Metadata(MetadataBuilder builder)
+    {
+        return builder.Build();
+    }
 }

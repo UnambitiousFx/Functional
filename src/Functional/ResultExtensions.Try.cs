@@ -8,17 +8,16 @@ public static partial class ResultExtensions
     /// <param name="result">The result instance to bind the action to.</param>
     /// <param name="action">The action to execute.</param>
     /// <returns>A result indicating success if no exception occurs, or a failure result if an exception is thrown.</returns>
-    public static Result Try(this Result result, Action action)
+    public static Result Try(this Result result,
+                             Action      action)
     {
         return result.Bind(() =>
         {
-            try
-            {
+            try {
                 action();
                 return Result.Success();
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 return Result.Failure(ex);
             }
         });
@@ -32,18 +31,18 @@ public static partial class ResultExtensions
     /// <param name="result">The result instance.</param>
     /// <param name="func">The function to execute.</param>
     /// <returns>A new result with transformed value(s) or failure.</returns>
-    public static Result<TOut> Try<TValue, TOut>(this Result<TValue> result, Func<TValue, TOut> func)
-        where TValue : notnull where TOut : notnull
+    public static Result<TOut> Try<TValue, TOut>(this Result<TValue> result,
+                                                 Func<TValue, TOut>  func)
+        where TValue : notnull
+        where TOut : notnull
     {
         return result.Bind(value =>
         {
-            try
-            {
+            try {
                 var newValue = func(value);
                 return Result.Success(newValue);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 return Result.Failure<TOut>(ex);
             }
         });

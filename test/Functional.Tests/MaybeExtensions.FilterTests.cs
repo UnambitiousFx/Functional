@@ -15,8 +15,8 @@ public sealed class MaybeExtensionsFilterTests
 
         // Assert (Then)
         filtered.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(10, v));
+                .Some()
+                .And(v => Assert.Equal(10, v));
     }
 
     [Fact]
@@ -30,14 +30,14 @@ public sealed class MaybeExtensionsFilterTests
 
         // Assert (Then)
         filtered.ShouldBe()
-            .None();
+                .None();
     }
 
     [Fact]
     public void Filter_WithNone_DoesNotExecutePredicate()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -49,7 +49,7 @@ public sealed class MaybeExtensionsFilterTests
 
         // Assert (Then)
         filtered.ShouldBe()
-            .None();
+                .None();
         Assert.False(executed);
     }
 }

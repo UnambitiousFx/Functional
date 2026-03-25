@@ -13,12 +13,12 @@ namespace UnambitiousFx.Benchmarks.FunctionalBenchmark;
 [Config(typeof(Config))]
 public class OneOfVsOneOfBenchmark
 {
-    private const int A = 42;
-    private const string Message = "test";
-    private readonly OneOf<string, int> _ourFirst = OneOf<string, int>.FromFirst(Message);
+    private const    int                A          = 42;
+    private const    string             Message    = "test";
+    private readonly OneOf<string, int> _ourFirst  = OneOf<string, int>.FromFirst(Message);
     private readonly OneOf<string, int> _ourSecond = OneOf<string, int>.FromSecond(A);
 
-    private readonly OneOf.OneOf<string, int> _theirFirst = OneOf.OneOf<string, int>.FromT0(Message);
+    private readonly OneOf.OneOf<string, int> _theirFirst  = OneOf.OneOf<string, int>.FromT0(Message);
     private readonly OneOf.OneOf<string, int> _theirSecond = OneOf.OneOf<string, int>.FromT1(A);
 
     // Creation (First)
@@ -104,7 +104,7 @@ public class OneOfVsOneOfBenchmark
         public Config()
         {
             AddJob(Job.Default
-                .WithToolchain(InProcessEmitToolchain.Instance));
+                      .WithToolchain(InProcessEmitToolchain.Instance));
         }
     }
 }

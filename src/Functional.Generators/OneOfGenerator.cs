@@ -48,8 +48,7 @@ public class OneOfGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx =>
         {
             // Generate OneOf for 2 to 10 type parameters
-            for (var typeCount = MinTypeCount; typeCount <= MaxTypeCount; typeCount++)
-            {
+            for (var typeCount = MinTypeCount; typeCount <= MaxTypeCount; typeCount++) {
                 var source = GenerateOneOf(typeCount);
                 ctx.AddSource($"OneOf{typeCount}.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -61,7 +60,7 @@ public class OneOfGenerator : IIncrementalGenerator
         var sb = new TemplateBuilder();
 
         WriteFileHeader(sb);
-        var typeParams = BuildTypeParams(typeCount);
+        var typeParams       = BuildTypeParams(typeCount);
         var whereConstraints = BuildWhereConstraints(typeCount);
         WriteOneOfInterface(sb, typeCount, typeParams, whereConstraints);
         WriteOneOfType(sb, typeCount, typeParams, whereConstraints);
@@ -82,22 +81,21 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteOneOfInterface(TemplateBuilder sb, int typeCount, string typeParams,
-        IEnumerable<string> whereConstraints)
+    private static void WriteOneOfInterface(TemplateBuilder     sb,
+                                            int                 typeCount,
+                                            string              typeParams,
+                                            IEnumerable<string> whereConstraints)
     {
         WriteOneOfInterfaceDocs(sb, typeCount);
         sb.Line($"public interface IOneOf<{typeParams}>");
-        using (sb.Indent())
-        {
-            foreach (var constraint in whereConstraints)
-            {
+        using (sb.Indent()) {
+            foreach (var constraint in whereConstraints) {
                 sb.Line(constraint);
             }
         }
 
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             WriteInterfaceIsProperties(sb, typeCount);
             WriteInterfaceTypeAccessMethods(sb);
             WriteInterfaceMatchByType(sb, typeCount);
@@ -111,35 +109,34 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteOneOfInterfaceDocs(TemplateBuilder sb, int typeCount)
+    private static void WriteOneOfInterfaceDocs(TemplateBuilder sb,
+                                                int             typeCount)
     {
         sb.Line("/// <summary>");
         sb.Line($"///     Minimal discriminated union interface for values that can be one of {typeCount} types.");
         sb.Line("/// </summary>");
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line($"/// <typeparam name=\"T{i}\">{GetOrdinal(i)} possible contained type.</typeparam>");
         }
     }
 
-    private static void WriteOneOfType(TemplateBuilder sb, int typeCount, string typeParams,
-        IEnumerable<string> whereConstraints)
+    private static void WriteOneOfType(TemplateBuilder     sb,
+                                       int                 typeCount,
+                                       string              typeParams,
+                                       IEnumerable<string> whereConstraints)
     {
         WriteOneOfDocs(sb, typeCount);
         sb.Line("[DebuggerDisplay(\"{DebuggerDisplay,nq}\")]");
         sb.Line($"[DebuggerTypeProxy(typeof(OneOfDebugView{BuildGenericTypeArity(typeCount)}))]");
         sb.Line($"public readonly record struct OneOf<{typeParams}> : IOneOf<{typeParams}>");
-        using (sb.Indent())
-        {
-            foreach (var constraint in whereConstraints)
-            {
+        using (sb.Indent()) {
+            foreach (var constraint in whereConstraints) {
                 sb.Line(constraint);
             }
         }
 
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             WriteOneOfFields(sb);
             WriteOneOfDebuggerDisplay(sb, typeCount);
             WriteOneOfConstructor(sb);
@@ -159,13 +156,13 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteOneOfDocs(TemplateBuilder sb, int typeCount)
+    private static void WriteOneOfDocs(TemplateBuilder sb,
+                                       int             typeCount)
     {
         sb.Line("/// <summary>");
         sb.Line($"///     Minimal discriminated union representing a value that can be one of {typeCount} types.");
         sb.Line("/// </summary>");
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line($"/// <typeparam name=\"T{i}\">{GetOrdinal(i)} possible contained type.</typeparam>");
         }
     }
@@ -178,12 +175,12 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteOneOfDebuggerDisplay(TemplateBuilder sb, int typeCount)
+    private static void WriteOneOfDebuggerDisplay(TemplateBuilder sb,
+                                                  int             typeCount)
     {
         // DebuggerDisplay
         sb.AppendIndented("private string DebuggerDisplay => _index switch { ");
-        for (var i = 0; i < typeCount; i++)
-        {
+        for (var i = 0; i < typeCount; i++) {
             sb.AppendRaw($"{i} => $\"{GetOrdinal(i + 1)}({{_value}})\", ");
         }
 
@@ -196,8 +193,7 @@ public class OneOfGenerator : IIncrementalGenerator
         // Private constructor
         sb.Line("private OneOf(byte index, object? value)");
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line("_index = index;");
             sb.Line("_value = value;");
         }
@@ -206,21 +202,21 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteIsProperties(TemplateBuilder sb, int typeCount)
+    private static void WriteIsProperties(TemplateBuilder sb,
+                                          int             typeCount)
     {
         // Boolean properties (IsFirst, IsSecond, etc.)
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line("/// <inheritdoc/>");
             sb.Line($"public bool Is{GetOrdinal(i)} => _index == {i - 1};");
             sb.Line();
         }
     }
 
-    private static void WriteInterfaceIsProperties(TemplateBuilder sb, int typeCount)
+    private static void WriteInterfaceIsProperties(TemplateBuilder sb,
+                                                   int             typeCount)
     {
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line("/// <summary>");
             sb.Line($"///     True when the instance currently holds a value of the {GetOrdinalLower(i)} type.");
             sb.Line("/// </summary>");
@@ -234,8 +230,7 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line("/// <inheritdoc/>");
         sb.Line("public bool Is<TCase>() where TCase : notnull");
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line("return _value is TCase;");
         }
 
@@ -245,12 +240,10 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line("/// <inheritdoc/>");
         sb.Line("public bool TryAs<TCase>([NotNullWhen(true)] out TCase? value) where TCase : notnull");
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line("if (_value is TCase typed)");
             sb.Line("{");
-            using (sb.Indent())
-            {
+            using (sb.Indent()) {
                 sb.Line("value = typed;");
                 sb.Line("return true;");
             }
@@ -284,18 +277,19 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteMatchByType(TemplateBuilder sb, int typeCount)
+    private static void WriteMatchByType(TemplateBuilder sb,
+                                         int             typeCount)
     {
-        var typeCaseParams = string.Join(", ", Enumerable.Range(1, typeCount).Select(i => $"TCase{i}"));
+        var typeCaseParams = string.Join(", ", Enumerable.Range(1, typeCount)
+                                                         .Select(i => $"TCase{i}"));
         var handlerParams = string.Join(", ",
-            Enumerable.Range(1, typeCount).Select(i => $"Func<TCase{i}, TOut> {GetOrdinalLower(i)}Case"));
+                                        Enumerable.Range(1, typeCount)
+                                                  .Select(i => $"Func<TCase{i}, TOut> {GetOrdinalLower(i)}Case"));
 
         sb.Line("/// <inheritdoc/>");
         sb.Line($"public TOut MatchByType<{typeCaseParams}, TOut>({handlerParams})");
-        using (sb.Indent())
-        {
-            foreach (var i in Enumerable.Range(1, typeCount))
-            {
+        using (sb.Indent()) {
+            foreach (var i in Enumerable.Range(1, typeCount)) {
                 sb.Line($"where TCase{i} : notnull");
             }
 
@@ -303,14 +297,11 @@ public class OneOfGenerator : IIncrementalGenerator
         }
 
         sb.Line("{");
-        using (sb.Indent())
-        {
-            foreach (var i in Enumerable.Range(1, typeCount))
-            {
+        using (sb.Indent()) {
+            foreach (var i in Enumerable.Range(1, typeCount)) {
                 sb.Line($"if (_value is TCase{i} {GetOrdinalLower(i)}Value)");
                 sb.Line("{");
-                using (sb.Indent())
-                {
+                using (sb.Indent()) {
                     sb.Line($"return {GetOrdinalLower(i)}Case({GetOrdinalLower(i)}Value);");
                 }
 
@@ -324,32 +315,31 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteInterfaceMatchByType(TemplateBuilder sb, int typeCount)
+    private static void WriteInterfaceMatchByType(TemplateBuilder sb,
+                                                  int             typeCount)
     {
-        var typeCaseParams = string.Join(", ", Enumerable.Range(1, typeCount).Select(i => $"TCase{i}"));
+        var typeCaseParams = string.Join(", ", Enumerable.Range(1, typeCount)
+                                                         .Select(i => $"TCase{i}"));
         var handlerParams = string.Join(", ",
-            Enumerable.Range(1, typeCount).Select(i => $"Func<TCase{i}, TOut> {GetOrdinalLower(i)}Case"));
+                                        Enumerable.Range(1, typeCount)
+                                                  .Select(i => $"Func<TCase{i}, TOut> {GetOrdinalLower(i)}Case"));
 
         sb.Line("/// <summary>");
         sb.Line("///     Type-driven matching for unions.");
         sb.Line("/// </summary>");
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line($"/// <typeparam name=\"TCase{i}\">The {GetOrdinalLower(i)} handled case type.</typeparam>");
         }
 
         sb.Line("/// <typeparam name=\"TOut\">The return type.</typeparam>");
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line($"/// <param name=\"{GetOrdinalLower(i)}Case\">Handler for TCase{i}.</param>");
         }
 
         sb.Line("/// <returns>The result of the matching handler.</returns>");
         sb.Line($"public TOut MatchByType<{typeCaseParams}, TOut>({handlerParams})");
-        using (sb.Indent())
-        {
-            foreach (var i in Enumerable.Range(1, typeCount))
-            {
+        using (sb.Indent()) {
+            foreach (var i in Enumerable.Range(1, typeCount)) {
                 sb.Line($"where TCase{i} : notnull");
             }
 
@@ -360,22 +350,21 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteMatchValue(TemplateBuilder sb, int typeCount)
+    private static void WriteMatchValue(TemplateBuilder sb,
+                                        int             typeCount)
     {
         // Match method returning value
         sb.Line("/// <inheritdoc/>");
         var matchParams = string.Join(", ",
-            Enumerable.Range(1, typeCount).Select(i => $"Func<T{i}, TOut> {GetOrdinalLower(i)}Func"));
+                                      Enumerable.Range(1, typeCount)
+                                                .Select(i => $"Func<T{i}, TOut> {GetOrdinalLower(i)}Func"));
         sb.Line($"public TOut Match<TOut>({matchParams})");
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line("return _index switch");
             sb.Line("{");
-            using (sb.Indent())
-            {
-                for (var i = 0; i < typeCount; i++)
-                {
+            using (sb.Indent()) {
+                for (var i = 0; i < typeCount; i++) {
                     sb.Line($"{i} => {GetOrdinalLower(i + 1)}Func((T{i + 1})_value!),");
                 }
 
@@ -389,41 +378,41 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteInterfaceMatchValue(TemplateBuilder sb, int typeCount)
+    private static void WriteInterfaceMatchValue(TemplateBuilder sb,
+                                                 int             typeCount)
     {
         sb.Line("/// <summary>");
         sb.Line("///     Pattern match returning a value.");
         sb.Line("/// </summary>");
         sb.Line("/// <typeparam name=\"TOut\">The type of value to return</typeparam>");
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line(
                 $"/// <param name=\"{GetOrdinalLower(i)}Func\">Function to invoke when value is of type T{i}</param>");
         }
 
         sb.Line("/// <returns>The result of invoking the appropriate function</returns>");
         var matchParams = string.Join(", ",
-            Enumerable.Range(1, typeCount).Select(i => $"Func<T{i}, TOut> {GetOrdinalLower(i)}Func"));
+                                      Enumerable.Range(1, typeCount)
+                                                .Select(i => $"Func<T{i}, TOut> {GetOrdinalLower(i)}Func"));
         sb.Line($"public TOut Match<TOut>({matchParams});");
         sb.Line();
     }
 
-    private static void WriteMatchActions(TemplateBuilder sb, int typeCount)
+    private static void WriteMatchActions(TemplateBuilder sb,
+                                          int             typeCount)
     {
         // Match method executing actions
         sb.Line("/// <inheritdoc/>");
         var matchActionParams = string.Join(", ",
-            Enumerable.Range(1, typeCount).Select(i => $"Action<T{i}> {GetOrdinalLower(i)}Action"));
+                                            Enumerable.Range(1, typeCount)
+                                                      .Select(i => $"Action<T{i}> {GetOrdinalLower(i)}Action"));
         sb.Line($"public void Match({matchActionParams})");
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line("switch (_index)");
             sb.Line("{");
-            using (sb.Indent())
-            {
-                for (var i = 0; i < typeCount; i++)
-                {
+            using (sb.Indent()) {
+                for (var i = 0; i < typeCount; i++) {
                     sb.Line($"case {i}: {GetOrdinalLower(i + 1)}Action((T{i + 1})_value!); break;");
                 }
 
@@ -437,24 +426,23 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteBind(TemplateBuilder sb, int typeCount)
+    private static void WriteBind(TemplateBuilder sb,
+                                  int             typeCount)
     {
         sb.Line("/// <inheritdoc/>");
-        var outTypeParams = BuildTypeParams(typeCount, "TOut");
+        var outTypeParams       = BuildTypeParams(typeCount, "TOut");
         var outWhereConstraints = BuildWhereConstraints(typeCount, "TOut");
         var bindParams = string.Join(", ",
-            Enumerable.Range(1, typeCount)
-                .Select(i => $"Func<T{i}, OneOf<{outTypeParams}>> {GetOrdinalLower(i)}Func"));
+                                     Enumerable.Range(1, typeCount)
+                                               .Select(i => $"Func<T{i}, OneOf<{outTypeParams}>> {GetOrdinalLower(i)}Func"));
 
         sb.Line($"public OneOf<{outTypeParams}> Bind<{outTypeParams}>({bindParams})");
-        foreach (var constraint in outWhereConstraints)
-        {
+        foreach (var constraint in outWhereConstraints) {
             sb.Line(constraint);
         }
 
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line($"return Match({BuildOrdinalParameterList(typeCount, "Func")});");
         }
 
@@ -462,48 +450,47 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteInterfaceMatchActions(TemplateBuilder sb, int typeCount)
+    private static void WriteInterfaceMatchActions(TemplateBuilder sb,
+                                                   int             typeCount)
     {
         sb.Line("/// <summary>");
         sb.Line("///     Pattern match executing side-effect actions.");
         sb.Line("/// </summary>");
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line(
                 $"/// <param name=\"{GetOrdinalLower(i)}Action\">Action to invoke when value is of type T{i}</param>");
         }
 
         var matchActionParams = string.Join(", ",
-            Enumerable.Range(1, typeCount).Select(i => $"Action<T{i}> {GetOrdinalLower(i)}Action"));
+                                            Enumerable.Range(1, typeCount)
+                                                      .Select(i => $"Action<T{i}> {GetOrdinalLower(i)}Action"));
         sb.Line($"public void Match({matchActionParams});");
         sb.Line();
     }
 
-    private static void WriteInterfaceBind(TemplateBuilder sb, int typeCount)
+    private static void WriteInterfaceBind(TemplateBuilder sb,
+                                           int             typeCount)
     {
         sb.Line("/// <summary>");
         sb.Line("///     Binds to a new OneOf by applying the matching function.");
         sb.Line("/// </summary>");
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line($"/// <typeparam name=\"TOut{i}\">{GetOrdinal(i)} output type.</typeparam>");
         }
 
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line(
                 $"/// <param name=\"{GetOrdinalLower(i)}Func\">Function to invoke when value is of type T{i}</param>");
         }
 
         sb.Line("/// <returns>The OneOf produced by the matching function</returns>");
-        var outTypeParams = BuildTypeParams(typeCount, "TOut");
+        var outTypeParams       = BuildTypeParams(typeCount, "TOut");
         var outWhereConstraints = BuildWhereConstraints(typeCount, "TOut");
         var bindParams = string.Join(", ",
-            Enumerable.Range(1, typeCount)
-                .Select(i => $"Func<T{i}, OneOf<{outTypeParams}>> {GetOrdinalLower(i)}Func"));
+                                     Enumerable.Range(1, typeCount)
+                                               .Select(i => $"Func<T{i}, OneOf<{outTypeParams}>> {GetOrdinalLower(i)}Func"));
         sb.Line($"public OneOf<{outTypeParams}> Bind<{outTypeParams}>({bindParams})");
-        foreach (var constraint in outWhereConstraints)
-        {
+        foreach (var constraint in outWhereConstraints) {
             sb.Line(constraint);
         }
 
@@ -511,20 +498,18 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteTryGetMethods(TemplateBuilder sb, int typeCount)
+    private static void WriteTryGetMethods(TemplateBuilder sb,
+                                           int             typeCount)
     {
         // TryGet methods (First, Second, etc.)
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line("/// <inheritdoc/>");
             sb.Line($"public bool TryGet{GetOrdinal(i)}([NotNullWhen(true)] out T{i}? {GetOrdinalLower(i)})");
             sb.Line("{");
-            using (sb.Indent())
-            {
+            using (sb.Indent()) {
                 sb.Line($"if (_index == {i - 1})");
                 sb.Line("{");
-                using (sb.Indent())
-                {
+                using (sb.Indent()) {
                     sb.Line($"{GetOrdinalLower(i)} = (T{i})_value!;");
                     sb.Line("return true;");
                 }
@@ -539,10 +524,10 @@ public class OneOfGenerator : IIncrementalGenerator
         }
     }
 
-    private static void WriteInterfaceTryGetMethods(TemplateBuilder sb, int typeCount)
+    private static void WriteInterfaceTryGetMethods(TemplateBuilder sb,
+                                                    int             typeCount)
     {
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line("/// <summary>");
             sb.Line($"///     Attempts to extract the {GetOrdinalLower(i)} value.");
             sb.Line("/// </summary>");
@@ -560,8 +545,7 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line("/// </summary>");
         sb.Line("public override string? ToString()");
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line("return _value!.ToString();");
         }
 
@@ -569,11 +553,12 @@ public class OneOfGenerator : IIncrementalGenerator
         sb.Line();
     }
 
-    private static void WriteFactoryMethods(TemplateBuilder sb, int typeCount, string typeParams)
+    private static void WriteFactoryMethods(TemplateBuilder sb,
+                                            int             typeCount,
+                                            string          typeParams)
     {
         // Static factory methods (FromFirst, FromSecond, etc.)
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line("/// <summary>");
             sb.Line($"///     Creates a OneOf instance containing a {GetOrdinalLower(i)} value.");
             sb.Line("/// </summary>");
@@ -581,8 +566,7 @@ public class OneOfGenerator : IIncrementalGenerator
             sb.Line($"/// <returns>A OneOf instance containing the {GetOrdinalLower(i)} value</returns>");
             sb.Line($"public static OneOf<{typeParams}> From{GetOrdinal(i)}(T{i} value)");
             sb.Line("{");
-            using (sb.Indent())
-            {
+            using (sb.Indent()) {
                 sb.Line($"return new OneOf<{typeParams}>({i - 1}, value);");
             }
 
@@ -591,11 +575,12 @@ public class OneOfGenerator : IIncrementalGenerator
         }
     }
 
-    private static void WriteImplicitOperators(TemplateBuilder sb, int typeCount, string typeParams)
+    private static void WriteImplicitOperators(TemplateBuilder sb,
+                                               int             typeCount,
+                                               string          typeParams)
     {
         // Implicit conversion operators
-        for (var i = 1; i <= typeCount; i++)
-        {
+        for (var i = 1; i <= typeCount; i++) {
             sb.Line("/// <summary>");
             sb.Line($"///     Implicit conversion from {GetOrdinalLower(i)} type to OneOf.");
             sb.Line("/// </summary>");
@@ -603,8 +588,7 @@ public class OneOfGenerator : IIncrementalGenerator
             sb.Line($"/// <returns>A OneOf instance containing the {GetOrdinalLower(i)} value</returns>");
             sb.Line($"public static implicit operator OneOf<{typeParams}>(T{i} value)");
             sb.Line("{");
-            using (sb.Indent())
-            {
+            using (sb.Indent()) {
                 sb.Line($"return From{GetOrdinal(i)}(value);");
             }
 
@@ -613,27 +597,25 @@ public class OneOfGenerator : IIncrementalGenerator
         }
     }
 
-    private static void GenerateDebugViewProxy(TemplateBuilder sb, int typeCount, string typeParams,
-        IEnumerable<string> whereConstraints)
+    private static void GenerateDebugViewProxy(TemplateBuilder     sb,
+                                               int                 typeCount,
+                                               string              typeParams,
+                                               IEnumerable<string> whereConstraints)
     {
         sb.Line($"internal sealed class OneOfDebugView<{typeParams}>");
-        using (sb.Indent())
-        {
-            foreach (var constraint in whereConstraints)
-            {
+        using (sb.Indent()) {
+            foreach (var constraint in whereConstraints) {
                 sb.Line(constraint);
             }
         }
 
         sb.Line("{");
-        using (sb.Indent())
-        {
+        using (sb.Indent()) {
             sb.Line($"private readonly OneOf<{typeParams}> _oneOf;");
             sb.Line();
             sb.Line($"public OneOfDebugView(OneOf<{typeParams}> oneOf)");
             sb.Line("{");
-            using (sb.Indent())
-            {
+            using (sb.Indent()) {
                 sb.Line("_oneOf = oneOf;");
             }
 
@@ -642,10 +624,8 @@ public class OneOfGenerator : IIncrementalGenerator
 
             // ActiveType property - use public IsFirst/IsSecond properties to determine active type
             sb.AppendIndented("public string ActiveType => ");
-            for (var i = 1; i <= typeCount; i++)
-            {
-                if (i > 1)
-                {
+            for (var i = 1; i <= typeCount; i++) {
+                if (i > 1) {
                     sb.AppendRaw(" : ");
                 }
 
@@ -656,16 +636,14 @@ public class OneOfGenerator : IIncrementalGenerator
             sb.Line();
 
             // IsFirst, IsSecond, etc. properties
-            for (var i = 1; i <= typeCount; i++)
-            {
+            for (var i = 1; i <= typeCount; i++) {
                 sb.Line($"public bool Is{GetOrdinal(i)} => _oneOf.Is{GetOrdinal(i)};");
             }
 
             sb.Line();
 
             // Typed value properties (FirstValue, SecondValue, etc.)
-            for (var i = 1; i <= typeCount; i++)
-            {
+            for (var i = 1; i <= typeCount; i++) {
                 sb.Line(
                     $"public T{i}? {GetOrdinal(i)}Value => _oneOf.TryGet{GetOrdinal(i)}(out var value) ? value : default;");
             }
@@ -684,12 +662,13 @@ public class OneOfGenerator : IIncrementalGenerator
         return GetOrdinalFrom(OrdinalsLower, number);
     }
 
-    private static string GetOrdinalFrom(IReadOnlyList<string> ordinals, int number)
+    private static string GetOrdinalFrom(IReadOnlyList<string> ordinals,
+                                         int                   number)
     {
-        if (number < 1 || number > ordinals.Count)
-        {
+        if (number < 1 ||
+            number > ordinals.Count) {
             throw new ArgumentOutOfRangeException(nameof(number), number,
-                $"Only supports 1-{ordinals.Count}");
+                                                  $"Only supports 1-{ordinals.Count}");
         }
 
         return ordinals[number - 1];
@@ -700,9 +679,11 @@ public class OneOfGenerator : IIncrementalGenerator
         return BuildTypeParams(typeCount, "T");
     }
 
-    private static string BuildTypeParams(int typeCount, string prefix)
+    private static string BuildTypeParams(int    typeCount,
+                                          string prefix)
     {
-        return string.Join(", ", Enumerable.Range(1, typeCount).Select(i => $"{prefix}{i}"));
+        return string.Join(", ", Enumerable.Range(1, typeCount)
+                                           .Select(i => $"{prefix}{i}"));
     }
 
     private static ImmutableArray<string> BuildWhereConstraints(int typeCount)
@@ -710,9 +691,14 @@ public class OneOfGenerator : IIncrementalGenerator
         return BuildWhereConstraints(typeCount, "T");
     }
 
-    private static ImmutableArray<string> BuildWhereConstraints(int typeCount, string prefix)
+    private static ImmutableArray<string> BuildWhereConstraints(int    typeCount,
+                                                                string prefix)
     {
-        return [.. Enumerable.Range(1, typeCount).Select(i => $"where {prefix}{i} : notnull")];
+        return
+        [
+            .. Enumerable.Range(1, typeCount)
+                         .Select(i => $"where {prefix}{i} : notnull")
+        ];
     }
 
     private static string BuildGenericTypeArity(int typeCount)
@@ -720,16 +706,18 @@ public class OneOfGenerator : IIncrementalGenerator
         return $"<{new string(',', typeCount - 1)}>";
     }
 
-    private static string BuildOrdinalParameterList(int typeCount, string suffix)
+    private static string BuildOrdinalParameterList(int    typeCount,
+                                                    string suffix)
     {
-        return string.Join(", ", Enumerable.Range(1, typeCount).Select(i => $"{GetOrdinalLower(i)}{suffix}"));
+        return string.Join(", ", Enumerable.Range(1, typeCount)
+                                           .Select(i => $"{GetOrdinalLower(i)}{suffix}"));
     }
 
     private sealed class TemplateBuilder
     {
-        private const int IndentSize = 4;
-        private readonly StringBuilder _sb = new();
-        private int _indentLevel;
+        private const    int           IndentSize = 4;
+        private readonly StringBuilder _sb        = new();
+        private          int           _indentLevel;
 
         public IDisposable Indent()
         {
@@ -739,8 +727,7 @@ public class OneOfGenerator : IIncrementalGenerator
 
         public void Line(string? text = null)
         {
-            if (text is null)
-            {
+            if (text is null) {
                 _sb.AppendLine();
                 return;
             }
@@ -772,8 +759,7 @@ public class OneOfGenerator : IIncrementalGenerator
 
         private void AppendIndent()
         {
-            if (_indentLevel > 0)
-            {
+            if (_indentLevel > 0) {
                 _sb.Append(' ', _indentLevel * IndentSize);
             }
         }
@@ -781,7 +767,7 @@ public class OneOfGenerator : IIncrementalGenerator
         private sealed class IndentScope : IDisposable
         {
             private readonly TemplateBuilder _builder;
-            private bool _disposed;
+            private          bool            _disposed;
 
             public IndentScope(TemplateBuilder builder)
             {
@@ -790,12 +776,11 @@ public class OneOfGenerator : IIncrementalGenerator
 
             public void Dispose()
             {
-                if (_disposed)
-                {
+                if (_disposed) {
                     return;
                 }
 
-                _disposed = true;
+                _disposed             = true;
                 _builder._indentLevel = Math.Max(0, _builder._indentLevel - 1);
             }
         }

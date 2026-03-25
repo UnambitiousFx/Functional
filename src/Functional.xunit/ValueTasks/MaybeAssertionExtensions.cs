@@ -42,8 +42,7 @@ public static class MaybeAssertionExtensions
     ///     A <see cref="SomeAssertion{TValue}" /> instance wrapping the value contained within the
     ///     <see cref="Some{TValue}" /> result of the original <see cref="MaybeAssertion{TValue}" />.
     /// </returns>
-    public static async ValueTask<SomeAssertion<TValue>> Some<TValue>(
-        this ValueTask<MaybeAssertion<TValue>> awaitableAssertion)
+    public static async ValueTask<SomeAssertion<TValue>> Some<TValue>(this ValueTask<MaybeAssertion<TValue>> awaitableAssertion)
         where TValue : notnull
     {
         var assertion = await awaitableAssertion;
@@ -93,9 +92,9 @@ public static class MaybeAssertionExtensions
     ///     A <see cref="Task{TResult}" /> containing the updated <see cref="SomeAssertion{TValue}" />
     ///     post-assertion, allowing for further chaining or transformations.
     /// </returns>
-    public static async ValueTask<SomeAssertion<TValue>> And<TValue>(
-        this ValueTask<SomeAssertion<TValue>> awaitableAssertion,
-        Action<TValue> assert) where TValue : notnull
+    public static async ValueTask<SomeAssertion<TValue>> And<TValue>(this ValueTask<SomeAssertion<TValue>> awaitableAssertion,
+                                                                     Action<TValue>                        assert)
+        where TValue : notnull
     {
         var assertion = await awaitableAssertion;
         return assertion.And(assert);
@@ -128,9 +127,9 @@ public static class MaybeAssertionExtensions
     /// <exception cref="ArgumentNullException">
     ///     Thrown if the <paramref name="map" /> function is null.
     /// </exception>
-    public static async ValueTask<SomeAssertion<TOut>> Map<TValue, TOut>(
-        this ValueTask<SomeAssertion<TValue>> awaitableAssertion,
-        Func<TValue, TOut> map) where TValue : notnull
+    public static async ValueTask<SomeAssertion<TOut>> Map<TValue, TOut>(this ValueTask<SomeAssertion<TValue>> awaitableAssertion,
+                                                                         Func<TValue, TOut>                    map)
+        where TValue : notnull
         where TOut : notnull
     {
         var assertion = await awaitableAssertion;

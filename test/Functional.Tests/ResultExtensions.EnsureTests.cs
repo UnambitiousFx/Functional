@@ -22,7 +22,9 @@ public sealed partial class ResultExtensions
             x => new Failure($"Value {x} exceeds maximum of 50"));
 
         // Assert (Then)
-        ensured.ShouldBe().Failure().AndMessage("Value 100 exceeds maximum of 50");
+        ensured.ShouldBe()
+               .Failure()
+               .AndMessage("Value 100 exceeds maximum of 50");
     }
 
     #endregion
@@ -39,7 +41,9 @@ public sealed partial class ResultExtensions
         var ensured = result.Ensure(x => x > 0, x => new Failure("Must be positive"));
 
         // Assert (Then)
-        ensured.ShouldBe().Success().And(value => Assert.Equal(10, value));
+        ensured.ShouldBe()
+               .Success()
+               .And(value => Assert.Equal(10, value));
     }
 
     [Fact]
@@ -52,15 +56,17 @@ public sealed partial class ResultExtensions
         var ensured = result.Ensure(x => x > 0, x => new Failure("Must be positive"));
 
         // Assert (Then)
-        ensured.ShouldBe().Failure().AndMessage("Must be positive");
+        ensured.ShouldBe()
+               .Failure()
+               .AndMessage("Must be positive");
     }
 
     [Fact]
     public void Ensure_WithFailure_DoesNotExecutePredicate()
     {
         // Arrange (Given)
-        var error = new Failure("Initial error");
-        var result = Result.Failure<int>(error);
+        var error           = new Failure("Initial error");
+        var result          = Result.Failure<int>(error);
         var predicateCalled = false;
 
         // Act (When)
@@ -73,7 +79,9 @@ public sealed partial class ResultExtensions
             x => new Failure("Validation failed"));
 
         // Assert (Then)
-        ensured.ShouldBe().Failure().AndMessage("Initial error");
+        ensured.ShouldBe()
+               .Failure()
+               .AndMessage("Initial error");
         Assert.False(predicateCalled);
     }
 
@@ -89,33 +97,37 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var ensured = result
-            .Ensure(x => x > 0, x => new Failure("Must be positive"))
-            .Ensure(x => x < 100, x => new Failure("Must be less than 100"))
-            .Ensure(x => x % 5 == 0, x => new Failure("Must be divisible by 5"));
+                     .Ensure(x => x     > 0,   x => new Failure("Must be positive"))
+                     .Ensure(x => x     < 100, x => new Failure("Must be less than 100"))
+                     .Ensure(x => x % 5 == 0,  x => new Failure("Must be divisible by 5"));
 
         // Assert (Then)
-        ensured.ShouldBe().Success().And(value => Assert.Equal(25, value));
+        ensured.ShouldBe()
+               .Success()
+               .And(value => Assert.Equal(25, value));
     }
 
     [Fact]
     public void Ensure_ChainedValidations_StopsAtFirstFailure()
     {
         // Arrange (Given)
-        var result = Result.Success(150);
+        var result               = Result.Success(150);
         var thirdPredicateCalled = false;
 
         // Act (When)
         var ensured = result
-            .Ensure(x => x > 0, x => new Failure("Must be positive"))
-            .Ensure(x => x < 100, x => new Failure("Must be less than 100"))
-            .Ensure(x =>
-            {
-                thirdPredicateCalled = true;
-                return x % 5 == 0;
-            }, x => new Failure("Must be divisible by 5"));
+                     .Ensure(x => x > 0,   x => new Failure("Must be positive"))
+                     .Ensure(x => x < 100, x => new Failure("Must be less than 100"))
+                     .Ensure(x =>
+                      {
+                          thirdPredicateCalled = true;
+                          return x % 5 == 0;
+                      }, x => new Failure("Must be divisible by 5"));
 
         // Assert (Then)
-        ensured.ShouldBe().Failure().AndMessage("Must be less than 100");
+        ensured.ShouldBe()
+               .Failure()
+               .AndMessage("Must be less than 100");
         Assert.False(thirdPredicateCalled);
     }
 
@@ -135,7 +147,9 @@ public sealed partial class ResultExtensions
             x => new Failure($"String '{x}' is too short"));
 
         // Assert (Then)
-        ensured.ShouldBe().Success().And(value => Assert.Equal("hello", value));
+        ensured.ShouldBe()
+               .Success()
+               .And(value => Assert.Equal("hello", value));
     }
 
     [Fact]
@@ -150,7 +164,9 @@ public sealed partial class ResultExtensions
             x => new Failure($"String '{x}' must be at least 5 characters"));
 
         // Assert (Then)
-        ensured.ShouldBe().Failure().AndMessage("String 'hi' must be at least 5 characters");
+        ensured.ShouldBe()
+               .Failure()
+               .AndMessage("String 'hi' must be at least 5 characters");
     }
 
     #endregion
@@ -169,7 +185,8 @@ public sealed partial class ResultExtensions
             x => new Failure("Invalid person data"));
 
         // Assert (Then)
-        ensured.ShouldBe().Success();
+        ensured.ShouldBe()
+               .Success();
     }
 
     [Fact]
@@ -184,7 +201,9 @@ public sealed partial class ResultExtensions
             x => new Failure($"{x.Name} must be at least 18 years old"));
 
         // Assert (Then)
-        ensured.ShouldBe().Failure().AndMessage("John must be at least 18 years old");
+        ensured.ShouldBe()
+               .Failure()
+               .AndMessage("John must be at least 18 years old");
     }
 
     #endregion

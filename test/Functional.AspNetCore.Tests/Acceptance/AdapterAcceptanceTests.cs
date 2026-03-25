@@ -22,14 +22,15 @@ public class AdapterAcceptanceTests
 
     [Theory(DisplayName = "Same failure maps to equivalent status code in Minimal API and MVC")]
     [MemberData(nameof(CommonFailures))]
-    public void SameFailure_MinimalAndMvc_MapToEquivalentStatusCode(Failure failure, int expectedStatusCode)
+    public void SameFailure_MinimalAndMvc_MapToEquivalentStatusCode(Failure failure,
+                                                                    int     expectedStatusCode)
     {
         // Arrange (Given)
         var result = Result.Fail(failure);
 
         // Act (When)
         var minimalStatusCode = GetMinimalStatusCode(result.ToHttpResult());
-        var mvcStatusCode = GetMvcStatusCode(result.ToActionResult());
+        var mvcStatusCode     = GetMvcStatusCode(result.ToActionResult());
 
         // Assert (Then)
         Assert.Equal(expectedStatusCode, minimalStatusCode);
@@ -47,14 +48,14 @@ public class AdapterAcceptanceTests
         };
 
         // Act (When)
-        var minimalDefault = GetMinimalStatusCode(maybe.ToHttpResult());
-        var mvcDefault = GetMvcStatusCode(maybe.ToActionResult());
+        var minimalDefault   = GetMinimalStatusCode(maybe.ToHttpResult());
+        var mvcDefault       = GetMvcStatusCode(maybe.ToActionResult());
         var minimalNoContent = GetMinimalStatusCode(maybe.ToHttpResult(policy: policy));
-        var mvcNoContent = GetMvcStatusCode(maybe.ToActionResult(policy: policy));
+        var mvcNoContent     = GetMvcStatusCode(maybe.ToActionResult(policy: policy));
 
         // Assert (Then)
-        Assert.Equal(StatusCodes.Status404NotFound, minimalDefault);
-        Assert.Equal(StatusCodes.Status404NotFound, mvcDefault);
+        Assert.Equal(StatusCodes.Status404NotFound,  minimalDefault);
+        Assert.Equal(StatusCodes.Status404NotFound,  mvcDefault);
         Assert.Equal(StatusCodes.Status204NoContent, minimalNoContent);
         Assert.Equal(StatusCodes.Status204NoContent, mvcNoContent);
     }
@@ -62,9 +63,9 @@ public class AdapterAcceptanceTests
     private static int GetMinimalStatusCode(IHttpResult result)
     {
         return result is IStatusCodeHttpResult { StatusCode: { } statusCode }
-            ? statusCode
-            : throw new InvalidOperationException(
-                $"Unable to resolve status code from minimal result type: {result.GetType().Name}");
+                   ? statusCode
+                   : throw new InvalidOperationException(
+                         $"Unable to resolve status code from minimal result type: {result.GetType().Name}");
     }
 
     private static int GetMvcStatusCode(IActionResult result)
@@ -72,9 +73,9 @@ public class AdapterAcceptanceTests
         return result switch
         {
             ObjectResult { StatusCode: { } statusCode } => statusCode,
-            StatusCodeResult statusCodeResult => statusCodeResult.StatusCode,
+            StatusCodeResult statusCodeResult           => statusCodeResult.StatusCode,
             _ => throw new InvalidOperationException(
-                $"Unable to resolve status code from MVC result type: {result.GetType().Name}")
+                     $"Unable to resolve status code from MVC result type: {result.GetType().Name}")
         };
     }
 }

@@ -29,8 +29,7 @@ public static class OneOfAssertionExtensions
     ///     A <see cref="OneOfAssertion{TFirst, TSecond}" /> instance representing the assertion of the provided
     ///     <see cref="OneOf{TFirst, TSecond}" />.
     /// </returns>
-    public static async ValueTask<OneOfAssertion<TFirst, TSecond>> ShouldBe<TFirst, TSecond>(
-        this ValueTask<OneOf<TFirst, TSecond>> awaitableOneOf)
+    public static async ValueTask<OneOfAssertion<TFirst, TSecond>> ShouldBe<TFirst, TSecond>(this ValueTask<OneOf<TFirst, TSecond>> awaitableOneOf)
         where TFirst : notnull
         where TSecond : notnull
     {
@@ -58,8 +57,7 @@ public static class OneOfAssertionExtensions
     ///     A <see cref="OneOfAssertion{TFirst}" /> instance representing the fluent assertion
     ///     of the first value.
     /// </returns>
-    public static async ValueTask<OneOfAssertion<TFirst>> First<TFirst, TSecond>(
-        this ValueTask<OneOfAssertion<TFirst, TSecond>> awaitableAssertion)
+    public static async ValueTask<OneOfAssertion<TFirst>> First<TFirst, TSecond>(this ValueTask<OneOfAssertion<TFirst, TSecond>> awaitableAssertion)
         where TFirst : notnull
         where TSecond : notnull
     {
@@ -85,8 +83,7 @@ public static class OneOfAssertionExtensions
     ///     A <see cref="OneOfAssertion{TSecond}" /> instance that allows further validation of the second value
     ///     within the asserted <see cref="OneOfAssertion{TFirst, TSecond}" />.
     /// </returns>
-    public static async ValueTask<OneOfAssertion<TSecond>> Second<TFirst, TSecond>(
-        this ValueTask<OneOfAssertion<TFirst, TSecond>> awaitableAssertion)
+    public static async ValueTask<OneOfAssertion<TSecond>> Second<TFirst, TSecond>(this ValueTask<OneOfAssertion<TFirst, TSecond>> awaitableAssertion)
         where TFirst : notnull
         where TSecond : notnull
     {
@@ -113,9 +110,9 @@ public static class OneOfAssertionExtensions
     ///     A <see cref="OneOfAssertion{TValue}" /> instance representing the result of the provided
     ///     assertion action for further validation.
     /// </returns>
-    public static async ValueTask<OneOfAssertion<TValue>> And<TValue>(
-        this ValueTask<OneOfAssertion<TValue>> awaitableAssertion,
-        Action<TValue> assert) where TValue : notnull
+    public static async ValueTask<OneOfAssertion<TValue>> And<TValue>(this ValueTask<OneOfAssertion<TValue>> awaitableAssertion,
+                                                                      Action<TValue>                         assert)
+        where TValue : notnull
     {
         var assertion = await awaitableAssertion;
         return assertion.And(assert);
@@ -144,9 +141,8 @@ public static class OneOfAssertionExtensions
     /// <returns>
     ///     A new <see cref="OneOfAssertion{TOut}" /> instance containing the transformed value.
     /// </returns>
-    public static async ValueTask<OneOfAssertion<TOut>> Map<TValue, TOut>(
-        this ValueTask<OneOfAssertion<TValue>> awaitableAssertion,
-        Func<TValue, TOut> projector)
+    public static async ValueTask<OneOfAssertion<TOut>> Map<TValue, TOut>(this ValueTask<OneOfAssertion<TValue>> awaitableAssertion,
+                                                                          Func<TValue, TOut>                     projector)
         where TValue : notnull
         where TOut : notnull
     {
@@ -176,10 +172,9 @@ public static class OneOfAssertionExtensions
     ///     A <see cref="Task{T}" /> containing the filtered <see cref="OneOfAssertion{TValue}" /> instance
     ///     that satisfies the specified predicate and ensures its consistency.
     /// </returns>
-    public static async ValueTask<OneOfAssertion<TValue>> Where<TValue>(
-        this ValueTask<OneOfAssertion<TValue>> awaitableAssertion,
-        Func<TValue, bool> predicate,
-        string because = "")
+    public static async ValueTask<OneOfAssertion<TValue>> Where<TValue>(this ValueTask<OneOfAssertion<TValue>> awaitableAssertion,
+                                                                        Func<TValue, bool>                     predicate,
+                                                                        string                                 because = "")
         where TValue : notnull
     {
         var assertion = await awaitableAssertion;

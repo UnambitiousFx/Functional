@@ -16,7 +16,10 @@ public static class ResultAssertionExtensions
     /// </summary>
     /// <param name="result">The result to be asserted.</param>
     /// <returns>A <see cref="ResultAssertion" /> instance representing the assertion of the provided result.</returns>
-    public static ResultAssertion ShouldBe(this Result result) => new(result);
+    public static ResultAssertion ShouldBe(this Result result)
+    {
+        return new ResultAssertion(result);
+    }
 
     /// <summary>
     ///     Asserts the state of the specified <see cref="Result{TValue}" /> and returns a
@@ -25,8 +28,11 @@ public static class ResultAssertionExtensions
     /// <typeparam name="TValue">The type of the value contained in the result.</typeparam>
     /// <param name="result">The result to assert.</param>
     /// <returns>A <see cref="ResultAssertion{TValue}" /> for the contained value.</returns>
-    public static ResultAssertion<TValue> ShouldBe<TValue>(this Result<TValue> result) where TValue : notnull =>
-        new(result);
+    public static ResultAssertion<TValue> ShouldBe<TValue>(this Result<TValue> result)
+        where TValue : notnull
+    {
+        return new ResultAssertion<TValue>(result);
+    }
 
     /// <summary>
     ///     Applies a predicate to the success value, failing the assertion if the predicate is not satisfied.
@@ -37,13 +43,12 @@ public static class ResultAssertionExtensions
     /// <param name="because">An optional reason to include if the assertion fails.</param>
     /// <returns>The same SuccessAssertion instance.</returns>
     public static SuccessAssertion<T> Where<T>(this SuccessAssertion<T> assertion,
-        Func<T, bool> predicate,
-        string? because = null)
+                                               Func<T, bool>            predicate,
+                                               string?                  because = null)
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        if (!predicate(assertion.Value))
-        {
+        if (!predicate(assertion.Value)) {
             Assert.Fail(because ?? $"Value '{assertion.Value}' does not satisfy predicate.");
         }
 
@@ -58,12 +63,11 @@ public static class ResultAssertionExtensions
     /// <param name="because">An optional reason to include if the assertion fails.</param>
     /// <returns>The same FailureAssertion instance.</returns>
     public static FailureAssertion Where(this FailureAssertion assertion,
-        Func<IFailure, bool> predicate,
-        string? because = null)
+                                         Func<IFailure, bool>  predicate,
+                                         string?               because = null)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        if (!predicate(assertion.Failure))
-        {
+        if (!predicate(assertion.Failure)) {
             var errorMessage = assertion.Failure.Message;
             Assert.Fail(because ?? $"Errors do not satisfy predicate. Error: '{errorMessage}'");
         }

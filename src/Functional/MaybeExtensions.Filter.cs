@@ -10,14 +10,15 @@ public static partial class MaybeExtensions
     /// <param name="predicate">The predicate to apply to the contained value.</param>
     /// <returns>The original Maybe when the predicate holds; otherwise None.</returns>
     public static Maybe<TValue> Filter<TValue>(this Maybe<TValue> maybe,
-        Func<TValue, bool> predicate)
+                                               Func<TValue, bool> predicate)
         where TValue : notnull
     {
-        if (!maybe.Some(out var value))
-        {
+        if (!maybe.Some(out var value)) {
             return maybe;
         }
 
-        return predicate(value) ? maybe : Maybe.None<TValue>();
+        return predicate(value)
+                   ? maybe
+                   : Maybe.None<TValue>();
     }
 }

@@ -44,11 +44,11 @@ public readonly struct TypedErrorAssertion<TError>
     /// <param name="predicate">The predicate to test the error against.</param>
     /// <param name="because">An optional reason to include if the assertion fails.</param>
     /// <returns>The current <see cref="TypedErrorAssertion{TError}" /> instance to allow method chaining.</returns>
-    public TypedErrorAssertion<TError> Where(Func<TError, bool> predicate, string? because = null)
+    public TypedErrorAssertion<TError> Where(Func<TError, bool> predicate,
+                                             string?            because = null)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        if (!predicate(Error))
-        {
+        if (!predicate(Error)) {
             var errorMessage = Error.Message;
             Assert.Fail(because ?? $"Error does not satisfy predicate. Error: '{errorMessage}'");
         }

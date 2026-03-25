@@ -32,7 +32,7 @@ public sealed class MaybeExtensionsValueOrTests
     public void ValueOr_WithFactory_WithSome_DoesNotExecuteFactory()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(9);
+        var maybe    = Maybe.Some(9);
         var executed = false;
 
         // Act (When)
@@ -51,7 +51,7 @@ public sealed class MaybeExtensionsValueOrTests
     public void ValueOr_WithFactory_WithNone_ExecutesFactory()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)

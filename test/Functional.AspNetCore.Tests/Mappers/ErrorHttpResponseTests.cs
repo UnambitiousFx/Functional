@@ -11,7 +11,7 @@ public class ErrorHttpResponseTests
         var response = new ErrorHttpResponse
         {
             StatusCode = 404,
-            Body = new { error = "Not found" }
+            Body       = new { error = "Not found" }
         };
 
         // Assert (Then)
@@ -35,16 +35,16 @@ public class ErrorHttpResponseTests
         var response = new ErrorHttpResponse
         {
             StatusCode = 401,
-            Body = new { error = "Unauthorized" },
-            Headers = headers
+            Body       = new { error = "Unauthorized" },
+            Headers    = headers
         };
 
         // Assert (Then)
         Assert.Equal(401, response.StatusCode);
         Assert.NotNull(response.Headers);
-        Assert.Equal(2, response.Headers.Count);
+        Assert.Equal(2,                          response.Headers.Count);
         Assert.Equal("Bearer realm=\"example\"", response.Headers["WWW-Authenticate"]);
-        Assert.Equal("custom-value", response.Headers["X-Custom-Header"]);
+        Assert.Equal("custom-value",             response.Headers["X-Custom-Header"]);
     }
 
     [Fact(DisplayName = "ErrorHttpResponse can include content type")]
@@ -53,13 +53,13 @@ public class ErrorHttpResponseTests
         // Arrange (Given) & Act (When)
         var response = new ErrorHttpResponse
         {
-            StatusCode = 400,
-            Body = "<error>Bad Request</error>",
+            StatusCode  = 400,
+            Body        = "<error>Bad Request</error>",
             ContentType = "application/xml"
         };
 
         // Assert (Then)
-        Assert.Equal(400, response.StatusCode);
+        Assert.Equal(400,               response.StatusCode);
         Assert.Equal("application/xml", response.ContentType);
     }
 
@@ -89,9 +89,9 @@ public class ErrorHttpResponseTests
         // Act (When)
         var response = new ErrorHttpResponse
         {
-            StatusCode = 429,
-            Body = new { error = "Too many requests" },
-            Headers = headers,
+            StatusCode  = 429,
+            Body        = new { error = "Too many requests" },
+            Headers     = headers,
             ContentType = "application/json"
         };
 
@@ -100,7 +100,7 @@ public class ErrorHttpResponseTests
         Assert.NotNull(response.Body);
         Assert.NotNull(response.Headers);
         Assert.Single(response.Headers);
-        Assert.Equal("120", response.Headers["Retry-After"]);
+        Assert.Equal("120",              response.Headers["Retry-After"]);
         Assert.Equal("application/json", response.ContentType);
     }
 }

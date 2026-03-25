@@ -12,11 +12,13 @@ public static partial class ResultExtensions
     /// <param name="predicate">The validation predicate.</param>
     /// <param name="errorFactory">Factory function to create an exception when validation fails.</param>
     /// <returns>The original result if validation succeeds; otherwise a failure result.</returns>
-    public static Result<TValue> Ensure<TValue>(this Result<TValue> result, Func<TValue, bool> predicate,
-        Func<TValue, Failure> errorFactory) where TValue : notnull
+    public static Result<TValue> Ensure<TValue>(this Result<TValue>   result,
+                                                Func<TValue, bool>    predicate,
+                                                Func<TValue, Failure> errorFactory)
+        where TValue : notnull
     {
         return result.Then(value => predicate(value)
-            ? Result.Success(value)
-            : Result.Failure<TValue>(errorFactory(value)));
+                                        ? Result.Success(value)
+                                        : Result.Failure<TValue>(errorFactory(value)));
     }
 }

@@ -1,4 +1,5 @@
 using UnambitiousFx.Functional.Failures;
+using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
@@ -8,7 +9,7 @@ public class NotFoundErrorAssertionTests
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When)
@@ -22,7 +23,7 @@ public class NotFoundErrorAssertionTests
     public void WithResource_WhenResourceMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When)
@@ -36,18 +37,18 @@ public class NotFoundErrorAssertionTests
     public void WithResource_WhenResourceDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When) & Assert (Then)
-        Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.WithResource("Product"));
+        Assert.Throws<EqualException>(() => assertion.WithResource("Product"));
     }
 
     [Fact(DisplayName = "WithIdentifier succeeds when identifier matches")]
     public void WithIdentifier_WhenIdentifierMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When)
@@ -61,18 +62,18 @@ public class NotFoundErrorAssertionTests
     public void WithIdentifier_WhenIdentifierDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When) & Assert (Then)
-        Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.WithIdentifier("456"));
+        Assert.Throws<EqualException>(() => assertion.WithIdentifier("456"));
     }
 
     [Fact(DisplayName = "AndMessage succeeds when message matches")]
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When)
@@ -86,18 +87,18 @@ public class NotFoundErrorAssertionTests
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When) & Assert (Then)
-        Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.AndMessage("Wrong message"));
+        Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
     }
 
     [Fact(DisplayName = "AndCode succeeds when code matches")]
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When)
@@ -111,40 +112,40 @@ public class NotFoundErrorAssertionTests
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When) & Assert (Then)
-        Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.AndCode("WRONG_CODE"));
+        Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
     }
 
     [Fact(DisplayName = "Fluent chaining works with multiple assertions")]
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When) & Assert (Then)
         assertion
-            .WithResource("User")
-            .WithIdentifier("123")
-            .AndCode("NOT_FOUND")
-            .AndMessage("Resource 'User' with id '123' was not found.");
+           .WithResource("User")
+           .WithIdentifier("123")
+           .AndCode("NOT_FOUND")
+           .AndMessage("Resource 'User' with id '123' was not found.");
     }
 
     [Fact(DisplayName = "And allows custom assertions on error properties")]
     public void And_AllowsCustomAssertions_OnErrorProperties()
     {
         // Arrange (Given)
-        var error = new NotFoundFailure("User", "123");
+        var error     = new NotFoundFailure("User", "123");
         var assertion = new NotFoundErrorAssertion(error);
 
         // Act (When) & Assert (Then)
         assertion.And(e =>
         {
             Assert.Equal("User", e.Resource);
-            Assert.Equal("123", e.Identifier);
+            Assert.Equal("123",  e.Identifier);
             Assert.Contains("123", e.Message);
         });
     }

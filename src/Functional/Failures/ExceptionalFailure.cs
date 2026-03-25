@@ -15,19 +15,19 @@ public sealed record ExceptionalFailure : Failure
     /// <param name="exception">The exception to wrap.</param>
     /// <param name="messageOverride">Optional message to override the exception's message.</param>
     /// <param name="extra">Optional additional metadata about the error.</param>
-    public ExceptionalFailure(Exception exception,
-        string? messageOverride = null,
-        IReadOnlyDictionary<string, object?>? extra = null)
+    public ExceptionalFailure(Exception                             exception,
+                              string?                               messageOverride = null,
+                              IReadOnlyDictionary<string, object?>? extra           = null)
         : base(ErrorCodes.Exception,
-            messageOverride ?? exception.Message,
-            Merge(extra, [
-                new KeyValuePair<string, object?>("exceptionType", exception.GetType()
-                    .FullName)
-            ]))
+               messageOverride ?? exception.Message,
+               Merge(extra, [
+                   new KeyValuePair<string, object?>("exceptionType", exception.GetType()
+                                                                               .FullName)
+               ]))
     {
         MessageOverride = messageOverride;
-        Extra = extra;
-        Exception = exception;
+        Extra           = extra;
+        Exception       = exception;
     }
 
     /// <summary>

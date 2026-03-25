@@ -1,6 +1,7 @@
 # Functional.AspNetCore
 
-ASP.NET Core integration for `Result<T>` and `Maybe<T>`. Provides one-line conversion to HTTP responses for both Minimal APIs and MVC controllers, with predictable defaults and zero boilerplate for common cases.
+ASP.NET Core integration for `Result<T>` and `Maybe<T>`. Provides one-line conversion to HTTP responses for both Minimal
+APIs and MVC controllers, with predictable defaults and zero boilerplate for common cases.
 
 ## Features
 
@@ -96,15 +97,15 @@ public class UsersController : ControllerBase
 
 The built-in default mapper converts standard failure types to RFC 7807 Problem Details responses:
 
-| Failure Type | HTTP Status |
-|---|---|
-| `ValidationFailure` | 400 Bad Request |
-| `NotFoundFailure` | 404 Not Found |
-| `UnauthorizedFailure` | 401 Unauthorized |
-| `UnauthenticatedFailure` | 403 Forbidden |
-| `ConflictFailure` | 409 Conflict |
-| `ExceptionalFailure` | 500 Internal Server Error |
-| Unrecognised `Failure` | 500 Internal Server Error |
+| Failure Type             | HTTP Status               |
+|--------------------------|---------------------------|
+| `ValidationFailure`      | 400 Bad Request           |
+| `NotFoundFailure`        | 404 Not Found             |
+| `UnauthorizedFailure`    | 401 Unauthorized          |
+| `UnauthenticatedFailure` | 403 Forbidden             |
+| `ConflictFailure`        | 409 Conflict              |
+| `ExceptionalFailure`     | 500 Internal Server Error |
+| Unrecognised `Failure`   | 500 Internal Server Error |
 
 Example error response (RFC 7807 Problem Details):
 
@@ -139,17 +140,17 @@ builder.Services.AddResultHttp(options =>
 
 #### `ResultSuccessHttpBehavior`
 
-| Value | Behaviour |
-|---|---|
+| Value                 | Behaviour                                     |
+|-----------------------|-----------------------------------------------|
 | `NoContent` (default) | Non-generic `Result` success → 204 No Content |
-| `Ok` | Non-generic `Result` success → 200 OK |
+| `Ok`                  | Non-generic `Result` success → 200 OK         |
 
 #### `MaybeNoneHttpBehavior`
 
-| Value | Behaviour |
-|---|---|
-| `NotFound` (default) | `Maybe<T>` None → 404 Not Found |
-| `NoContent` | `Maybe<T>` None → 204 No Content |
+| Value                | Behaviour                        |
+|----------------------|----------------------------------|
+| `NotFound` (default) | `Maybe<T>` None → 404 Not Found  |
+| `NoContent`          | `Maybe<T>` None → 204 No Content |
 
 ### Per-endpoint policy override
 
@@ -232,27 +233,27 @@ Custom mappers registered via `AddMapper` are tried in the order they are added,
 
 #### `Result` (non-generic)
 
-| Method | Success | Failure |
-|---|---|---|
+| Method                                                | Success                                     | Failure      |
+|-------------------------------------------------------|---------------------------------------------|--------------|
 | `ToHttpResult(successMapper?, errorMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
 
 Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
 
 #### `Result<T>`
 
-| Method | Success | Failure |
-|---|---|---|
-| `ToHttpResult(successMapper?, errorMapper?)` | `successMapper(value)` or `200 OK(value)` | Mapped error |
-| `ToCreatedHttpResult(locationFactory, errorMapper?)` | `201 Created(location, value)` | Mapped error |
+| Method                                               | Success                                   | Failure      |
+|------------------------------------------------------|-------------------------------------------|--------------|
+| `ToHttpResult(successMapper?, errorMapper?)`         | `successMapper(value)` or `200 OK(value)` | Mapped error |
+| `ToCreatedHttpResult(locationFactory, errorMapper?)` | `201 Created(location, value)`            | Mapped error |
 
 Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
 
 #### `Maybe<T>`
 
-| Method | Some | None |
-|---|---|---|
-| `ToHttpResult(someMapper?, noneMapper?, policy?)` | `someMapper(value)` or `200 OK(value)` | `noneMapper()` or `404`/`204` per policy |
-| `ToCreatedHttpResult(locationFactory, noneMapper?, policy?)` | `201 Created(location, value)` | `noneMapper()` or `404`/`204` per policy |
+| Method                                                       | Some                                   | None                                     |
+|--------------------------------------------------------------|----------------------------------------|------------------------------------------|
+| `ToHttpResult(someMapper?, noneMapper?, policy?)`            | `someMapper(value)` or `200 OK(value)` | `noneMapper()` or `404`/`204` per policy |
+| `ToCreatedHttpResult(locationFactory, noneMapper?, policy?)` | `201 Created(location, value)`         | `noneMapper()` or `404`/`204` per policy |
 
 Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 
@@ -262,24 +263,24 @@ Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 
 #### `Result` (non-generic)
 
-| Method | Success | Failure |
-|---|---|---|
+| Method                                                  | Success                                     | Failure      |
+|---------------------------------------------------------|---------------------------------------------|--------------|
 | `ToActionResult(successMapper?, errorMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
 
 Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
 
 #### `Result<T>`
 
-| Method | Success | Failure |
-|---|---|---|
+| Method                                         | Success                                           | Failure      |
+|------------------------------------------------|---------------------------------------------------|--------------|
 | `ToActionResult(successMapper?, errorMapper?)` | `successMapper(value)` or `OkObjectResult(value)` | Mapped error |
 
 Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
 
 #### `Maybe<T>`
 
-| Method | Some | None |
-|---|---|---|
+| Method                                              | Some                                           | None                                     |
+|-----------------------------------------------------|------------------------------------------------|------------------------------------------|
 | `ToActionResult(someMapper?, noneMapper?, policy?)` | `someMapper(value)` or `OkObjectResult(value)` | `noneMapper()` or `404`/`204` per policy |
 
 Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
@@ -288,13 +289,13 @@ Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 
 ### `ResultHttpOptions` configuration
 
-| Member | Type | Default | Description |
-|---|---|---|---|
-| `Policy` | `ResultHttpAdapterPolicy` | `Default` | Global success/none behavior defaults |
-| `IncludeExceptionDetails` | `bool` | `false` | Include stack traces in error bodies |
-| `AddMapper(IErrorHttpMapper)` | — | — | Register a custom mapper instance |
-| `AddMapper<TFailure>(int statusCode)` | — | — | Register a typed mapper returning a status code |
-| `AddMapper<TFailure>(Func<TFailure, ErrorHttpResponse>)` | — | — | Register a typed mapper with a custom factory |
+| Member                                                   | Type                      | Default   | Description                                     |
+|----------------------------------------------------------|---------------------------|-----------|-------------------------------------------------|
+| `Policy`                                                 | `ResultHttpAdapterPolicy` | `Default` | Global success/none behavior defaults           |
+| `IncludeExceptionDetails`                                | `bool`                    | `false`   | Include stack traces in error bodies            |
+| `AddMapper(IErrorHttpMapper)`                            | —                         | —         | Register a custom mapper instance               |
+| `AddMapper<TFailure>(int statusCode)`                    | —                         | —         | Register a typed mapper returning a status code |
+| `AddMapper<TFailure>(Func<TFailure, ErrorHttpResponse>)` | —                         | —         | Register a typed mapper with a custom factory   |
 
 ---
 
@@ -314,13 +315,13 @@ public interface IErrorHttpMapper
 
 ## Migration from v1
 
-| v1 | v2 |
-|---|---|
-| `result.ToHttpResult(v => dto)` | `result.ToHttpResult(v => Results.Ok(dto))` |
-| `result.ToCreatedHttpResult(loc, v => dto)` | `result.ToCreatedHttpResult(loc)` — value returned directly |
-| `result.ToCreatedActionResult("Get", ctrl, routes)` | `result.ToActionResult(v => new CreatedAtActionResult("Get", ctrl, routes, v))` |
-| `options.UseProblemDetails = true` | Removed — Problem Details is always on |
-| Implicit `IErrorHttpMapper.GetStatusCode` / `GetResponseBody` | Implement `GetErrorResponse(IFailure)` → `ErrorHttpResponse?` |
+| v1                                                            | v2                                                                              |
+|---------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `result.ToHttpResult(v => dto)`                               | `result.ToHttpResult(v => Results.Ok(dto))`                                     |
+| `result.ToCreatedHttpResult(loc, v => dto)`                   | `result.ToCreatedHttpResult(loc)` — value returned directly                     |
+| `result.ToCreatedActionResult("Get", ctrl, routes)`           | `result.ToActionResult(v => new CreatedAtActionResult("Get", ctrl, routes, v))` |
+| `options.UseProblemDetails = true`                            | Removed — Problem Details is always on                                          |
+| Implicit `IErrorHttpMapper.GetStatusCode` / `GetResponseBody` | Implement `GetErrorResponse(IFailure)` → `ErrorHttpResponse?`                   |
 
 ## Thread Safety
 
@@ -328,7 +329,8 @@ All components are thread-safe and designed for concurrent use in ASP.NET Core a
 
 ## AOT Compatibility
 
-This library is fully compatible with Native AOT compilation. All error mappings use static patterns that do not require runtime code generation.
+This library is fully compatible with Native AOT compilation. All error mappings use static patterns that do not require
+runtime code generation.
 
 ## License
 

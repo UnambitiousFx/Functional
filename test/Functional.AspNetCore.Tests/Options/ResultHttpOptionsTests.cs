@@ -24,7 +24,7 @@ public class ResultHttpOptionsTests
 
         // Assert (Then)
         Assert.Equal(ResultSuccessHttpBehavior.NoContent, options.Policy.ResultSuccessBehavior);
-        Assert.Equal(MaybeNoneHttpBehavior.NotFound, options.Policy.MaybeNoneBehavior);
+        Assert.Equal(MaybeNoneHttpBehavior.NotFound,      options.Policy.MaybeNoneBehavior);
     }
 
     [Fact(DisplayName = "CustomMappers is empty by default")]
@@ -41,7 +41,7 @@ public class ResultHttpOptionsTests
     public void AddMapper_AddsMapperToCustomMappers()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions();
+        var options      = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
 
         // Act (When)
@@ -56,7 +56,7 @@ public class ResultHttpOptionsTests
     public void AddMapper_ReturnsOptionsForFluentChaining()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions();
+        var options      = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
 
         // Act (When)
@@ -75,7 +75,8 @@ public class ResultHttpOptionsTests
         var mapper2 = Substitute.For<IErrorHttpMapper>();
 
         // Act (When)
-        options.AddMapper(mapper1).AddMapper(mapper2);
+        options.AddMapper(mapper1)
+               .AddMapper(mapper2);
 
         // Assert (Then)
         Assert.Equal(2, options.CustomMappers.Count);
@@ -110,7 +111,7 @@ public class ResultHttpOptionsTests
     public void BuildMapper_SingleCustomMapper_ReturnsCompositeMapper()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions();
+        var options      = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
         options.AddMapper(customMapper);
 
@@ -125,10 +126,11 @@ public class ResultHttpOptionsTests
     public void BuildMapper_WithCustomMappers_ReturnsCompositeMapper()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions();
+        var options       = new ResultHttpOptions();
         var customMapper1 = Substitute.For<IErrorHttpMapper>();
         var customMapper2 = Substitute.For<IErrorHttpMapper>();
-        options.AddMapper(customMapper1).AddMapper(customMapper2);
+        options.AddMapper(customMapper1)
+               .AddMapper(customMapper2);
 
         // Act (When)
         var mapper = options.BuildMapper();
@@ -141,16 +143,17 @@ public class ResultHttpOptionsTests
     public void BuildMapper_WithCustomMappers_CustomMappersHavePriority()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions();
+        var options      = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
-        var error = new ValidationFailure(["Test"]);
+        var error        = new ValidationFailure(["Test"]);
 
-        customMapper.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 999 });
+        customMapper.GetErrorResponse(error)
+                    .Returns(new ErrorHttpResponse { StatusCode = 999 });
         options.AddMapper(customMapper);
 
         // Act (When)
         var compositeMapper = options.BuildMapper();
-        var response = compositeMapper.GetErrorResponse(error);
+        var response        = compositeMapper.GetErrorResponse(error);
 
         // Assert (Then)
         Assert.NotNull(response);
@@ -161,7 +164,7 @@ public class ResultHttpOptionsTests
     public void BuildMapper_UseProblemDetailsAndCustomMapper_ReturnsCompositeMapper()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions();
+        var options      = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
         options.AddMapper(customMapper);
 
@@ -182,8 +185,8 @@ public class ResultHttpOptionsTests
         };
 
         // Act (When)
-        var mapper = options.BuildMapper();
-        var error = new ExceptionalFailure(new Exception("Test"));
+        var mapper   = options.BuildMapper();
+        var error    = new ExceptionalFailure(new Exception("Test"));
         var response = mapper.GetErrorResponse(error);
 
         // Assert (Then)
@@ -194,7 +197,7 @@ public class ResultHttpOptionsTests
     public void CustomMappers_ReturnsReadOnlyCollection()
     {
         // Arrange (Given)
-        var options = new ResultHttpOptions();
+        var options      = new ResultHttpOptions();
         var customMapper = Substitute.For<IErrorHttpMapper>();
         options.AddMapper(customMapper);
 
@@ -240,7 +243,7 @@ public class ResultHttpOptionsTests
         var failure = new ValidationFailure(["Bad input"]);
 
         // Act (When)
-        var mapper = options.BuildMapper();
+        var mapper   = options.BuildMapper();
         var response = mapper.GetErrorResponse(failure);
 
         // Assert (Then)
@@ -257,7 +260,7 @@ public class ResultHttpOptionsTests
         var failure = new NotFoundFailure("User", "1");
 
         // Act (When)
-        var mapper = options.BuildMapper();
+        var mapper   = options.BuildMapper();
         var response = mapper.GetErrorResponse(failure);
 
         // Assert (Then)
@@ -288,11 +291,11 @@ public class ResultHttpOptionsTests
         options.AddMapper<ConflictFailure>(f => new ErrorHttpResponse
         {
             StatusCode = 409,
-            Body = new { message = f.Message }
+            Body       = new { message = f.Message }
         });
 
         // Act (When)
-        var mapper = options.BuildMapper();
+        var mapper   = options.BuildMapper();
         var response = mapper.GetErrorResponse(failure);
 
         // Assert (Then)
@@ -307,8 +310,7 @@ public class ResultHttpOptionsTests
         var options = new ResultHttpOptions();
 
         // Act (When) & Assert (Then)
-        Assert.Throws<ArgumentNullException>(
-            () => options.AddMapper<ValidationFailure>((Func<ValidationFailure, ErrorHttpResponse>)null!));
+        Assert.Throws<ArgumentNullException>(() => options.AddMapper((Func<ValidationFailure, ErrorHttpResponse>)null!));
     }
 
     [Fact(DisplayName = "Multiple typed mappers are evaluated in add order")]
@@ -322,7 +324,7 @@ public class ResultHttpOptionsTests
         var failure = new ValidationFailure(["Bad"]);
 
         // Act (When)
-        var mapper = options.BuildMapper();
+        var mapper   = options.BuildMapper();
         var response = mapper.GetErrorResponse(failure);
 
         // Assert (Then)

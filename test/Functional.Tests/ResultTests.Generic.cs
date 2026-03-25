@@ -7,7 +7,8 @@ public sealed class ResultOfTValueTests
 {
     #region Helper Types
 
-    private record TestData(int Id, string Name);
+    private record TestData(int    Id,
+                            string Name);
 
     #endregion
 
@@ -22,7 +23,9 @@ public sealed class ResultOfTValueTests
         // Assert (Then)
         Assert.True(result.IsSuccess);
         Assert.False(result.IsFailure);
-        result.ShouldBe().Success().And(v => Assert.Equal(42, v));
+        result.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
@@ -32,7 +35,9 @@ public sealed class ResultOfTValueTests
         var result = Result.Success("hello world");
 
         // Assert (Then)
-        result.ShouldBe().Success().And(v => Assert.Equal("hello world", v));
+        result.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal("hello world", v));
     }
 
     [Fact]
@@ -45,11 +50,13 @@ public sealed class ResultOfTValueTests
         var result = Result.Success(data);
 
         // Assert (Then)
-        result.ShouldBe().Success().And(v =>
-        {
-            Assert.Equal(42, v.Id);
-            Assert.Equal("test", v.Name);
-        });
+        result.ShouldBe()
+              .Success()
+              .And(v =>
+               {
+                   Assert.Equal(42,     v.Id);
+                   Assert.Equal("test", v.Name);
+               });
     }
 
     [Fact]
@@ -59,7 +66,9 @@ public sealed class ResultOfTValueTests
         var result = Result.Ok(42);
 
         // Assert (Then)
-        result.ShouldBe().Success().And(v => Assert.Equal(42, v));
+        result.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
     }
 
     #endregion
@@ -86,7 +95,7 @@ public sealed class ResultOfTValueTests
     {
         // Arrange (Given)
         var testError = new Failure("Test error");
-        var result = Result.Fail<int>(testError);
+        var result    = Result.Fail<int>(testError);
 
         // Act (When)
         var success = result.TryGet(out var value, out var error);
@@ -106,7 +115,7 @@ public sealed class ResultOfTValueTests
     public void Match_Action_WithSuccess_ExecutesSuccessAction()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result        = Result.Success(42);
         var successCalled = false;
         var failureCalled = false;
 
@@ -124,7 +133,7 @@ public sealed class ResultOfTValueTests
     public void Match_Action_WithFailure_ExecutesFailureAction()
     {
         // Arrange (Given)
-        var result = Result.Failure<int>("Error");
+        var result        = Result.Failure<int>("Error");
         var successCalled = false;
         var failureCalled = false;
 
@@ -202,7 +211,7 @@ public sealed class ResultOfTValueTests
     public void Match_ActionWithValue_WithSuccess_PassesValue()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result        = Result.Success(42);
         var capturedValue = 0;
 
         // Act (When)
@@ -218,14 +227,14 @@ public sealed class ResultOfTValueTests
     public void Switch_Action_WithSuccess_ExecutesSuccessAction()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result        = Result.Success(42);
         var successCalled = false;
         var failureCalled = false;
 
         // Act (When)
         result.Switch(
             () => successCalled = true,
-            _ => failureCalled = true);
+            _ => failureCalled  = true);
 
         // Assert (Then)
         Assert.True(successCalled);
@@ -236,7 +245,7 @@ public sealed class ResultOfTValueTests
     public void Switch_ActionWithValue_WithSuccess_PassesValue()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result        = Result.Success(42);
         var capturedValue = 0;
 
         // Act (When)
@@ -284,7 +293,7 @@ public sealed class ResultOfTValueTests
     public void IfSuccess_WithValue_WithSuccess_PassesValue()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result        = Result.Success(42);
         var capturedValue = 0;
 
         // Act (When)
@@ -359,7 +368,7 @@ public sealed class ResultOfTValueTests
     {
         // Arrange (Given)
         var testError = new Failure("Test error");
-        var result = Result.Failure<int>(testError);
+        var result    = Result.Failure<int>(testError);
 
         // Act (When)
         var (value, error) = result;
@@ -408,21 +417,24 @@ public sealed class ResultOfTValueTests
         var resultWithMeta = result.WithMetadata("key", "value");
 
         // Assert (Then)
-        resultWithMeta.ShouldBe().Success().And(v => Assert.Equal(42, v));
+        resultWithMeta.ShouldBe()
+                      .Success()
+                      .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
     public void WithMetadata_IReadOnlyMetadata_MergesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Success(42).WithMetadata("key1", "value1");
+        var result = Result.Success(42)
+                           .WithMetadata("key1", "value1");
         var additionalMeta = new Metadata { ["key2"] = "value2" };
 
         // Act (When)
         var resultWithMeta = result.WithMetadata(additionalMeta);
 
         // Assert (Then)
-        Assert.Equal(2, resultWithMeta.Metadata.Count);
+        Assert.Equal(2,        resultWithMeta.Metadata.Count);
         Assert.Equal("value1", resultWithMeta.Metadata["key1"]);
         Assert.Equal("value2", resultWithMeta.Metadata["key2"]);
     }
@@ -511,7 +523,8 @@ public sealed class ResultOfTValueTests
     public void ToString_WithSuccess_AndMetadata_IncludesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Success(42).WithMetadata("key", "value");
+        var result = Result.Success(42)
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var str = result.ToString();

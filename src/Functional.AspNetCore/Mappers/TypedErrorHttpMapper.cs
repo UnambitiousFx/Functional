@@ -25,8 +25,7 @@ internal sealed class TypedErrorHttpMapper<TFailure> : IErrorHttpMapper
     /// <inheritdoc />
     public ErrorHttpResponse? GetErrorResponse(IFailure failure)
     {
-        if (failure is TFailure typed)
-        {
+        if (failure is TFailure typed) {
             return _factory(typed);
         }
 

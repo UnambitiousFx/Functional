@@ -15,13 +15,11 @@ public static class FailureExtensions
     /// <returns>An exception representing the error.</returns>
     public static Exception ToException(this IFailure failure)
     {
-        if (failure is ExceptionalFailure exceptionalError)
-        {
+        if (failure is ExceptionalFailure exceptionalError) {
             return exceptionalError.Exception;
         }
 
-        if (failure is AggregateFailure aggregateError)
-        {
+        if (failure is AggregateFailure aggregateError) {
             return new AggregateException(aggregateError.Errors.Select(x => x.ToException()));
         }
 

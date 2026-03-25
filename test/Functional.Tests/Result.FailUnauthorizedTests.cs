@@ -17,7 +17,8 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized("Insufficient permissions");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -28,8 +29,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Unauthorized);
+              .Failure()
+              .AndCode(ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -40,8 +41,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Access denied");
+              .Failure()
+              .AndMessage("Access denied");
     }
 
     [Fact]
@@ -52,8 +53,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Unauthorized");
+              .Failure()
+              .AndMessage("Unauthorized");
     }
 
     [Fact]
@@ -63,7 +64,7 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized("Permission denied");
 
         // Assert (Then)
-        result.TryGetError(out Failure? error);
+        result.TryGetError(out var error);
         Assert.IsType<UnauthorizedFailure>(error);
     }
 
@@ -75,8 +76,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Unauthorized");
+              .Failure()
+              .AndMessage("Unauthorized");
     }
 
     #endregion
@@ -90,7 +91,8 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized<string>("Insufficient permissions");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -101,8 +103,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Unauthorized);
+              .Failure()
+              .AndCode(ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -113,8 +115,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Access denied");
+              .Failure()
+              .AndMessage("Access denied");
     }
 
     [Fact]
@@ -125,8 +127,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Unauthorized");
+              .Failure()
+              .AndMessage("Unauthorized");
     }
 
     [Fact]
@@ -136,7 +138,7 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized<string>("Permission denied");
 
         // Assert (Then)
-        result.TryGetError(out Failure? error);
+        result.TryGetError(out var error);
         Assert.IsType<UnauthorizedFailure>(error);
     }
 
@@ -147,7 +149,8 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized<Dictionary<string, object>>("Admin access required");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -155,12 +158,12 @@ public sealed class ResultFailUnauthorizedTests
     {
         // Arrange & Act (Given/When)
         var result = Result.FailUnauthorized<int>("Permission denied")
-            .Recover(_ => 42);
+                           .Recover(_ => 42);
 
         // Assert (Then)
         result.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal(42, value));
+              .Success()
+              .And(value => Assert.Equal(42, value));
     }
 
     #endregion
@@ -178,8 +181,8 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage(detailedReason);
+              .Failure()
+              .AndMessage(detailedReason);
     }
 
     [Fact]
@@ -190,14 +193,14 @@ public sealed class ResultFailUnauthorizedTests
 
         // Act (When)
         var result = successResult.Bind(role =>
-            role == "admin"
-                ? Result.Success(role)
-                : Result.FailUnauthorized<string>("Admin role required"));
+                                            role == "admin"
+                                                ? Result.Success(role)
+                                                : Result.FailUnauthorized<string>("Admin role required"));
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Unauthorized);
+              .Failure()
+              .AndCode(ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -208,24 +211,24 @@ public sealed class ResultFailUnauthorizedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Access denied for resource: /api/admin/<id>");
+              .Failure()
+              .AndMessage("Access denied for resource: /api/admin/<id>");
     }
 
     [Fact]
     public void FailUnauthorized_DifferentFromUnauthenticated()
     {
         // Arrange & Act (Given/When)
-        var unauthorizedResult = Result.FailUnauthorized("No permission");
+        var unauthorizedResult    = Result.FailUnauthorized("No permission");
         var unauthenticatedResult = Result.FailUnauthenticated("No token");
 
         // Assert (Then)
         unauthorizedResult.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Unauthorized);
+                          .Failure()
+                          .AndCode(ErrorCodes.Unauthorized);
         unauthenticatedResult.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Unauthenticated);
+                             .Failure()
+                             .AndCode(ErrorCodes.Unauthenticated);
     }
 
     #endregion

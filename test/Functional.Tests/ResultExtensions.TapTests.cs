@@ -14,14 +14,15 @@ public sealed partial class ResultExtensions
     public void Tap_WithSuccess_ExecutesSideEffect()
     {
         // Arrange (Given)
-        var result = Result.Success(5);
+        var result        = Result.Success(5);
         var capturedValue = 0;
 
         // Act (When)
         var tapped = result.Tap(x => capturedValue = x);
 
         // Assert (Then)
-        tapped.ShouldBe().Success();
+        tapped.ShouldBe()
+              .Success();
         Assert.Equal(5, capturedValue);
     }
 
@@ -35,21 +36,24 @@ public sealed partial class ResultExtensions
         var tapped = result.Tap(x => { });
 
         // Assert (Then)
-        tapped.ShouldBe().Success().And(value => Assert.Equal(42, value));
+        tapped.ShouldBe()
+              .Success()
+              .And(value => Assert.Equal(42, value));
     }
 
     [Fact]
     public void Tap_NonGeneric_WithSuccess_ExecutesSideEffect()
     {
         // Arrange (Given)
-        var result = Result.Success();
+        var result   = Result.Success();
         var executed = false;
 
         // Act (When)
         var tapped = result.Tap(() => executed = true);
 
         // Assert (Then)
-        tapped.ShouldBe().Success();
+        tapped.ShouldBe()
+              .Success();
         Assert.True(executed);
     }
 
@@ -61,15 +65,16 @@ public sealed partial class ResultExtensions
     public void Tap_WithFailure_DoesNotExecuteSideEffect()
     {
         // Arrange (Given)
-        var error = new Failure("Test error");
-        var result = Result.Failure<int>(error);
+        var error    = new Failure("Test error");
+        var result   = Result.Failure<int>(error);
         var executed = false;
 
         // Act (When)
         var tapped = result.Tap(x => executed = true);
 
         // Assert (Then)
-        tapped.ShouldBe().Failure();
+        tapped.ShouldBe()
+              .Failure();
         Assert.False(executed);
     }
 
@@ -77,14 +82,16 @@ public sealed partial class ResultExtensions
     public void Tap_WithFailure_ReturnsOriginalResult()
     {
         // Arrange (Given)
-        var error = new Failure("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
         var tapped = result.Tap(x => { });
 
         // Assert (Then)
-        tapped.ShouldBe().Failure().AndMessage("Test error");
+        tapped.ShouldBe()
+              .Failure()
+              .AndMessage("Test error");
     }
 
     #endregion
@@ -96,16 +103,17 @@ public sealed partial class ResultExtensions
     {
         // Arrange (Given)
         var result = Result.Success(5);
-        var log = new List<int>();
+        var log    = new List<int>();
 
         // Act (When)
         var tapped = result
-            .Tap(x => log.Add(x))
-            .Tap(x => log.Add(x * 2))
-            .Tap(x => log.Add(x * 3));
+                    .Tap(x => log.Add(x))
+                    .Tap(x => log.Add(x * 2))
+                    .Tap(x => log.Add(x * 3));
 
         // Assert (Then)
-        tapped.ShouldBe().Success();
+        tapped.ShouldBe()
+              .Success();
         Assert.Equal(new[] { 5, 10, 15 }, log);
     }
 
@@ -113,17 +121,19 @@ public sealed partial class ResultExtensions
     public void Tap_CanCombineWithOtherOperations()
     {
         // Arrange (Given)
-        var result = Result.Success(5);
+        var result        = Result.Success(5);
         var capturedValue = 0;
 
         // Act (When)
         var final = result
-            .Tap(x => capturedValue = x)
-            .Map(x => x * 2)
-            .Tap(x => capturedValue = x);
+                   .Tap(x => capturedValue = x)
+                   .Map(x => x * 2)
+                   .Tap(x => capturedValue = x);
 
         // Assert (Then)
-        final.ShouldBe().Success().And(value => Assert.Equal(10, value));
+        final.ShouldBe()
+             .Success()
+             .And(value => Assert.Equal(10, value));
         Assert.Equal(10, capturedValue);
     }
 

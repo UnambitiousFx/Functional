@@ -6,7 +6,8 @@ public static partial class ResultExtensions
 {
     /// <param name="result">The result instance.</param>
     /// <typeparam name="TValue">Value type 1.</typeparam>
-    extension<TValue>(Result<TValue> result) where TValue : notnull
+    extension<TValue>(Result<TValue> result)
+        where TValue : notnull
     {
         /// <summary>
         ///     Returns contained values when successful; otherwise provided fallback(s).
@@ -35,8 +36,8 @@ public static partial class ResultExtensions
         public TValue? ValueOrDefault()
         {
             return result.TryGetValue(out var value)
-                ? value
-                : default;
+                       ? value
+                       : default;
         }
 
         /// <summary>

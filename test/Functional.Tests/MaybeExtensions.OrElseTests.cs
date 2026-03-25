@@ -8,7 +8,7 @@ public sealed class MaybeExtensionsOrElseTests
     public void OrElse_WithSome_ReturnsOriginal()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(7);
+        var maybe    = Maybe.Some(7);
         var fallback = Maybe.Some(42);
 
         // Act (When)
@@ -16,15 +16,15 @@ public sealed class MaybeExtensionsOrElseTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(7, v));
+              .Some()
+              .And(v => Assert.Equal(7, v));
     }
 
     [Fact]
     public void OrElse_WithNone_ReturnsFallback()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var fallback = Maybe.Some(42);
 
         // Act (When)
@@ -32,15 +32,15 @@ public sealed class MaybeExtensionsOrElseTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(42, v));
+              .Some()
+              .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
     public void OrElse_WithFactory_WithSome_DoesNotExecuteFactory()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(7);
+        var maybe    = Maybe.Some(7);
         var executed = false;
 
         // Act (When)
@@ -52,8 +52,8 @@ public sealed class MaybeExtensionsOrElseTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(7, v));
+              .Some()
+              .And(v => Assert.Equal(7, v));
         Assert.False(executed);
     }
 
@@ -61,7 +61,7 @@ public sealed class MaybeExtensionsOrElseTests
     public void OrElse_WithFactory_WithNone_ExecutesFactory()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -73,8 +73,8 @@ public sealed class MaybeExtensionsOrElseTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(42, v));
+              .Some()
+              .And(v => Assert.Equal(42, v));
         Assert.True(executed);
     }
 }

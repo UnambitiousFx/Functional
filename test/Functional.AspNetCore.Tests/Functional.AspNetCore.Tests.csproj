@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-    <PackageReference Include="NSubstitute" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
+        <PackageReference Include="NSubstitute"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Functional.AspNetCore\Functional.AspNetCore.csproj" />
-  </ItemGroup>
-  
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Functional.AspNetCore\Functional.AspNetCore.csproj"/>
+    </ItemGroup>
+
 </Project>

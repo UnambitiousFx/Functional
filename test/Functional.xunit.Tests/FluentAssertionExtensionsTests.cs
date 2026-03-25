@@ -1,4 +1,5 @@
 using UnambitiousFx.Functional.Failures;
+using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
@@ -9,7 +10,8 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new ValidationFailure(["Field is required"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var validationAssertion = failureAssertion.WhichIsValidationError();
@@ -24,10 +26,11 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new NotFoundFailure("User", "123"));
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsValidationError());
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIsValidationError());
         Assert.Contains("Expected ValidationError but was NotFoundFailure", exception.Message);
     }
 
@@ -36,7 +39,8 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new NotFoundFailure("User", "123"));
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var notFoundAssertion = failureAssertion.WhichIsNotFoundError();
@@ -51,10 +55,11 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new ValidationFailure(["Invalid"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsNotFoundError());
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIsNotFoundError());
         Assert.Contains("Expected NotFoundError but was ValidationFailure", exception.Message);
     }
 
@@ -63,7 +68,8 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new ConflictFailure("Resource already exists"));
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var conflictAssertion = failureAssertion.WhichIsConflictError();
@@ -78,10 +84,11 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new ValidationFailure(["Invalid"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsConflictError());
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIsConflictError());
         Assert.Contains("Expected ConflictError but was ValidationFailure", exception.Message);
     }
 
@@ -90,7 +97,8 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new UnauthorizedFailure());
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var typedAssertion = failureAssertion.WhichIs<UnauthorizedFailure>();
@@ -105,10 +113,11 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var result = Result.Failure(new ValidationFailure(["Invalid"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIs<UnauthorizedFailure>());
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIs<UnauthorizedFailure>());
         Assert.Contains("Expected UnauthorizedFailure but was ValidationFailure", exception.Message);
     }
 
@@ -117,8 +126,9 @@ public class FluentAssertionExtensionsTests
     {
         // Arrange (Given)
         var customError = new Failure("CUSTOM", "Custom error");
-        var result = Result.Failure(customError);
-        var failureAssertion = result.ShouldBe().Failure();
+        var result      = Result.Failure(customError);
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var typedAssertion = failureAssertion.WhichIs<Failure>();

@@ -15,8 +15,8 @@ public sealed class MaybeExtensionsMapTests
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(10, v));
+              .Some()
+              .And(v => Assert.Equal(10, v));
     }
 
     [Fact]
@@ -30,6 +30,6 @@ public sealed class MaybeExtensionsMapTests
 
         // Assert (Then)
         mapped.ShouldBe()
-            .None();
+              .None();
     }
 }

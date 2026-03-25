@@ -17,7 +17,8 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound("User", "123");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -28,8 +29,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.NotFound);
+              .Failure()
+              .AndCode(ErrorCodes.NotFound);
     }
 
     [Fact]
@@ -40,8 +41,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Resource 'User' with id '123' was not found.");
+              .Failure()
+              .AndMessage("Resource 'User' with id '123' was not found.");
     }
 
     [Fact]
@@ -52,8 +53,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Custom not found message");
+              .Failure()
+              .AndMessage("Custom not found message");
     }
 
     [Fact]
@@ -63,7 +64,7 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound("Product", "abc-123");
 
         // Assert (Then)
-        result.TryGetError(out Failure? error);
+        result.TryGetError(out var error);
         Assert.IsType<NotFoundFailure>(error);
         var notFoundError = (NotFoundFailure)error;
         Assert.Equal("Product", notFoundError.Resource);
@@ -78,8 +79,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .And(error => Assert.Contains("'' with id '123'", error.Message));
+              .Failure()
+              .And(error => Assert.Contains("'' with id '123'", error.Message));
     }
 
     [Fact]
@@ -90,8 +91,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Resource 'User' with id '' was not found.");
+              .Failure()
+              .AndMessage("Resource 'User' with id '' was not found.");
     }
 
     #endregion
@@ -105,7 +106,8 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound<string>("User", "123");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -116,8 +118,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.NotFound);
+              .Failure()
+              .AndCode(ErrorCodes.NotFound);
     }
 
     [Fact]
@@ -128,8 +130,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Resource 'User' with id '123' was not found.");
+              .Failure()
+              .AndMessage("Resource 'User' with id '123' was not found.");
     }
 
     [Fact]
@@ -140,8 +142,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Custom not found message");
+              .Failure()
+              .AndMessage("Custom not found message");
     }
 
     [Fact]
@@ -151,7 +153,7 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound<string>("Product", "abc-123");
 
         // Assert (Then)
-        result.TryGetError(out Failure? error);
+        result.TryGetError(out var error);
         Assert.IsType<NotFoundFailure>(error);
         var notFoundError = (NotFoundFailure)error;
         Assert.Equal("Product", notFoundError.Resource);
@@ -165,7 +167,8 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound<Dictionary<string, object>>("User", "123");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -173,12 +176,12 @@ public sealed class ResultFailNotFoundTests
     {
         // Arrange & Act (Given/When)
         var result = Result.FailNotFound<int>("User", "123")
-            .Recover(_ => 42);
+                           .Recover(_ => 42);
 
         // Assert (Then)
         result.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal(42, value));
+              .Success()
+              .And(value => Assert.Equal(42, value));
     }
 
     #endregion
@@ -193,9 +196,9 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .And(error => Assert.Contains("User@Email", error.Message))
-            .And(error => Assert.Contains("test@example.com", error.Message));
+              .Failure()
+              .And(error => Assert.Contains("User@Email",       error.Message))
+              .And(error => Assert.Contains("test@example.com", error.Message));
     }
 
     [Fact]
@@ -206,8 +209,8 @@ public sealed class ResultFailNotFoundTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Resource 'User' with id '123' was not found.");
+              .Failure()
+              .AndMessage("Resource 'User' with id '123' was not found.");
     }
 
     #endregion

@@ -15,8 +15,8 @@ public sealed class MaybeExtensionsBindTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal("42", v));
+              .Some()
+              .And(v => Assert.Equal("42", v));
     }
 
     [Fact]
@@ -30,14 +30,14 @@ public sealed class MaybeExtensionsBindTests
 
         // Assert (Then)
         result.ShouldBe()
-            .None();
+              .None();
     }
 
     [Fact]
     public void Bind_WithNone_ReturnsNone()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -49,7 +49,7 @@ public sealed class MaybeExtensionsBindTests
 
         // Assert (Then)
         result.ShouldBe()
-            .None();
+              .None();
         Assert.False(executed);
     }
 }

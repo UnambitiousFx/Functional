@@ -56,7 +56,9 @@ public readonly record struct Maybe<TValue> : IMaybe<TValue>
         IsSome = isSome;
     }
 
-    private string DebuggerDisplay => IsSome ? $"Some({_value})" : "None";
+    private string DebuggerDisplay => IsSome
+                                          ? $"Some({_value})"
+                                          : "None";
 
     /// <inheritdoc />
     public bool IsSome { get; }
@@ -65,34 +67,41 @@ public readonly record struct Maybe<TValue> : IMaybe<TValue>
     public bool IsNone => !IsSome;
 
     /// <inheritdoc />
-    public TValue? Case => IsSome ? _value : default;
-
+    public TValue? Case => IsSome
+                               ? _value
+                               : default;
 
     /// <inheritdoc />
     public void IfNone(Action none)
     {
-        if (IsNone) none();
+        if (IsNone) {
+            none();
+        }
     }
 
     /// <inheritdoc />
     public async ValueTask IfNone(Func<ValueTask> none)
     {
-        if (IsNone) await none();
+        if (IsNone) {
+            await none();
+        }
     }
 
     /// <inheritdoc />
     public void IfSome(Action<TValue> some)
     {
-        if (IsSome) some(_value!);
+        if (IsSome) {
+            some(_value!);
+        }
     }
-
 
     /// <inheritdoc />
     public async ValueTask IfSome(Func<TValue, ValueTask> some)
     {
-        if (IsSome) await some(_value!);
+        if (IsSome) {
+            await some(_value!);
+        }
     }
-
 
     /// <inheritdoc />
     public bool Some([NotNullWhen(true)] out TValue? value)
@@ -102,19 +111,24 @@ public readonly record struct Maybe<TValue> : IMaybe<TValue>
     }
 
     /// <inheritdoc />
-    public TOut Match<TOut>(Func<TValue, TOut> some, Func<TOut> none)
+    public TOut Match<TOut>(Func<TValue, TOut> some,
+                            Func<TOut>         none)
     {
-        return IsSome ? some(_value!) : none();
+        return IsSome
+                   ? some(_value!)
+                   : none();
     }
 
-
     /// <inheritdoc />
-    public void Match(Action<TValue> some, Action none)
+    public void Match(Action<TValue> some,
+                      Action         none)
     {
-        if (IsSome)
+        if (IsSome) {
             some(_value!);
-        else
+        }
+        else {
             none();
+        }
     }
 
     /// <summary>
@@ -122,7 +136,8 @@ public readonly record struct Maybe<TValue> : IMaybe<TValue>
     /// </summary>
     /// <param name="some">Action to execute when a value is present.</param>
     /// <param name="none">Action to execute when no value is present.</param>
-    public void Switch(Action<TValue> some, Action none)
+    public void Switch(Action<TValue> some,
+                       Action         none)
     {
         Match(some, none);
     }
@@ -153,6 +168,8 @@ public readonly record struct Maybe<TValue> : IMaybe<TValue>
     /// <returns>A <see cref="Maybe{TValue}" /> instance containing the value.</returns>
     public static implicit operator Maybe<TValue>(TValue? value)
     {
-        return value is null ? None() : Some(value);
+        return value is null
+                   ? None()
+                   : Some(value);
     }
 }

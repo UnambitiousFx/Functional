@@ -18,7 +18,9 @@ public sealed class OneOfTests
         // Assert (Then)
         Assert.True(oneOf.IsFirst);
         Assert.False(oneOf.IsSecond);
-        oneOf.ShouldBe().First().And(v => Assert.Equal(42, v));
+        oneOf.ShouldBe()
+             .First()
+             .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
@@ -33,7 +35,9 @@ public sealed class OneOfTests
         // Assert (Then)
         Assert.False(oneOf.IsFirst);
         Assert.True(oneOf.IsSecond);
-        oneOf.ShouldBe().Second().And(v => Assert.Equal("hello", v));
+        oneOf.ShouldBe()
+             .Second()
+             .And(v => Assert.Equal("hello", v));
     }
 
     [Fact]
@@ -47,7 +51,9 @@ public sealed class OneOfTests
 
         // Assert (Then)
         Assert.True(oneOf.IsFirst);
-        oneOf.ShouldBe().First().And(v => Assert.Equal(42, v));
+        oneOf.ShouldBe()
+             .First()
+             .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
@@ -61,7 +67,9 @@ public sealed class OneOfTests
 
         // Assert (Then)
         Assert.True(oneOf.IsSecond);
-        oneOf.ShouldBe().Second().And(v => Assert.Equal("hello", v));
+        oneOf.ShouldBe()
+             .Second()
+             .And(v => Assert.Equal("hello", v));
     }
 
     [Fact]
@@ -165,7 +173,7 @@ public sealed class OneOfTests
     public void Match_Func_ExecutesCorrectBranch()
     {
         // Arrange (Given)
-        var oneOfFirst = OneOf<int, string>.FromFirst(42);
+        var oneOfFirst  = OneOf<int, string>.FromFirst(42);
         var oneOfSecond = OneOf<int, string>.FromSecond("hello");
 
         // Act (When)
@@ -178,7 +186,7 @@ public sealed class OneOfTests
             second => second);
 
         // Assert (Then)
-        Assert.Equal("42", result1);
+        Assert.Equal("42",    result1);
         Assert.Equal("hello", result2);
     }
 
@@ -186,13 +194,13 @@ public sealed class OneOfTests
     public void Match_Action_WithFirst_ExecutesFirstAction()
     {
         // Arrange (Given)
-        var oneOf = OneOf<int, string>.FromFirst(42);
-        var firstCalled = false;
+        var oneOf        = OneOf<int, string>.FromFirst(42);
+        var firstCalled  = false;
         var secondCalled = false;
 
         // Act (When)
         oneOf.Match(
-            _ => firstCalled = true,
+            _ => firstCalled  = true,
             _ => secondCalled = true);
 
         // Assert (Then)
@@ -204,13 +212,13 @@ public sealed class OneOfTests
     public void Match_Action_WithSecond_ExecutesSecondAction()
     {
         // Arrange (Given)
-        var oneOf = OneOf<int, string>.FromSecond("hello");
-        var firstCalled = false;
+        var oneOf        = OneOf<int, string>.FromSecond("hello");
+        var firstCalled  = false;
         var secondCalled = false;
 
         // Act (When)
         oneOf.Match(
-            _ => firstCalled = true,
+            _ => firstCalled  = true,
             _ => secondCalled = true);
 
         // Assert (Then)
@@ -335,7 +343,7 @@ public sealed class OneOfTests
 
         // Act & Assert (Then)
         Assert.Equal(oneOf1, oneOf2);
-        Assert.True(oneOf1 == oneOf2);
+        Assert.True(oneOf1  == oneOf2);
         Assert.False(oneOf1 != oneOf2);
     }
 
@@ -349,7 +357,7 @@ public sealed class OneOfTests
         // Act & Assert (Then)
         Assert.NotEqual(oneOf1, oneOf2);
         Assert.False(oneOf1 == oneOf2);
-        Assert.True(oneOf1 != oneOf2);
+        Assert.True(oneOf1  != oneOf2);
     }
 
     [Fact]
@@ -362,7 +370,7 @@ public sealed class OneOfTests
         // Act & Assert (Then)
         Assert.NotEqual(oneOf1, oneOf2);
         Assert.False(oneOf1 == oneOf2);
-        Assert.True(oneOf1 != oneOf2);
+        Assert.True(oneOf1  != oneOf2);
     }
 
     [Fact]
@@ -384,7 +392,7 @@ public sealed class OneOfTests
     public void OneOf2_ToString_ReturnsValueString()
     {
         // Arrange (Given)
-        var oneOfFirst = OneOf<int, string>.FromFirst(42);
+        var oneOfFirst  = OneOf<int, string>.FromFirst(42);
         var oneOfSecond = OneOf<int, string>.FromSecond("test");
 
         // Act (When)
@@ -392,7 +400,7 @@ public sealed class OneOfTests
         var str2 = oneOfSecond.ToString();
 
         // Assert (Then)
-        Assert.Equal("42", str1);
+        Assert.Equal("42",   str1);
         Assert.Equal("test", str2);
     }
 
@@ -408,7 +416,9 @@ public sealed class OneOfTests
 
         // Act (When)
         var value = oneOf.MatchByType<bool, int, string, string>(
-            b => b ? "true" : "false",
+            b => b
+                     ? "true"
+                     : "false",
             i => i.ToString(),
             s => s);
 
@@ -648,16 +658,16 @@ public sealed class OneOfTests
     public void OneOf3_Match_Action_WithFirst_ExecutesFirstAction()
     {
         // Arrange (Given)
-        var oneOf = OneOf<int, string, bool>.FromFirst(42);
-        var firstCalled = false;
+        var oneOf        = OneOf<int, string, bool>.FromFirst(42);
+        var firstCalled  = false;
         var secondCalled = false;
-        var thirdCalled = false;
+        var thirdCalled  = false;
 
         // Act (When)
         oneOf.Match(
-            _ => firstCalled = true,
+            _ => firstCalled  = true,
             _ => secondCalled = true,
-            _ => thirdCalled = true);
+            _ => thirdCalled  = true);
 
         // Assert (Then)
         Assert.True(firstCalled);
@@ -669,16 +679,16 @@ public sealed class OneOfTests
     public void OneOf3_Match_Action_WithSecond_ExecutesSecondAction()
     {
         // Arrange (Given)
-        var oneOf = OneOf<int, string, bool>.FromSecond("test");
-        var firstCalled = false;
+        var oneOf        = OneOf<int, string, bool>.FromSecond("test");
+        var firstCalled  = false;
         var secondCalled = false;
-        var thirdCalled = false;
+        var thirdCalled  = false;
 
         // Act (When)
         oneOf.Match(
-            _ => firstCalled = true,
+            _ => firstCalled  = true,
             _ => secondCalled = true,
-            _ => thirdCalled = true);
+            _ => thirdCalled  = true);
 
         // Assert (Then)
         Assert.False(firstCalled);
@@ -690,16 +700,16 @@ public sealed class OneOfTests
     public void OneOf3_Match_Action_WithThird_ExecutesThirdAction()
     {
         // Arrange (Given)
-        var oneOf = OneOf<int, string, bool>.FromThird(true);
-        var firstCalled = false;
+        var oneOf        = OneOf<int, string, bool>.FromThird(true);
+        var firstCalled  = false;
         var secondCalled = false;
-        var thirdCalled = false;
+        var thirdCalled  = false;
 
         // Act (When)
         oneOf.Match(
-            _ => firstCalled = true,
+            _ => firstCalled  = true,
             _ => secondCalled = true,
-            _ => thirdCalled = true);
+            _ => thirdCalled  = true);
 
         // Assert (Then)
         Assert.False(firstCalled);
@@ -716,7 +726,7 @@ public sealed class OneOfTests
 
         // Act & Assert (Then)
         Assert.Equal(oneOf1, oneOf2);
-        Assert.True(oneOf1 == oneOf2);
+        Assert.True(oneOf1  == oneOf2);
         Assert.False(oneOf1 != oneOf2);
     }
 
@@ -739,9 +749,9 @@ public sealed class OneOfTests
     public void OneOf3_ToString_ReturnsValueString()
     {
         // Arrange (Given)
-        var oneOfFirst = OneOf<int, string, bool>.FromFirst(42);
+        var oneOfFirst  = OneOf<int, string, bool>.FromFirst(42);
         var oneOfSecond = OneOf<int, string, bool>.FromSecond("hello");
-        var oneOfThird = OneOf<int, string, bool>.FromThird(false);
+        var oneOfThird  = OneOf<int, string, bool>.FromThird(false);
 
         // Act (When)
         var str1 = oneOfFirst.ToString();
@@ -749,7 +759,7 @@ public sealed class OneOfTests
         var str3 = oneOfThird.ToString();
 
         // Assert (Then)
-        Assert.Equal("42", str1);
+        Assert.Equal("42",    str1);
         Assert.Equal("hello", str2);
         Assert.Equal("False", str3);
     }
@@ -768,7 +778,9 @@ public sealed class OneOfTests
         var value = oneOf.MatchByType<double, string, bool, int, string>(
             d => d.ToString("0.0"),
             s => s,
-            b => b ? "true" : "false",
+            b => b
+                     ? "true"
+                     : "false",
             i => i.ToString());
 
         // Assert (Then)
@@ -987,7 +999,7 @@ public sealed class OneOfTests
 
         // Act (When)
         var secondResult = oneOf.TryGetSecond(out var secondValue);
-        var thirdResult = oneOf.TryGetThird(out var thirdValue);
+        var thirdResult  = oneOf.TryGetThird(out var thirdValue);
         var fourthResult = oneOf.TryGetFourth(out var fourthValue);
 
         // Assert (Then)
@@ -1768,7 +1780,7 @@ public sealed class OneOfTests
     public void OneOf7_Match_Func_ExecutesCorrectBranch()
     {
         // Arrange (Given)
-        var oneOfFirst = OneOf<int, string, bool, double, float, long, byte>.FromFirst(1);
+        var oneOfFirst   = OneOf<int, string, bool, double, float, long, byte>.FromFirst(1);
         var oneOfSeventh = OneOf<int, string, bool, double, float, long, byte>.FromSeventh(7);
 
         // Act (When)
@@ -1827,10 +1839,10 @@ public sealed class OneOfTests
 
         // Assert (Then)
         Assert.True(oneOf2.IsSecond && oneOf2.TryGetSecond(out var v2) && v2 == "test");
-        Assert.True(oneOf3.IsThird && oneOf3.TryGetThird(out var v3) && v3);
-        Assert.True(oneOf4.IsFourth && oneOf4.TryGetFourth(out var v4) && Math.Abs(v4 - 1.1) < 0.001);
-        Assert.True(oneOf5.IsFifth && oneOf5.TryGetFifth(out var v5) && Math.Abs(v5 - 2.2f) < 0.001f);
-        Assert.True(oneOf6.IsSixth && oneOf6.TryGetSixth(out var v6) && v6 == 100L);
+        Assert.True(oneOf3.IsThird  && oneOf3.TryGetThird(out var v3)  && v3);
+        Assert.True(oneOf4.IsFourth && oneOf4.TryGetFourth(out var v4) && Math.Abs(v4 - 1.1)  < 0.001);
+        Assert.True(oneOf5.IsFifth  && oneOf5.TryGetFifth(out var v5)  && Math.Abs(v5 - 2.2f) < 0.001f);
+        Assert.True(oneOf6.IsSixth  && oneOf6.TryGetSixth(out var v6)  && v6                  == 100L);
     }
 
     [Fact]
@@ -1847,8 +1859,7 @@ public sealed class OneOfTests
         };
 
         // Act & Assert (Then)
-        foreach (var (oneOf, expected) in oneOfs)
-        {
+        foreach (var (oneOf, expected) in oneOfs) {
             var result = oneOf.Match(f => 1, s => 2, t => 3, fo => 4, fi => 5, si => 6, se => 7);
             Assert.Equal(expected, result);
         }
@@ -1867,23 +1878,23 @@ public sealed class OneOfTests
         // Act (When)
         var calls2 = new List<int>();
         oneOf2.Match(_ => calls2.Add(1), _ => calls2.Add(2), _ => calls2.Add(3), _ => calls2.Add(4), _ => calls2.Add(5),
-            _ => calls2.Add(6), _ => calls2.Add(7));
+                     _ => calls2.Add(6), _ => calls2.Add(7));
 
         var calls3 = new List<int>();
         oneOf3.Match(_ => calls3.Add(1), _ => calls3.Add(2), _ => calls3.Add(3), _ => calls3.Add(4), _ => calls3.Add(5),
-            _ => calls3.Add(6), _ => calls3.Add(7));
+                     _ => calls3.Add(6), _ => calls3.Add(7));
 
         var calls4 = new List<int>();
         oneOf4.Match(_ => calls4.Add(1), _ => calls4.Add(2), _ => calls4.Add(3), _ => calls4.Add(4), _ => calls4.Add(5),
-            _ => calls4.Add(6), _ => calls4.Add(7));
+                     _ => calls4.Add(6), _ => calls4.Add(7));
 
         var calls5 = new List<int>();
         oneOf5.Match(_ => calls5.Add(1), _ => calls5.Add(2), _ => calls5.Add(3), _ => calls5.Add(4), _ => calls5.Add(5),
-            _ => calls5.Add(6), _ => calls5.Add(7));
+                     _ => calls5.Add(6), _ => calls5.Add(7));
 
         var calls6 = new List<int>();
         oneOf6.Match(_ => calls6.Add(1), _ => calls6.Add(2), _ => calls6.Add(3), _ => calls6.Add(4), _ => calls6.Add(5),
-            _ => calls6.Add(6), _ => calls6.Add(7));
+                     _ => calls6.Add(6), _ => calls6.Add(7));
 
         // Assert (Then)
         Assert.Equal(new[] { 2 }, calls2);
@@ -1942,7 +1953,7 @@ public sealed class OneOfTests
     public void OneOf8_Match_Func_ExecutesCorrectBranch()
     {
         // Arrange (Given)
-        var oneOfFirst = OneOf<int, string, bool, double, float, long, byte, char>.FromFirst(1);
+        var oneOfFirst  = OneOf<int, string, bool, double, float, long, byte, char>.FromFirst(1);
         var oneOfEighth = OneOf<int, string, bool, double, float, long, byte, char>.FromEighth('A');
 
         // Act (When)
@@ -2002,12 +2013,12 @@ public sealed class OneOfTests
         var oneOf7 = OneOf<int, string, bool, double, float, long, byte, char>.FromSeventh(128);
 
         // Assert (Then)
-        Assert.True(oneOf2.IsSecond && oneOf2.TryGetSecond(out var v2) && v2 == "test");
-        Assert.True(oneOf3.IsThird && oneOf3.TryGetThird(out var v3) && v3);
-        Assert.True(oneOf4.IsFourth && oneOf4.TryGetFourth(out var v4) && Math.Abs(v4 - 1.1) < 0.001);
-        Assert.True(oneOf5.IsFifth && oneOf5.TryGetFifth(out var v5) && Math.Abs(v5 - 2.2f) < 0.001f);
-        Assert.True(oneOf6.IsSixth && oneOf6.TryGetSixth(out var v6) && v6 == 100L);
-        Assert.True(oneOf7.IsSeventh && oneOf7.TryGetSeventh(out var v7) && v7 == 128);
+        Assert.True(oneOf2.IsSecond  && oneOf2.TryGetSecond(out var v2)  && v2 == "test");
+        Assert.True(oneOf3.IsThird   && oneOf3.TryGetThird(out var v3)   && v3);
+        Assert.True(oneOf4.IsFourth  && oneOf4.TryGetFourth(out var v4)  && Math.Abs(v4 - 1.1)  < 0.001);
+        Assert.True(oneOf5.IsFifth   && oneOf5.TryGetFifth(out var v5)   && Math.Abs(v5 - 2.2f) < 0.001f);
+        Assert.True(oneOf6.IsSixth   && oneOf6.TryGetSixth(out var v6)   && v6                  == 100L);
+        Assert.True(oneOf7.IsSeventh && oneOf7.TryGetSeventh(out var v7) && v7                  == 128);
     }
 
     [Fact]
@@ -2025,8 +2036,7 @@ public sealed class OneOfTests
         };
 
         // Act & Assert (Then)
-        foreach (var (oneOf, expected) in oneOfs)
-        {
+        foreach (var (oneOf, expected) in oneOfs) {
             var result = oneOf.Match(f => 1, s => 2, t => 3, fo => 4, fi => 5, si => 6, se => 7, ei => 8);
             Assert.Equal(expected, result);
         }
@@ -2046,27 +2056,27 @@ public sealed class OneOfTests
         // Act (When)
         var calls2 = new List<int>();
         oneOf2.Match(_ => calls2.Add(1), _ => calls2.Add(2), _ => calls2.Add(3), _ => calls2.Add(4), _ => calls2.Add(5),
-            _ => calls2.Add(6), _ => calls2.Add(7), _ => calls2.Add(8));
+                     _ => calls2.Add(6), _ => calls2.Add(7), _ => calls2.Add(8));
 
         var calls3 = new List<int>();
         oneOf3.Match(_ => calls3.Add(1), _ => calls3.Add(2), _ => calls3.Add(3), _ => calls3.Add(4), _ => calls3.Add(5),
-            _ => calls3.Add(6), _ => calls3.Add(7), _ => calls3.Add(8));
+                     _ => calls3.Add(6), _ => calls3.Add(7), _ => calls3.Add(8));
 
         var calls4 = new List<int>();
         oneOf4.Match(_ => calls4.Add(1), _ => calls4.Add(2), _ => calls4.Add(3), _ => calls4.Add(4), _ => calls4.Add(5),
-            _ => calls4.Add(6), _ => calls4.Add(7), _ => calls4.Add(8));
+                     _ => calls4.Add(6), _ => calls4.Add(7), _ => calls4.Add(8));
 
         var calls5 = new List<int>();
         oneOf5.Match(_ => calls5.Add(1), _ => calls5.Add(2), _ => calls5.Add(3), _ => calls5.Add(4), _ => calls5.Add(5),
-            _ => calls5.Add(6), _ => calls5.Add(7), _ => calls5.Add(8));
+                     _ => calls5.Add(6), _ => calls5.Add(7), _ => calls5.Add(8));
 
         var calls6 = new List<int>();
         oneOf6.Match(_ => calls6.Add(1), _ => calls6.Add(2), _ => calls6.Add(3), _ => calls6.Add(4), _ => calls6.Add(5),
-            _ => calls6.Add(6), _ => calls6.Add(7), _ => calls6.Add(8));
+                     _ => calls6.Add(6), _ => calls6.Add(7), _ => calls6.Add(8));
 
         var calls7 = new List<int>();
         oneOf7.Match(_ => calls7.Add(1), _ => calls7.Add(2), _ => calls7.Add(3), _ => calls7.Add(4), _ => calls7.Add(5),
-            _ => calls7.Add(6), _ => calls7.Add(7), _ => calls7.Add(8));
+                     _ => calls7.Add(6), _ => calls7.Add(7), _ => calls7.Add(8));
 
         // Assert (Then)
         Assert.Equal(new[] { 2 }, calls2);
@@ -2749,15 +2759,15 @@ public sealed class OneOfTests
 
         // Act (When)
         var result1 = oneOfFirst.Match(f => 1, s => 2, t => 3, fo => 4, fi => 5, si => 6, se => 7, ei => 8, ni => 9,
-            te => 10);
+                                       te => 10);
         var result5 = oneOfFifth.Match(f => 1, s => 2, t => 3, fo => 4, fi => 5, si => 6, se => 7, ei => 8, ni => 9,
-            te => 10);
+                                       te => 10);
         var result10 = oneOfTenth.Match(f => 1, s => 2, t => 3, fo => 4, fi => 5, si => 6, se => 7, ei => 8, ni => 9,
-            te => 10);
+                                        te => 10);
 
         // Assert (Then)
-        Assert.Equal(1, result1);
-        Assert.Equal(5, result5);
+        Assert.Equal(1,  result1);
+        Assert.Equal(5,  result5);
         Assert.Equal(10, result10);
     }
 
@@ -2846,14 +2856,14 @@ public sealed class OneOfTests
         var oneOf9 = OneOf<int, string, bool, double, float, long, byte, char, short, decimal>.FromNinth(500);
 
         // Assert (Then)
-        Assert.True(oneOf2.IsSecond && oneOf2.TryGetSecond(out var v2) && v2 == "test");
-        Assert.True(oneOf3.IsThird && oneOf3.TryGetThird(out var v3) && v3);
-        Assert.True(oneOf4.IsFourth && oneOf4.TryGetFourth(out var v4) && Math.Abs(v4 - 1.1) < 0.001);
-        Assert.True(oneOf5.IsFifth && oneOf5.TryGetFifth(out var v5) && Math.Abs(v5 - 2.2f) < 0.001f);
-        Assert.True(oneOf6.IsSixth && oneOf6.TryGetSixth(out var v6) && v6 == 100L);
-        Assert.True(oneOf7.IsSeventh && oneOf7.TryGetSeventh(out var v7) && v7 == 128);
-        Assert.True(oneOf8.IsEighth && oneOf8.TryGetEighth(out var v8) && v8 == 'X');
-        Assert.True(oneOf9.IsNinth && oneOf9.TryGetNinth(out var v9) && v9 == 500);
+        Assert.True(oneOf2.IsSecond  && oneOf2.TryGetSecond(out var v2)  && v2 == "test");
+        Assert.True(oneOf3.IsThird   && oneOf3.TryGetThird(out var v3)   && v3);
+        Assert.True(oneOf4.IsFourth  && oneOf4.TryGetFourth(out var v4)  && Math.Abs(v4 - 1.1)  < 0.001);
+        Assert.True(oneOf5.IsFifth   && oneOf5.TryGetFifth(out var v5)   && Math.Abs(v5 - 2.2f) < 0.001f);
+        Assert.True(oneOf6.IsSixth   && oneOf6.TryGetSixth(out var v6)   && v6                  == 100L);
+        Assert.True(oneOf7.IsSeventh && oneOf7.TryGetSeventh(out var v7) && v7                  == 128);
+        Assert.True(oneOf8.IsEighth  && oneOf8.TryGetEighth(out var v8)  && v8                  == 'X');
+        Assert.True(oneOf9.IsNinth   && oneOf9.TryGetNinth(out var v9)   && v9                  == 500);
     }
 
     [Fact]
@@ -2872,10 +2882,9 @@ public sealed class OneOfTests
         };
 
         // Act & Assert (Then)
-        foreach (var (oneOf, expected) in oneOfs)
-        {
+        foreach (var (oneOf, expected) in oneOfs) {
             var result = oneOf.Match(f => 1, s => 2, t => 3, fo => 4, fi => 5, si => 6, se => 7, ei => 8, ni => 9,
-                te => 10);
+                                     te => 10);
             Assert.Equal(expected, result);
         }
     }
@@ -2895,31 +2904,31 @@ public sealed class OneOfTests
         // Act (When)
         var calls2 = new List<int>();
         oneOf2.Match(_ => calls2.Add(1), _ => calls2.Add(2), _ => calls2.Add(3), _ => calls2.Add(4), _ => calls2.Add(5),
-            _ => calls2.Add(6), _ => calls2.Add(7), _ => calls2.Add(8), _ => calls2.Add(9), _ => calls2.Add(10));
+                     _ => calls2.Add(6), _ => calls2.Add(7), _ => calls2.Add(8), _ => calls2.Add(9), _ => calls2.Add(10));
 
         var calls3 = new List<int>();
         oneOf3.Match(_ => calls3.Add(1), _ => calls3.Add(2), _ => calls3.Add(3), _ => calls3.Add(4), _ => calls3.Add(5),
-            _ => calls3.Add(6), _ => calls3.Add(7), _ => calls3.Add(8), _ => calls3.Add(9), _ => calls3.Add(10));
+                     _ => calls3.Add(6), _ => calls3.Add(7), _ => calls3.Add(8), _ => calls3.Add(9), _ => calls3.Add(10));
 
         var calls4 = new List<int>();
         oneOf4.Match(_ => calls4.Add(1), _ => calls4.Add(2), _ => calls4.Add(3), _ => calls4.Add(4), _ => calls4.Add(5),
-            _ => calls4.Add(6), _ => calls4.Add(7), _ => calls4.Add(8), _ => calls4.Add(9), _ => calls4.Add(10));
+                     _ => calls4.Add(6), _ => calls4.Add(7), _ => calls4.Add(8), _ => calls4.Add(9), _ => calls4.Add(10));
 
         var calls6 = new List<int>();
         oneOf6.Match(_ => calls6.Add(1), _ => calls6.Add(2), _ => calls6.Add(3), _ => calls6.Add(4), _ => calls6.Add(5),
-            _ => calls6.Add(6), _ => calls6.Add(7), _ => calls6.Add(8), _ => calls6.Add(9), _ => calls6.Add(10));
+                     _ => calls6.Add(6), _ => calls6.Add(7), _ => calls6.Add(8), _ => calls6.Add(9), _ => calls6.Add(10));
 
         var calls7 = new List<int>();
         oneOf7.Match(_ => calls7.Add(1), _ => calls7.Add(2), _ => calls7.Add(3), _ => calls7.Add(4), _ => calls7.Add(5),
-            _ => calls7.Add(6), _ => calls7.Add(7), _ => calls7.Add(8), _ => calls7.Add(9), _ => calls7.Add(10));
+                     _ => calls7.Add(6), _ => calls7.Add(7), _ => calls7.Add(8), _ => calls7.Add(9), _ => calls7.Add(10));
 
         var calls8 = new List<int>();
         oneOf8.Match(_ => calls8.Add(1), _ => calls8.Add(2), _ => calls8.Add(3), _ => calls8.Add(4), _ => calls8.Add(5),
-            _ => calls8.Add(6), _ => calls8.Add(7), _ => calls8.Add(8), _ => calls8.Add(9), _ => calls8.Add(10));
+                     _ => calls8.Add(6), _ => calls8.Add(7), _ => calls8.Add(8), _ => calls8.Add(9), _ => calls8.Add(10));
 
         var calls9 = new List<int>();
         oneOf9.Match(_ => calls9.Add(1), _ => calls9.Add(2), _ => calls9.Add(3), _ => calls9.Add(4), _ => calls9.Add(5),
-            _ => calls9.Add(6), _ => calls9.Add(7), _ => calls9.Add(8), _ => calls9.Add(9), _ => calls9.Add(10));
+                     _ => calls9.Add(6), _ => calls9.Add(7), _ => calls9.Add(8), _ => calls9.Add(9), _ => calls9.Add(10));
 
         // Assert (Then)
         Assert.Equal(new[] { 2 }, calls2);
@@ -2935,15 +2944,15 @@ public sealed class OneOfTests
     public void OneOf10_ImplicitConversions_AllPositions_CreateCorrectly()
     {
         // Arrange (Given) & Act (When)
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf1 = 1;
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf2 = "s";
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf3 = true;
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf4 = 4.0;
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf5 = 5f;
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf6 = 6L;
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf7 = (byte)7;
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf8 = 'Z';
-        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf9 = (short)9;
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf1  = 1;
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf2  = "s";
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf3  = true;
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf4  = 4.0;
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf5  = 5f;
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf6  = 6L;
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf7  = (byte)7;
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf8  = 'Z';
+        OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf9  = (short)9;
         OneOf<int, string, bool, double, float, long, byte, char, short, decimal> oneOf10 = 10m;
 
         // Assert (Then)

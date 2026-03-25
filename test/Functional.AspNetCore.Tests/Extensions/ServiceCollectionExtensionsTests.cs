@@ -54,24 +54,23 @@ public class ServiceCollectionExtensionsTests
         // Act (When)
         services.AddResultHttp();
         var provider = services.BuildServiceProvider();
-        var mapper = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
 
         // Assert (Then)
         Assert.IsType<DefaultErrorHttpMapper>(mapper);
     }
 
-
     [Fact(DisplayName = "AddResultHttp with custom mapper registers composite mapper")]
     public void AddResultHttp_WithCustomMapper_RegistersCompositeMapper()
     {
         // Arrange (Given)
-        var services = new ServiceCollection();
+        var services     = new ServiceCollection();
         var customMapper = Substitute.For<IErrorHttpMapper>();
 
         // Act (When)
         services.AddResultHttp(options => { options.AddMapper(customMapper); });
         var provider = services.BuildServiceProvider();
-        var mapper = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
 
         // Assert (Then)
         Assert.IsType<CompositeErrorHttpMapper>(mapper);
@@ -81,7 +80,7 @@ public class ServiceCollectionExtensionsTests
     public void AddResultHttp_WithMultipleCustomMappers_RegistersCompositeMapper()
     {
         // Arrange (Given)
-        var services = new ServiceCollection();
+        var services      = new ServiceCollection();
         var customMapper1 = Substitute.For<IErrorHttpMapper>();
         var customMapper2 = Substitute.For<IErrorHttpMapper>();
 
@@ -92,7 +91,7 @@ public class ServiceCollectionExtensionsTests
             options.AddMapper(customMapper2);
         });
         var provider = services.BuildServiceProvider();
-        var mapper = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
 
         // Assert (Then)
         Assert.IsType<CompositeErrorHttpMapper>(mapper);
@@ -121,10 +120,10 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         services.AddResultHttp(options => { options.IncludeExceptionDetails = true; });
         var provider = services.BuildServiceProvider();
-        var mapper = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
 
         // Act (When)
-        var error = new ExceptionalFailure(new Exception("Test exception"));
+        var error    = new ExceptionalFailure(new Exception("Test exception"));
         var response = mapper.GetErrorResponse(error);
 
         // Assert (Then)
@@ -143,7 +142,8 @@ public class ServiceCollectionExtensionsTests
 
         // Assert (Then)
         var provider = services.BuildServiceProvider();
-        var mappers = provider.GetServices<IErrorHttpMapper>().ToList();
+        var mappers = provider.GetServices<IErrorHttpMapper>()
+                              .ToList();
         Assert.Equal(2, mappers.Count);
     }
 
@@ -156,7 +156,7 @@ public class ServiceCollectionExtensionsTests
         // Act (When)
         services.AddResultHttp();
         var provider = services.BuildServiceProvider();
-        var mapper = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
 
         // Assert (Then)
         Assert.IsType<DefaultErrorHttpMapper>(mapper);
@@ -179,12 +179,12 @@ public class ServiceCollectionExtensionsTests
         });
 
         var provider = services.BuildServiceProvider();
-        var policy1 = provider.GetRequiredService<ResultHttpAdapterPolicy>();
-        var policy2 = provider.GetRequiredService<ResultHttpAdapterPolicy>();
+        var policy1  = provider.GetRequiredService<ResultHttpAdapterPolicy>();
+        var policy2  = provider.GetRequiredService<ResultHttpAdapterPolicy>();
 
         // Assert (Then)
         Assert.Same(policy1, policy2);
-        Assert.Equal(ResultSuccessHttpBehavior.Ok, policy1.ResultSuccessBehavior);
+        Assert.Equal(ResultSuccessHttpBehavior.Ok,    policy1.ResultSuccessBehavior);
         Assert.Equal(MaybeNoneHttpBehavior.NoContent, policy1.MaybeNoneBehavior);
     }
 }

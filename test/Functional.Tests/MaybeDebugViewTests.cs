@@ -32,7 +32,7 @@ public sealed class MaybeDebugViewTests
     public void IsSome_WithSome_ReturnsTrue()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe     = Maybe.Some(42);
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -46,7 +46,7 @@ public sealed class MaybeDebugViewTests
     public void IsSome_WithNone_ReturnsFalse()
     {
         // Arrange (Given)
-        var maybe = Maybe<int>.None();
+        var maybe     = Maybe<int>.None();
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -60,7 +60,7 @@ public sealed class MaybeDebugViewTests
     public void IsNone_WithNone_ReturnsTrue()
     {
         // Arrange (Given)
-        var maybe = Maybe<int>.None();
+        var maybe     = Maybe<int>.None();
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -74,7 +74,7 @@ public sealed class MaybeDebugViewTests
     public void IsNone_WithSome_ReturnsFalse()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe     = Maybe.Some(42);
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -88,7 +88,7 @@ public sealed class MaybeDebugViewTests
     public void HasValue_WithSome_ReturnsTrue()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe     = Maybe.Some(42);
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -102,7 +102,7 @@ public sealed class MaybeDebugViewTests
     public void HasValue_WithNone_ReturnsFalse()
     {
         // Arrange (Given)
-        var maybe = Maybe<int>.None();
+        var maybe     = Maybe<int>.None();
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -116,7 +116,7 @@ public sealed class MaybeDebugViewTests
     public void Value_WithSome_ReturnsValue()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe     = Maybe.Some(42);
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -130,7 +130,7 @@ public sealed class MaybeDebugViewTests
     public void Value_WithNone_ReturnsDefault()
     {
         // Arrange (Given)
-        var maybe = Maybe<int>.None();
+        var maybe     = Maybe<int>.None();
         var debugView = new MaybeDebugView<int>(maybe);
 
         // Act (When)
@@ -144,7 +144,7 @@ public sealed class MaybeDebugViewTests
     public void Value_WithReferenceType_ReturnsCorrectValue()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some("test");
+        var maybe     = Maybe.Some("test");
         var debugView = new MaybeDebugView<string>(maybe);
 
         // Act (When)
@@ -158,7 +158,7 @@ public sealed class MaybeDebugViewTests
     public void Value_WithNoneReferenceType_ReturnsNull()
     {
         // Arrange (Given)
-        var maybe = Maybe<string>.None();
+        var maybe     = Maybe<string>.None();
         var debugView = new MaybeDebugView<string>(maybe);
 
         // Act (When)

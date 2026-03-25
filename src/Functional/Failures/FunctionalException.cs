@@ -9,11 +9,11 @@ public sealed class FunctionalException : Exception
     ///     Initializes a new instance of the <see cref="FunctionalException" /> class with an error.
     /// </summary>
     /// <param name="failure">The error to wrap.</param>
-    public FunctionalException(IFailure failure) : base(failure.Message)
+    public FunctionalException(IFailure failure)
+        : base(failure.Message)
     {
         Code = failure.Code;
-        foreach (var (key, value) in failure.Metadata)
-        {
+        foreach (var (key, value) in failure.Metadata) {
             Data.Add(key, value);
         }
     }

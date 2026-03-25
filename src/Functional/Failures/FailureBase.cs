@@ -14,15 +14,15 @@ public abstract record FailureBase : IFailure
     /// <param name="code">The machine-readable error code.</param>
     /// <param name="message">The human-readable error message.</param>
     /// <param name="metadata">Optional metadata associated with the error.</param>
-    protected FailureBase(string code,
-        string message,
-        IReadOnlyDictionary<string, object?>? metadata = null)
+    protected FailureBase(string                                code,
+                          string                                message,
+                          IReadOnlyDictionary<string, object?>? metadata = null)
     {
-        Code = code;
+        Code    = code;
         Message = message;
         Metadata = metadata is null || metadata.Count == 0
-            ? Metadata.Empty
-            : new Metadata(metadata);
+                       ? Metadata.Empty
+                       : new Metadata(metadata);
     }
 
     /// <summary>
@@ -46,14 +46,13 @@ public abstract record FailureBase : IFailure
     /// <param name="left">The left metadata dictionary, may be null.</param>
     /// <param name="right">The right metadata collection to merge.</param>
     /// <returns>A merged dictionary containing all entries.</returns>
-    protected static IReadOnlyDictionary<string, object?> Merge(IReadOnlyDictionary<string, object?>? left,
-        IEnumerable<KeyValuePair<string, object?>> right)
+    protected static IReadOnlyDictionary<string, object?> Merge(IReadOnlyDictionary<string, object?>?      left,
+                                                                IEnumerable<KeyValuePair<string, object?>> right)
     {
         var d = left is null
-            ? new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
-            : new Dictionary<string, object?>(left, StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in right)
-        {
+                    ? new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+                    : new Dictionary<string, object?>(left, StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in right) {
             d[kv.Key] = kv.Value;
         }
 

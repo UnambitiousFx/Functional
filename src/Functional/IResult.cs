@@ -38,7 +38,8 @@ public interface IResult<TValue> : IResult
     /// <param name="value">When this method returns true, contains the value of the result; otherwise, null.</param>
     /// <param name="error">When this method returns false, contains the error of the result; otherwise, null.</param>
     /// <returns>True if the result is successful and contains a value; otherwise, false.</returns>
-    bool TryGet([NotNullWhen(true)] out TValue? value, [NotNullWhen(false)] out Failure? error);
+    bool TryGet([NotNullWhen(true)] out  TValue?  value,
+                [NotNullWhen(false)] out Failure? error);
 
     /// <summary>
     ///     Attempts to retrieve the value from a successful result.

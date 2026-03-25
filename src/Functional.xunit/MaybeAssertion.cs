@@ -13,7 +13,8 @@ namespace UnambitiousFx.Functional.xunit;
 ///     This type must be non-nullable.
 /// </typeparam>
 [DebuggerStepThrough]
-public readonly struct MaybeAssertion<TValue> where TValue : notnull
+public readonly struct MaybeAssertion<TValue>
+    where TValue : notnull
 {
     private readonly Maybe<TValue> _maybe;
 
@@ -36,8 +37,7 @@ public readonly struct MaybeAssertion<TValue> where TValue : notnull
     /// </returns>
     public SomeAssertion<TValue> Some()
     {
-        if (!_maybe.Some(out var value))
-        {
+        if (!_maybe.Some(out var value)) {
             Assert.Fail("Expected Option.Some but was None.");
         }
 
@@ -50,8 +50,7 @@ public readonly struct MaybeAssertion<TValue> where TValue : notnull
     /// <returns>An instance of <see cref="NoneAssertion" /> for chaining further none-specific assertions.</returns>
     public NoneAssertion None()
     {
-        if (_maybe.IsSome)
-        {
+        if (_maybe.IsSome) {
             Assert.Fail("Expected Option.None but was Some.");
         }
 

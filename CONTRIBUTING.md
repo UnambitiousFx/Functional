@@ -1,10 +1,12 @@
 # Contributing to UnambitiousFx.Functional
 
-First off, thank you for considering contributing to UnambitiousFx.Functional! It's people like you that make this library better for everyone.
+First off, thank you for considering contributing to UnambitiousFx.Functional! It's people like you that make this
+library better for everyone.
 
 ## Code of Conduct
 
-This project and everyone participating in it is expected to uphold our values of respect, inclusivity, and professionalism. We expect all contributors to:
+This project and everyone participating in it is expected to uphold our values of respect, inclusivity, and
+professionalism. We expect all contributors to:
 
 - Be respectful and considerate in communication
 - Accept constructive criticism gracefully
@@ -15,9 +17,11 @@ This project and everyone participating in it is expected to uphold our values o
 
 ### Reporting Bugs
 
-Before creating a bug report, please check existing issues to avoid duplicates. When creating a bug report, include as many details as possible:
+Before creating a bug report, please check existing issues to avoid duplicates. When creating a bug report, include as
+many details as possible:
 
 **Use the bug report template** which includes:
+
 - A clear and descriptive title
 - Steps to reproduce the behavior
 - Expected behavior vs actual behavior
@@ -29,6 +33,7 @@ Before creating a bug report, please check existing issues to avoid duplicates. 
 Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion:
 
 **Use the feature request template** which includes:
+
 - A clear description of the feature
 - The use case or problem it solves
 - Proposed solution or API design
@@ -51,18 +56,19 @@ We actively welcome your pull requests! Here's how to submit one:
 
 - **Branch naming**: Use descriptive names like `feature/add-retry-logic` or `bugfix/null-reference-in-bind`
 - **Commit messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/)
-  - `feat:` for new features
-  - `fix:` for bug fixes
-  - `docs:` for documentation changes
-  - `test:` for test changes
-  - `refactor:` for code refactoring
-  - `perf:` for performance improvements
-  - `chore:` for maintenance tasks
+    - `feat:` for new features
+    - `fix:` for bug fixes
+    - `docs:` for documentation changes
+    - `test:` for test changes
+    - `refactor:` for code refactoring
+    - `perf:` for performance improvements
+    - `chore:` for maintenance tasks
 - **Keep PRs focused**: One feature or fix per PR
 - **Update CHANGELOG.md**: Add your changes under the `[Unreleased]` section
 - **Link related issues**: Reference issues in your PR description
 
 Example commit message:
+
 ```
 feat: add Retry extension method for Result<T>
 
@@ -77,7 +83,9 @@ Closes #123
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) or later
-- An IDE: [JetBrains Rider](https://www.jetbrains.com/rider/), [Visual Studio 2022](https://visualstudio.microsoft.com/), or [VS Code](https://code.visualstudio.com/)
+- An
+  IDE: [JetBrains Rider](https://www.jetbrains.com/rider/), [Visual Studio 2022](https://visualstudio.microsoft.com/),
+  or [VS Code](https://code.visualstudio.com/)
 - Git for version control
 
 ### Getting Started
@@ -133,13 +141,14 @@ Functional/
 We use `.editorconfig` to enforce consistent code style. Your IDE should automatically respect these settings.
 
 Key conventions:
+
 - **Indentation**: 4 spaces (no tabs)
 - **Braces**: Always use braces for control flow, even single statements
 - **Naming**:
-  - PascalCase for public members, types, and methods
-  - camelCase for parameters and local variables
-  - _camelCase for private fields
-  - IPascalCase for interfaces
+    - PascalCase for public members, types, and methods
+    - camelCase for parameters and local variables
+    - _camelCase for private fields
+    - IPascalCase for interfaces
 - **Namespaces**: Use file-scoped namespaces (`namespace UnambitiousFx.Functional;`)
 - **Usings**: Place outside namespace, sort System directives first
 - **Modern C# features**: Use modern syntax (pattern matching, records, collection expressions, etc.)
@@ -153,6 +162,7 @@ Key conventions:
 - Use proper grammar and punctuation
 
 Example:
+
 ```csharp
 /// <summary>
 ///     Transforms the success value of a result using the specified function.
@@ -185,6 +195,7 @@ public static Result<TOut> Map<TIn, TOut>(
 - **Aim for high coverage**: Minimum 80% line coverage
 
 Example:
+
 ```csharp
 [Fact]
 public void Map_WithSuccessResult_TransformsValue()
@@ -283,11 +294,13 @@ Compare results before and after your changes.
 
 ## License
 
-By contributing to UnambitiousFx.Functional, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing to UnambitiousFx.Functional, you agree that your contributions will be licensed under
+the [MIT License](LICENSE).
 
 ## Questions?
 
 Feel free to:
+
 - Open a [Discussion](https://github.com/UnambitiousFx/Functional/discussions) for questions
 - Join our community chat (if available)
 - Reach out to maintainers

@@ -13,10 +13,12 @@ public class CompositeErrorHttpMapperTests
         var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400 });
+        mapper1.GetErrorResponse(error)
+               .Returns(new ErrorHttpResponse { StatusCode = 400 });
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 500 });
+        mapper2.GetErrorResponse(error)
+               .Returns(new ErrorHttpResponse { StatusCode = 500 });
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
@@ -26,8 +28,10 @@ public class CompositeErrorHttpMapperTests
         // Assert (Then)
         Assert.NotNull(response);
         Assert.Equal(400, response.StatusCode);
-        mapper1.Received(1).GetErrorResponse(error);
-        mapper2.DidNotReceive().GetErrorResponse(Arg.Any<IFailure>());
+        mapper1.Received(1)
+               .GetErrorResponse(error);
+        mapper2.DidNotReceive()
+               .GetErrorResponse(Arg.Any<IFailure>());
     }
 
     [Fact(DisplayName = "GetErrorResponse tries next mapper when first returns null")]
@@ -37,10 +41,12 @@ public class CompositeErrorHttpMapperTests
         var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+        mapper1.GetErrorResponse(error)
+               .Returns((ErrorHttpResponse?)null);
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400 });
+        mapper2.GetErrorResponse(error)
+               .Returns(new ErrorHttpResponse { StatusCode = 400 });
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
@@ -59,10 +65,12 @@ public class CompositeErrorHttpMapperTests
         var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+        mapper1.GetErrorResponse(error)
+               .Returns((ErrorHttpResponse?)null);
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+        mapper2.GetErrorResponse(error)
+               .Returns((ErrorHttpResponse?)null);
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
@@ -77,14 +85,16 @@ public class CompositeErrorHttpMapperTests
     public void GetErrorResponse_FirstMapperReturnsBody_ReturnsFirstBody()
     {
         // Arrange (Given)
-        var error = new ValidationFailure(["Field is required"]);
+        var error        = new ValidationFailure(["Field is required"]);
         var expectedBody = new { error = "validation_error" };
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400, Body = expectedBody });
+        mapper1.GetErrorResponse(error)
+               .Returns(new ErrorHttpResponse { StatusCode = 400, Body = expectedBody });
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400, Body = new { error = "other_error" } });
+        mapper2.GetErrorResponse(error)
+               .Returns(new ErrorHttpResponse { StatusCode = 400, Body = new { error = "other_error" } });
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
@@ -100,14 +110,16 @@ public class CompositeErrorHttpMapperTests
     public void GetErrorResponse_FirstMapperReturnsNull_TriesNextMapper_ForBody()
     {
         // Arrange (Given)
-        var error = new ValidationFailure(["Field is required"]);
+        var error        = new ValidationFailure(["Field is required"]);
         var expectedBody = new { error = "validation_error" };
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+        mapper1.GetErrorResponse(error)
+               .Returns((ErrorHttpResponse?)null);
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetErrorResponse(error).Returns(new ErrorHttpResponse { StatusCode = 400, Body = expectedBody });
+        mapper2.GetErrorResponse(error)
+               .Returns(new ErrorHttpResponse { StatusCode = 400, Body = expectedBody });
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
@@ -126,10 +138,12 @@ public class CompositeErrorHttpMapperTests
         var error = new ValidationFailure(["Field is required"]);
 
         var mapper1 = Substitute.For<IErrorHttpMapper>();
-        mapper1.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+        mapper1.GetErrorResponse(error)
+               .Returns((ErrorHttpResponse?)null);
 
         var mapper2 = Substitute.For<IErrorHttpMapper>();
-        mapper2.GetErrorResponse(error).Returns((ErrorHttpResponse?)null);
+        mapper2.GetErrorResponse(error)
+               .Returns((ErrorHttpResponse?)null);
 
         var sut = new CompositeErrorHttpMapper(mapper1, mapper2);
 
@@ -158,8 +172,8 @@ public class CompositeErrorHttpMapperTests
     public void Constructor_WithReadOnlyList_CreatesMapperCorrectly()
     {
         // Arrange (Given)
-        var mapper1 = Substitute.For<IErrorHttpMapper>();
-        var mapper2 = Substitute.For<IErrorHttpMapper>();
+        var                             mapper1 = Substitute.For<IErrorHttpMapper>();
+        var                             mapper2 = Substitute.For<IErrorHttpMapper>();
         IReadOnlyList<IErrorHttpMapper> mappers = new[] { mapper1, mapper2 };
 
         // Act (When)
@@ -181,6 +195,6 @@ public class CompositeErrorHttpMapperTests
     {
         // Arrange (Given) & Act (When) & Assert (Then)
         Assert.Throws<ArgumentNullException>(() =>
-            new CompositeErrorHttpMapper((IReadOnlyList<IErrorHttpMapper>)null!));
+                                                 new CompositeErrorHttpMapper((IReadOnlyList<IErrorHttpMapper>)null!));
     }
 }

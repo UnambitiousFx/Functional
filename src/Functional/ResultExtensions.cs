@@ -1,4 +1,5 @@
-﻿using AggregateFailure = UnambitiousFx.Functional.Failures.AggregateFailure;
+﻿using UnambitiousFx.Functional.Failures;
+using AggregateFailure = UnambitiousFx.Functional.Failures.AggregateFailure;
 using ConflictFailure = UnambitiousFx.Functional.Failures.ConflictFailure;
 using ExceptionalFailure = UnambitiousFx.Functional.Failures.ExceptionalFailure;
 using IFailure = UnambitiousFx.Functional.Failures.IFailure;
@@ -17,22 +18,17 @@ public static partial class ResultExtensions
     internal static Maybe<TError> GetError<TError>(this IResult result)
         where TError : class, IFailure
     {
-        if (result.IsSuccess)
-        {
+        if (result.IsSuccess) {
             return Maybe<TError>.None();
         }
 
-        if (!result.TryGetError(out var error))
-        {
+        if (!result.TryGetError(out var error)) {
             return Maybe<TError>.None();
         }
 
-        if (error is AggregateFailure aggregateError)
-        {
-            foreach (var aggregateErrorError in aggregateError.Errors)
-            {
-                if (aggregateErrorError is TError typedError)
-                {
+        if (error is AggregateFailure aggregateError) {
+            foreach (var aggregateErrorError in aggregateError.Errors) {
+                if (aggregateErrorError is TError typedError) {
                     return Maybe<TError>.Some(typedError);
                 }
             }
@@ -41,36 +37,38 @@ public static partial class ResultExtensions
         }
 
         {
-            return error is TError typedError ? Maybe<TError>.Some(typedError) : Maybe<TError>.None();
+            return error is TError typedError
+                       ? Maybe<TError>.Some(typedError)
+                       : Maybe<TError>.None();
         }
     }
 
-    private static bool ContainsException<TException>(Failures.Failure failure)
+    private static bool ContainsException<TException>(Failure failure)
         where TException : Exception
     {
         return failure switch
         {
-            ExceptionalFailure exErr => exErr.Exception is TException,
+            ExceptionalFailure exErr   => exErr.Exception is TException,
             AggregateFailure aggregate => aggregate.Errors.Any(ContainsException<TException>),
-            _ => false
+            _                          => false
         };
     }
 
-    private static bool ContainsException(Failures.Failure failure, Type errorType)
+    private static bool ContainsException(Failure failure,
+                                          Type    errorType)
     {
         return failure switch
         {
-            ExceptionalFailure exErr => errorType.IsInstanceOfType(exErr.Exception),
+            ExceptionalFailure exErr   => errorType.IsInstanceOfType(exErr.Exception),
             AggregateFailure aggregate => aggregate.Errors.Any(err => ContainsException(err, errorType)),
-            _ => false
+            _                          => false
         };
     }
 
-    private static bool ContainsError<TError>(Failures.Failure failure)
-        where TError : Failures.Failure
+    private static bool ContainsError<TError>(Failure failure)
+        where TError : Failure
     {
-        if (failure is AggregateFailure aggregateError)
-        {
+        if (failure is AggregateFailure aggregateError) {
             return aggregateError.Errors.Any(err => ContainsError<TError>(err));
         }
 
@@ -99,7 +97,9 @@ public static partial class ResultExtensions
         ///     A <see cref="Result" /> instance representing the failure, encapsulating a
         ///     <see cref="Failures.NotFoundFailure" /> that contains the error details.
         /// </returns>
-        public static Result FailNotFound(string resource, string identifier, string? messageOverride = null)
+        public static Result FailNotFound(string  resource,
+                                          string  identifier,
+                                          string? messageOverride = null)
         {
             return Result.Failure(new NotFoundFailure(resource, identifier, messageOverride));
         }
@@ -127,7 +127,9 @@ public static partial class ResultExtensions
         ///     A <see cref="Result{T}" /> instance representing the failure, encapsulating a
         ///     <see cref="NotFoundFailure" /> that contains the error details.
         /// </returns>
-        public static Result<T> FailNotFound<T>(string resource, string identifier, string? messageOverride = null)
+        public static Result<T> FailNotFound<T>(string  resource,
+                                                string  identifier,
+                                                string? messageOverride = null)
             where T : notnull
         {
             return Result.Failure<T>(new NotFoundFailure(resource, identifier, messageOverride));
@@ -161,7 +163,8 @@ public static partial class ResultExtensions
         ///     A <see cref="Result" /> instance representing the failure, encapsulating a
         ///     <see cref="ValidationFailure" /> containing the provided error message.
         /// </returns>
-        public static Result<T> FailValidation<T>(string message) where T : notnull
+        public static Result<T> FailValidation<T>(string message)
+            where T : notnull
         {
             return Result.Failure<T>(new ValidationFailure([message]));
         }
@@ -195,7 +198,8 @@ public static partial class ResultExtensions
         ///     A <see cref="Result" /> instance encapsulating an <see cref="UnauthenticatedFailure" /> with the
         ///     specified reason or a default reason.
         /// </returns>
-        public static Result<T> FailUnauthenticated<T>(string? reason) where T : notnull
+        public static Result<T> FailUnauthenticated<T>(string? reason)
+            where T : notnull
         {
             return Result.Failure<T>(new UnauthenticatedFailure(reason));
         }
@@ -229,7 +233,8 @@ public static partial class ResultExtensions
         ///     A <see cref="Result" /> instance encapsulating a <see cref="UnauthorizedFailure" /> that
         ///     conveys the unauthorized condition and its details.
         /// </returns>
-        public static Result<T> FailUnauthorized<T>(string? reason) where T : notnull
+        public static Result<T> FailUnauthorized<T>(string? reason)
+            where T : notnull
         {
             return Result.Failure<T>(new UnauthorizedFailure(reason));
         }
@@ -263,7 +268,8 @@ public static partial class ResultExtensions
         ///     A <see cref="Result" /> instance representing the failure, encapsulating a
         ///     <see cref="ConflictFailure" /> that contains the error details.
         /// </returns>
-        public static Result<T> FailConflict<T>(string message) where T : notnull
+        public static Result<T> FailConflict<T>(string message)
+            where T : notnull
         {
             return Result.Failure<T>(new ConflictFailure(message));
         }

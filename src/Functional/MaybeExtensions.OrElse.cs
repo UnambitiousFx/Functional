@@ -10,10 +10,12 @@ public static partial class MaybeExtensions
     /// <param name="fallback">The fallback Maybe to use when None.</param>
     /// <returns>The current Maybe if Some; otherwise the fallback.</returns>
     public static Maybe<TValue> OrElse<TValue>(this Maybe<TValue> maybe,
-        Maybe<TValue> fallback)
+                                               Maybe<TValue>      fallback)
         where TValue : notnull
     {
-        return maybe.IsSome ? maybe : fallback;
+        return maybe.IsSome
+                   ? maybe
+                   : fallback;
     }
 
     /// <summary>
@@ -23,10 +25,12 @@ public static partial class MaybeExtensions
     /// <param name="maybe">The Maybe instance to evaluate.</param>
     /// <param name="fallbackFactory">The factory to create a fallback Maybe when None.</param>
     /// <returns>The current Maybe if Some; otherwise the fallback from the factory.</returns>
-    public static Maybe<TValue> OrElse<TValue>(this Maybe<TValue> maybe,
-        Func<Maybe<TValue>> fallbackFactory)
+    public static Maybe<TValue> OrElse<TValue>(this Maybe<TValue>  maybe,
+                                               Func<Maybe<TValue>> fallbackFactory)
         where TValue : notnull
     {
-        return maybe.IsSome ? maybe : fallbackFactory();
+        return maybe.IsSome
+                   ? maybe
+                   : fallbackFactory();
     }
 }

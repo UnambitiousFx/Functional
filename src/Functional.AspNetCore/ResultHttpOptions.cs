@@ -58,7 +58,7 @@ public sealed class ResultHttpOptions
             StatusCode = statusCode,
             Body = new ProblemDetails
             {
-                Title = "An error occurred.",
+                Title  = "An error occurred.",
                 Detail = f.Message,
                 Status = statusCode
             }
@@ -93,7 +93,9 @@ public sealed class ResultHttpOptions
         mappers.Add(new DefaultErrorHttpMapper());
 
         // If we only have one mapper, return it directly
-        if (mappers.Count == 1) return mappers[0];
+        if (mappers.Count == 1) {
+            return mappers[0];
+        }
 
         // Otherwise, wrap in a composite mapper
         return new CompositeErrorHttpMapper(mappers);

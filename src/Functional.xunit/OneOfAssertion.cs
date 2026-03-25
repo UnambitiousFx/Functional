@@ -86,8 +86,7 @@ public readonly struct OneOfAssertion<TFirst, TSecond>
     /// </returns>
     public OneOfAssertion<TFirst> First()
     {
-        if (!_oneOf.TryGetFirst(out var value))
-        {
+        if (!_oneOf.TryGetFirst(out var value)) {
             Assert.Fail("Expected OneOf.First but was Second.");
         }
 
@@ -104,8 +103,7 @@ public readonly struct OneOfAssertion<TFirst, TSecond>
     /// </returns>
     public OneOfAssertion<TSecond> Second()
     {
-        if (!_oneOf.TryGetSecond(out var value))
-        {
+        if (!_oneOf.TryGetSecond(out var value)) {
             Assert.Fail("Expected OneOf.Second but was First.");
         }
 

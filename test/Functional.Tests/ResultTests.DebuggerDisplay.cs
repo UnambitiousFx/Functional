@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using UnambitiousFx.Functional.Failures;
 
@@ -17,7 +18,7 @@ public sealed class ResultTests_DebuggerDisplay
         var display = GetDebuggerDisplay(result);
 
         // Assert
-        Assert.Contains("Success", display);
+        Assert.Contains("Success",   display);
         Assert.Contains("reasons=0", display);
     }
 
@@ -31,23 +32,23 @@ public sealed class ResultTests_DebuggerDisplay
         var display = GetDebuggerDisplay(result);
 
         // Assert
-        Assert.Contains("Failure", display);
+        Assert.Contains("Failure",    display);
         Assert.Contains("Test error", display);
-        Assert.Contains("reasons=1", display);
+        Assert.Contains("reasons=1",  display);
     }
 
     [Fact]
     public void DebuggerDisplay_FailureWithErrorCode_IncludesCode()
     {
         // Arrange
-        var error = new Failure("VALIDATION_001", "Test error");
+        var error  = new Failure("VALIDATION_001", "Test error");
         var result = Result.Failure(error);
 
         // Act
         var display = GetDebuggerDisplay(result);
 
         // Assert
-        Assert.Contains("Failure", display);
+        Assert.Contains("Failure",             display);
         Assert.Contains("code=VALIDATION_001", display);
     }
 
@@ -55,21 +56,22 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebuggerDisplay_SuccessWithMetadata_IncludesMetadata()
     {
         // Arrange
-        var result = Result.Success().WithMetadata("key", "value");
+        var result = Result.Success()
+                           .WithMetadata("key", "value");
 
         // Act
         var display = GetDebuggerDisplay(result);
 
         // Assert
         Assert.Contains("Success", display);
-        Assert.Contains("meta=", display);
+        Assert.Contains("meta=",   display);
     }
 
     [Fact]
     public void DebuggerDisplay_FailureWithAggregateError_ShowsMultipleReasons()
     {
         // Arrange
-        var errors = new Failure[]
+        var errors = new[]
         {
             new Failure("Error 1"),
             new Failure("Error 2"),
@@ -81,7 +83,7 @@ public sealed class ResultTests_DebuggerDisplay
         var display = GetDebuggerDisplay(result);
 
         // Assert
-        Assert.Contains("Failure", display);
+        Assert.Contains("Failure",   display);
         Assert.Contains("reasons=3", display);
     }
 
@@ -99,7 +101,7 @@ public sealed class ResultTests_DebuggerDisplay
         var display = GetDebuggerDisplay(result);
 
         // Assert
-        Assert.Contains("Success", display);
+        Assert.Contains("Success",   display);
         Assert.Contains("reasons=0", display);
     }
 
@@ -113,23 +115,23 @@ public sealed class ResultTests_DebuggerDisplay
         var display = GetDebuggerDisplay(result);
 
         // Assert
-        Assert.Contains("Failure", display);
+        Assert.Contains("Failure",    display);
         Assert.Contains("Test error", display);
-        Assert.Contains("reasons=1", display);
+        Assert.Contains("reasons=1",  display);
     }
 
     [Fact]
     public void DebuggerDisplay_GenericFailureWithErrorCode_IncludesCode()
     {
         // Arrange
-        var error = new Failure("VALIDATION_001", "Test error");
+        var error  = new Failure("VALIDATION_001", "Test error");
         var result = Result.Failure<string>(error);
 
         // Act
         var display = GetDebuggerDisplay(result);
 
         // Assert
-        Assert.Contains("Failure", display);
+        Assert.Contains("Failure",             display);
         Assert.Contains("code=VALIDATION_001", display);
     }
 
@@ -137,14 +139,15 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebuggerDisplay_GenericSuccessWithMetadata_IncludesMetadata()
     {
         // Arrange
-        var result = Result.Success(42).WithMetadata("key", "value");
+        var result = Result.Success(42)
+                           .WithMetadata("key", "value");
 
         // Act
         var display = GetDebuggerDisplay(result);
 
         // Assert
         Assert.Contains("Success", display);
-        Assert.Contains("meta=", display);
+        Assert.Contains("meta=",   display);
     }
 
     #endregion
@@ -159,8 +162,12 @@ public sealed class ResultTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(result);
-        var isSuccess = (bool?)debugView?.GetType().GetProperty("IsSuccess")?.GetValue(debugView);
-        var isFaulted = (bool?)debugView?.GetType().GetProperty("IsFaulted")?.GetValue(debugView);
+        var isSuccess = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSuccess")
+                                        ?.GetValue(debugView);
+        var isFaulted = (bool?)debugView?.GetType()
+                                         .GetProperty("IsFaulted")
+                                        ?.GetValue(debugView);
 
         // Assert
         Assert.True(isSuccess);
@@ -175,7 +182,9 @@ public sealed class ResultTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(result);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
+        var errorProp = debugView?.GetType()
+                                  .GetProperty("Error")
+                                 ?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.Null(errorProp);
@@ -185,14 +194,20 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebugView_Failure_ReturnsCorrectProperties()
     {
         // Arrange
-        var error = new Failure("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure(error);
 
         // Act
         var debugView = GetDebugView(result);
-        var isSuccess = (bool?)debugView?.GetType().GetProperty("IsSuccess")?.GetValue(debugView);
-        var isFaulted = (bool?)debugView?.GetType().GetProperty("IsFaulted")?.GetValue(debugView);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
+        var isSuccess = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSuccess")
+                                        ?.GetValue(debugView);
+        var isFaulted = (bool?)debugView?.GetType()
+                                         .GetProperty("IsFaulted")
+                                        ?.GetValue(debugView);
+        var errorProp = debugView?.GetType()
+                                  .GetProperty("Error")
+                                 ?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.False(isSuccess);
@@ -209,8 +224,12 @@ public sealed class ResultTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(result);
-        var isSuccess = (bool?)debugView?.GetType().GetProperty("IsSuccess")?.GetValue(debugView);
-        var value = debugView?.GetType().GetProperty("Value")?.GetValue(debugView);
+        var isSuccess = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSuccess")
+                                        ?.GetValue(debugView);
+        var value = debugView?.GetType()
+                              .GetProperty("Value")
+                             ?.GetValue(debugView);
 
         // Assert
         Assert.True(isSuccess);
@@ -225,7 +244,9 @@ public sealed class ResultTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(result);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
+        var errorProp = debugView?.GetType()
+                                  .GetProperty("Error")
+                                 ?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.Null(errorProp);
@@ -235,13 +256,17 @@ public sealed class ResultTests_DebuggerDisplay
     public void DebugView_GenericFailure_ReturnsCorrectProperties()
     {
         // Arrange
-        var error = new Failure("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act
         var debugView = GetDebugView(result);
-        var isSuccess = (bool?)debugView?.GetType().GetProperty("IsSuccess")?.GetValue(debugView);
-        var errorProp = debugView?.GetType().GetProperty("Error")?.GetValue(debugView) as FailureBase;
+        var isSuccess = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSuccess")
+                                        ?.GetValue(debugView);
+        var errorProp = debugView?.GetType()
+                                  .GetProperty("Error")
+                                 ?.GetValue(debugView) as FailureBase;
 
         // Assert
         Assert.False(isSuccess);
@@ -261,45 +286,45 @@ public sealed class ResultTests_DebuggerDisplay
 
     private static object? GetDebugView<T>(T value)
     {
-        var debuggerTypeProxyAttribute = typeof(T).GetCustomAttribute<System.Diagnostics.DebuggerTypeProxyAttribute>();
-        if (debuggerTypeProxyAttribute == null)
-        {
+        var debuggerTypeProxyAttribute = typeof(T).GetCustomAttribute<DebuggerTypeProxyAttribute>();
+        if (debuggerTypeProxyAttribute == null) {
             return null;
         }
 
         var proxyTypeName = debuggerTypeProxyAttribute.ProxyTypeName;
         // Extract just the type name (e.g., "ResultDebugView" or "ResultDebugView`1")
-        var parts = proxyTypeName.Split(',')[0].Split('.');
-        var proxyTypeGenericName = parts.Last().Split('<')[0].Split('`')[0];
+        var parts = proxyTypeName.Split(',')[0]
+                                 .Split('.');
+        var proxyTypeGenericName = parts.Last()
+                                        .Split('<')[0]
+                                        .Split('`')[0];
 
         Type? proxyType;
-        if (typeof(T).IsGenericType)
-        {
+        if (typeof(T).IsGenericType) {
             // For Result<T>, find the generic proxy type
             var genericArgs = typeof(T).GetGenericArguments();
-            var arity = genericArgs.Length;
+            var arity       = genericArgs.Length;
 
             // Look for the proxy type with the correct arity
             var proxyTypeGeneric = typeof(T).Assembly.GetTypes()
-                .FirstOrDefault(t => t.Name == $"{proxyTypeGenericName}`{arity}" &&
-                                    t.GetGenericArguments().Length == arity);
+                                            .FirstOrDefault(t => t.Name == $"{proxyTypeGenericName}`{arity}" &&
+                                                                 t.GetGenericArguments()
+                                                                  .Length ==
+                                                                 arity);
 
-            if (proxyTypeGeneric == null)
-            {
+            if (proxyTypeGeneric == null) {
                 return null;
             }
 
             proxyType = proxyTypeGeneric.MakeGenericType(genericArgs);
         }
-        else
-        {
+        else {
             // For non-generic Result
             proxyType = typeof(T).Assembly.GetTypes()
-                .FirstOrDefault(t => t.Name == proxyTypeGenericName);
+                                 .FirstOrDefault(t => t.Name == proxyTypeGenericName);
         }
 
-        if (proxyType == null)
-        {
+        if (proxyType == null) {
             return null;
         }
 

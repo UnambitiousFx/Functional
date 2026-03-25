@@ -6,12 +6,12 @@ namespace UnambitiousFx.Functional.AspNetCore.Internal;
 
 internal static class FailureHttpResponseResolver
 {
-    public static ErrorHttpResponse Resolve(Failure failure, IErrorHttpMapper? customMapper)
+    public static ErrorHttpResponse Resolve(Failure           failure,
+                                            IErrorHttpMapper? customMapper)
     {
         ArgumentNullException.ThrowIfNull(failure);
 
-        return customMapper?.GetErrorResponse(failure)
-               ?? DefaultErrorHttpMapper.Instance.GetErrorResponse(failure)
-               ?? new ErrorHttpResponse { StatusCode = StatusCodes.Status500InternalServerError };
+        return customMapper?.GetErrorResponse(failure) ??
+               DefaultErrorHttpMapper.Instance.GetErrorResponse(failure) ?? new ErrorHttpResponse { StatusCode = StatusCodes.Status500InternalServerError };
     }
 }

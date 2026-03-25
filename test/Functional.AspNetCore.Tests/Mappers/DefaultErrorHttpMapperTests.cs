@@ -111,7 +111,7 @@ public class DefaultErrorHttpMapperTests
     {
         // Given
         var failures = new[] { "Field is required", "Email is invalid" };
-        var error = new ValidationFailure(failures);
+        var error    = new ValidationFailure(failures);
 
         // When
         var response = _sut.GetErrorResponse(error);
@@ -121,7 +121,7 @@ public class DefaultErrorHttpMapperTests
         Assert.NotNull(response.Body);
         var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
         Assert.Equal("Validation Error", problemDetail.Title);
-        Assert.Equal(400, problemDetail.Status);
+        Assert.Equal(400,                problemDetail.Status);
         Assert.Contains("code", problemDetail.Extensions);
     }
 
@@ -140,7 +140,7 @@ public class DefaultErrorHttpMapperTests
         Assert.NotNull(response.Body);
         var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
         Assert.Equal("Not Found", problemDetail.Title);
-        Assert.Equal(404, problemDetail.Status);
-        Assert.Equal("123", problemDetail.Extensions["identifier"]);
+        Assert.Equal(404,         problemDetail.Status);
+        Assert.Equal("123",       problemDetail.Extensions["identifier"]);
     }
 }

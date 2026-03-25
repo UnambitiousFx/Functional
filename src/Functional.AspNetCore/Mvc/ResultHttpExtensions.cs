@@ -19,7 +19,7 @@ public static class ResultHttpExtensions
         return effectivePolicy.ResultSuccessBehavior switch
         {
             ResultSuccessHttpBehavior.Ok => () => new OkResult(),
-            _ => () => new NoContentResult()
+            _                            => () => new NoContentResult()
         };
     }
 
@@ -31,17 +31,18 @@ public static class ResultHttpExtensions
         };
     }
 
-    private static IActionResult DefaultActionResult(int statusCode, object? body)
+    private static IActionResult DefaultActionResult(int     statusCode,
+                                                     object? body)
     {
-        if (body is null)
-        {
+        if (body is null) {
             return new StatusCodeResult(statusCode);
         }
 
         return new ObjectResult(body) { StatusCode = statusCode };
     }
 
-    private static IActionResult BodyToActionResult(int statusCode, object? body)
+    private static IActionResult BodyToActionResult(int     statusCode,
+                                                    object? body)
     {
         return statusCode switch
         {
@@ -58,13 +59,14 @@ public static class ResultHttpExtensions
         };
     }
 
-    private static IActionResult ResponseToActionResult(int statusCode, object? body)
+    private static IActionResult ResponseToActionResult(int     statusCode,
+                                                        object? body)
     {
         return body switch
         {
-            null => new StatusCodeResult(statusCode),
+            null                          => new StatusCodeResult(statusCode),
             ProblemDetails problemDetails => ProblemDetailToActionResult(problemDetails),
-            _ => BodyToActionResult(statusCode, body)
+            _                             => BodyToActionResult(statusCode, body)
         };
     }
 
@@ -73,18 +75,71 @@ public static class ResultHttpExtensions
         var result = ResponseToActionResult(response.StatusCode, response.Body);
 
         // Apply headers if present
-        if (response.Headers is not null && response.Headers.Count > 0)
-        {
+        if (response.Headers is not null &&
+            response.Headers.Count > 0) {
             return new HeaderedActionResult(result, response.Headers);
         }
 
         return result;
     }
 
-    private static IActionResult MapErrorToActionResult(Failure failure, IErrorHttpMapper? customMapper)
+    private static IActionResult MapErrorToActionResult(Failure           failure,
+                                                        IErrorHttpMapper? customMapper)
     {
         var response = FailureHttpResponseResolver.Resolve(failure, customMapper);
         return ErrorHttpResponseToActionResult(response);
+    }
+
+    /// <summary>
+    ///     Converts an asynchronous Result to an IActionResult, providing appropriate HTTP responses
+    ///     for success or failure cases.
+    /// </summary>
+    public static async ValueTask<IActionResult> ToActionResult(this ValueTask<Result>   resultTask,
+                                                                Func<IActionResult>?     successHttpMapper = null,
+                                                                IErrorHttpMapper?        errorMapper       = null,
+                                                                ResultHttpAdapterPolicy? policy            = null)
+    {
+        successHttpMapper ??= BuildDefaultSuccessMapper(policy);
+        var result = await resultTask;
+        return result.Match(successHttpMapper, error => MapErrorToActionResult(error, errorMapper));
+    }
+
+    /// <summary>
+    ///     Converts an asynchronous Result to an IActionResult.
+    /// </summary>
+    public static ValueTask<IActionResult> ToActionResult(this Task<Result>        resultTask,
+                                                          Func<IActionResult>?     successHttpMapper = null,
+                                                          IErrorHttpMapper?        errorMapper       = null,
+                                                          ResultHttpAdapterPolicy? policy            = null)
+    {
+        return new ValueTask<Result>(resultTask).ToActionResult(successHttpMapper, errorMapper, policy);
+    }
+
+    /// <summary>
+    ///     Converts an asynchronous Result to an IActionResult for use in ASP.NET Core endpoints.
+    /// </summary>
+    public static async ValueTask<IActionResult> ToActionResult<TValue>(this ValueTask<Result<TValue>> resultTask,
+                                                                        Func<TValue, IActionResult>?   successHttpMapper = null,
+                                                                        IErrorHttpMapper?              errorHttpMapper   = null)
+        where TValue : notnull
+    {
+        successHttpMapper ??= v => new OkObjectResult(v);
+        var result = await resultTask;
+        return result.Match(
+            value => successHttpMapper(value),
+            error => MapErrorToActionResult(error, errorHttpMapper));
+    }
+
+    /// <summary>
+    ///     Converts an asynchronous Result to an IActionResult for use in ASP.NET Core endpoints.
+    /// </summary>
+    public static ValueTask<IActionResult> ToActionResult<TValue>(this Task<Result<TValue>>    resultTask,
+                                                                  Func<TValue, IActionResult>? successHttpMapper = null,
+                                                                  IErrorHttpMapper?            errorHttpMapper   = null)
+        where TValue : notnull
+    {
+        return new ValueTask<Result<TValue>>(resultTask).ToActionResult(successHttpMapper,
+                                                                        errorHttpMapper);
     }
 
     /// <summary>
@@ -92,20 +147,20 @@ public static class ResultHttpExtensions
     /// </summary>
     private sealed class HeaderedActionResult : IActionResult
     {
-        private readonly IActionResult _innerResult;
         private readonly IReadOnlyDictionary<string, string> _headers;
+        private readonly IActionResult                       _innerResult;
 
-        public HeaderedActionResult(IActionResult innerResult, IReadOnlyDictionary<string, string> headers)
+        public HeaderedActionResult(IActionResult                       innerResult,
+                                    IReadOnlyDictionary<string, string> headers)
         {
             _innerResult = innerResult;
-            _headers = headers;
+            _headers     = headers;
         }
 
         public Task ExecuteResultAsync(ActionContext context)
         {
             // Add headers to the response
-            foreach (var (key, value) in _headers)
-            {
+            foreach (var (key, value) in _headers) {
                 context.HttpContext.Response.Headers[key] = value;
             }
 
@@ -134,46 +189,19 @@ public static class ResultHttpExtensions
         ///     Optional adapter policy controlling default success behavior when no success mapper is provided.
         /// </param>
         /// <returns>An IActionResult representing the outcome of a Result, based on either success or failure.</returns>
-        public IActionResult ToActionResult(
-            Func<IActionResult>? successHttpMapper = null,
-            IErrorHttpMapper? errorMapper = null,
-            ResultHttpAdapterPolicy? policy = null)
+        public IActionResult ToActionResult(Func<IActionResult>?     successHttpMapper = null,
+                                            IErrorHttpMapper?        errorMapper       = null,
+                                            ResultHttpAdapterPolicy? policy            = null)
         {
             successHttpMapper ??= BuildDefaultSuccessMapper(policy);
             return result.Match(successHttpMapper, error => MapErrorToActionResult(error, errorMapper));
         }
     }
 
-    /// <summary>
-    ///     Converts an asynchronous Result to an IActionResult, providing appropriate HTTP responses
-    ///     for success or failure cases.
-    /// </summary>
-    public static async ValueTask<IActionResult> ToActionResult(
-        this ValueTask<Result> resultTask,
-        Func<IActionResult>? successHttpMapper = null,
-        IErrorHttpMapper? errorMapper = null,
-        ResultHttpAdapterPolicy? policy = null)
-    {
-        successHttpMapper ??= BuildDefaultSuccessMapper(policy);
-        var result = await resultTask;
-        return result.Match(successHttpMapper, error => MapErrorToActionResult(error, errorMapper));
-    }
-
-    /// <summary>
-    ///     Converts an asynchronous Result to an IActionResult.
-    /// </summary>
-    public static ValueTask<IActionResult> ToActionResult(
-        this Task<Result> resultTask,
-        Func<IActionResult>? successHttpMapper = null,
-        IErrorHttpMapper? errorMapper = null,
-        ResultHttpAdapterPolicy? policy = null)
-    {
-        return ToActionResult(new ValueTask<Result>(resultTask), successHttpMapper, errorMapper, policy);
-    }
-
     /// <param name="result">The result to convert.</param>
     /// <typeparam name="TValue">The type of the success value.</typeparam>
-    extension<TValue>(Result<TValue> result) where TValue : notnull
+    extension<TValue>(Result<TValue> result)
+        where TValue : notnull
     {
         /// <summary>
         ///     Converts a <see cref="Result{TValue}" /> to an <see cref="IActionResult" /> for use in ASP.NET Core minimal APIs.
@@ -189,45 +217,13 @@ public static class ResultHttpExtensions
         ///     into an HTTP response. If not provided, a default error mapper will be used.
         /// </param>
         /// <returns>An <see cref="IActionResult" /> representing the HTTP response for the given result.</returns>
-        public IActionResult ToActionResult(
-            Func<TValue, IActionResult>? successHttpMapper = null,
-            IErrorHttpMapper? errorHttpMapper = null)
+        public IActionResult ToActionResult(Func<TValue, IActionResult>? successHttpMapper = null,
+                                            IErrorHttpMapper?            errorHttpMapper   = null)
         {
             successHttpMapper ??= v => new OkObjectResult(v);
             return result.Match(
                 value => successHttpMapper(value),
                 error => MapErrorToActionResult(error, errorHttpMapper));
         }
-    }
-
-    /// <summary>
-    ///     Converts an asynchronous Result to an IActionResult for use in ASP.NET Core endpoints.
-    /// </summary>
-    public static async ValueTask<IActionResult> ToActionResult<TValue>(
-        this ValueTask<Result<TValue>> resultTask,
-        Func<TValue, IActionResult>? successHttpMapper = null,
-        IErrorHttpMapper? errorHttpMapper = null)
-        where TValue : notnull
-    {
-        successHttpMapper ??= v => new OkObjectResult(v);
-        var result = await resultTask;
-        return result.Match(
-            value => successHttpMapper(value),
-            error => MapErrorToActionResult(error, errorHttpMapper));
-    }
-
-    /// <summary>
-    ///     Converts an asynchronous Result to an IActionResult for use in ASP.NET Core endpoints.
-    /// </summary>
-    public static ValueTask<IActionResult> ToActionResult<TValue>(
-        this Task<Result<TValue>> resultTask,
-        Func<TValue, IActionResult>? successHttpMapper = null,
-        IErrorHttpMapper? errorHttpMapper = null)
-        where TValue : notnull
-    {
-        return ToActionResult(
-            new ValueTask<Result<TValue>>(resultTask),
-            successHttpMapper,
-            errorHttpMapper);
     }
 }

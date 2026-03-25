@@ -1,4 +1,5 @@
 using UnambitiousFx.Functional.Failures;
+using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
@@ -8,7 +9,7 @@ public class TypedErrorAssertionTests
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
@@ -22,7 +23,7 @@ public class TypedErrorAssertionTests
     public void Where_WhenPredicateSatisfied_Succeeds()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
@@ -36,11 +37,11 @@ public class TypedErrorAssertionTests
     public void Where_WhenPredicateNotSatisfied_Throws()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => assertion.Where(e => e.Code == "WRONG_CODE"));
+        var exception = Assert.Throws<FailException>(() => assertion.Where(e => e.Code == "WRONG_CODE"));
         Assert.Contains("Error does not satisfy predicate", exception.Message);
     }
 
@@ -48,12 +49,12 @@ public class TypedErrorAssertionTests
     public void Where_WithBecauseMessage_IncludesInFailure()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() =>
-            assertion.Where(e => e.Code == "WRONG_CODE", "Custom reason"));
+        var exception = Assert.Throws<FailException>(() =>
+                                                         assertion.Where(e => e.Code == "WRONG_CODE", "Custom reason"));
         Assert.Contains("Custom reason", exception.Message);
     }
 
@@ -61,7 +62,7 @@ public class TypedErrorAssertionTests
     public void Where_WhenPredicateNull_ThrowsArgumentNullException()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
@@ -72,7 +73,7 @@ public class TypedErrorAssertionTests
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
@@ -86,18 +87,18 @@ public class TypedErrorAssertionTests
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
-        Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.AndMessage("Wrong message"));
+        Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
     }
 
     [Fact(DisplayName = "AndCode succeeds when code matches")]
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When)
@@ -111,25 +112,25 @@ public class TypedErrorAssertionTests
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
-        Assert.Throws<Xunit.Sdk.EqualException>(() => assertion.AndCode("WRONG_CODE"));
+        Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
     }
 
     [Fact(DisplayName = "Fluent chaining works with multiple assertions")]
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
-        var error = new UnauthorizedFailure();
+        var error     = new UnauthorizedFailure();
         var assertion = new TypedErrorAssertion<UnauthorizedFailure>(error);
 
         // Act (When) & Assert (Then)
         assertion
-            .Where(e => e.Code == "UNAUTHORIZED")
-            .AndCode("UNAUTHORIZED")
-            .AndMessage("Unauthorized");
+           .Where(e => e.Code == "UNAUTHORIZED")
+           .AndCode("UNAUTHORIZED")
+           .AndMessage("Unauthorized");
     }
 
     [Fact(DisplayName = "Works with custom error types")]
@@ -137,20 +138,20 @@ public class TypedErrorAssertionTests
     {
         // Arrange (Given)
         var customError = new Failure("CUSTOM", "Custom error message");
-        var assertion = new TypedErrorAssertion<Failure>(customError);
+        var assertion   = new TypedErrorAssertion<Failure>(customError);
 
         // Act (When) & Assert (Then)
         assertion
-            .AndCode("CUSTOM")
-            .AndMessage("Custom error message")
-            .Where(e => e.Code.StartsWith("CUST"));
+           .AndCode("CUSTOM")
+           .AndMessage("Custom error message")
+           .Where(e => e.Code.StartsWith("CUST"));
     }
 
     [Fact(DisplayName = "And allows complex custom assertions")]
     public void And_AllowsComplexCustomAssertions()
     {
         // Arrange (Given)
-        var error = new ValidationFailure(["Field1 is required", "Field2 is invalid"]);
+        var error     = new ValidationFailure(["Field1 is required", "Field2 is invalid"]);
         var assertion = new TypedErrorAssertion<ValidationFailure>(error);
 
         // Act (When) & Assert (Then)
@@ -158,7 +159,7 @@ public class TypedErrorAssertionTests
         {
             Assert.Equal(2, e.Failures.Count);
             Assert.Contains("required", e.Failures[0]);
-            Assert.Contains("invalid", e.Failures[1]);
+            Assert.Contains("invalid",  e.Failures[1]);
         });
     }
 }

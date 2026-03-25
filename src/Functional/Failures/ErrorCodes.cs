@@ -47,7 +47,7 @@ public static class ErrorCodes
     public const string Timeout = "TIMEOUT";
 
     /// <summary>
-    /// Error code indicating that the user is not authenticated.
+    ///     Error code indicating that the user is not authenticated.
     /// </summary>
     public const string Unauthenticated = "UNAUTHENTICATED";
 }

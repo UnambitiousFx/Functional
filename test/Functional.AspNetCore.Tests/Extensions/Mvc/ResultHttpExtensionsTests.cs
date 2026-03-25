@@ -105,7 +105,7 @@ public class ResultHttpExtensionsTests
         // Then
         var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
         Assert.Equal("GetItem", createdResult.ActionName);
-        Assert.Equal(42, createdResult.Value);
+        Assert.Equal(42,        createdResult.Value);
     }
 
     [Fact(DisplayName = "ToActionResult with Created mapper and controller name returns CreatedAtActionResult")]
@@ -120,8 +120,8 @@ public class ResultHttpExtensionsTests
         // Then
         var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
         Assert.Equal("GetItem", createdResult.ActionName);
-        Assert.Equal("Items", createdResult.ControllerName);
-        Assert.Equal(42, createdResult.Value);
+        Assert.Equal("Items",   createdResult.ControllerName);
+        Assert.Equal(42,        createdResult.Value);
     }
 
     [Fact(DisplayName = "ToActionResult with Created mapper and custom error mapper returns custom status code")]
@@ -274,7 +274,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResult_ToActionResult_Success_ReturnsNoContentResult()
     {
         // Given
-        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Success());
+        var resultTask = ValueTask.FromResult(Result.Success());
 
         // When
         var actionResult = await resultTask.ToActionResult();
@@ -287,7 +287,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResult_ToActionResult_WithCustomSuccessMapper_ReturnsCustomResult()
     {
         // Given
-        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Success());
+        var resultTask = ValueTask.FromResult(Result.Success());
 
         // When
         var actionResult = await resultTask.ToActionResult(() => new OkObjectResult(new { Message = "Success" }));
@@ -300,7 +300,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResult_ToActionResult_Failure_ReturnsErrorResult()
     {
         // Given
-        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
+        var resultTask = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
 
         // When
         var actionResult = await resultTask.ToActionResult();
@@ -314,7 +314,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToActionResult_Success_ReturnsOkObjectResult()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
+        var resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var actionResult = await resultTask.ToActionResult();
@@ -328,7 +328,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToActionResult_WithCustomSuccessMapper_TransformsValue()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
+        var resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var actionResult = await resultTask.ToActionResult(x => new OkObjectResult(new { Value = x.ToString() }));
@@ -342,7 +342,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToActionResult_Failure_ReturnsErrorResult()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
+        var resultTask = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
 
         // When
         var actionResult = await resultTask.ToActionResult();
@@ -356,7 +356,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToActionResult_WithCreatedMapper_ReturnsCreatedAtActionResult()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
+        var resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var actionResult = await resultTask.ToActionResult(v => new CreatedAtActionResult("GetItem", null, new { id = v }, v));
@@ -364,14 +364,14 @@ public class ResultHttpExtensionsTests
         // Then
         var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
         Assert.Equal("GetItem", createdResult.ActionName);
-        Assert.Equal(42, createdResult.Value);
+        Assert.Equal(42,        createdResult.Value);
     }
 
     [Fact(DisplayName = "ValueTask<Result<T>> ToActionResult with Created mapper on failure returns error result")]
     public async Task ValueTaskResultGeneric_ToActionResult_WithCreatedMapper_Failure_ReturnsErrorResult()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid input"])));
+        var resultTask = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid input"])));
 
         // When
         var actionResult = await resultTask.ToActionResult(v => new CreatedAtActionResult("GetItem", null, null, v));
@@ -385,8 +385,8 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToActionResult_WithCreatedMapperAndCustomError_ReturnsCustomError()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(409, "Conflict")));
-        var mapper = new CustomStatusCodeMapper();
+        var resultTask = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(409, "Conflict")));
+        var mapper     = new CustomStatusCodeMapper();
 
         // When
         var actionResult = await resultTask.ToActionResult(v => new CreatedAtActionResult("GetItem", null, null, v), mapper);
@@ -404,17 +404,19 @@ public class ResultHttpExtensionsTests
     {
         public ErrorHttpResponse? GetErrorResponse(IFailure failure)
         {
-            if (failure is ValidationFailure)
+            if (failure is ValidationFailure) {
                 return new ErrorHttpResponse
                 {
                     StatusCode = 400,
                     Body = new ProblemDetails
                     {
-                        Title = "Validation Error",
+                        Title  = "Validation Error",
                         Status = 400,
                         Detail = "One or more validation errors occurred."
                     }
                 };
+            }
+
             return null;
         }
     }
@@ -427,19 +429,24 @@ public class ResultHttpExtensionsTests
         }
     }
 
-    private record CustomFailure(int StatusCode, string Message) : Failure(Message);
+    private record CustomFailure(int    StatusCode,
+                                 string Message) : Failure(Message);
 
     private class CustomStatusCodeMapper : IErrorHttpMapper
     {
         public ErrorHttpResponse? GetErrorResponse(IFailure failure)
         {
-            var body = string.IsNullOrWhiteSpace(failure.Message) ? null : new { failure.Message };
-            if (failure is CustomFailure customError)
+            var body = string.IsNullOrWhiteSpace(failure.Message)
+                           ? null
+                           : new { failure.Message };
+            if (failure is CustomFailure customError) {
                 return new ErrorHttpResponse
                 {
                     StatusCode = customError.StatusCode,
-                    Body = body
+                    Body       = body
                 };
+            }
+
             return null;
         }
     }

@@ -6,7 +6,8 @@ public static partial class MaybeExtensions
 {
     /// <param name="maybe">The maybe instance.</param>
     /// <typeparam name="TValue">The value type.</typeparam>
-    extension<TValue>(Maybe<TValue> maybe) where TValue : notnull
+    extension<TValue>(Maybe<TValue> maybe)
+        where TValue : notnull
     {
         /// <summary>
         ///     Converts a Maybe to a Result. If the Maybe is Some, returns Success with the value.

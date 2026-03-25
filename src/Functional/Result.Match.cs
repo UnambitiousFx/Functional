@@ -9,14 +9,13 @@ public readonly partial record struct Result
     /// </summary>
     /// <param name="onSuccess">Action to execute if the result is successful.</param>
     /// <param name="onFailure">Action to execute if the result is a failure.</param>
-    public void Match(Action onSuccess, Action<Failure> onFailure)
+    public void Match(Action          onSuccess,
+                      Action<Failure> onFailure)
     {
-        if (IsSuccess)
-        {
+        if (IsSuccess) {
             onSuccess();
         }
-        else
-        {
+        else {
             onFailure(_error!);
         }
     }
@@ -26,7 +25,8 @@ public readonly partial record struct Result
     /// </summary>
     /// <param name="onSuccess">Action to execute if the result is successful.</param>
     /// <param name="onFailure">Action to execute if the result is a failure.</param>
-    public void Switch(Action onSuccess, Action<Failure> onFailure)
+    public void Switch(Action          onSuccess,
+                       Action<Failure> onFailure)
     {
         Match(onSuccess, onFailure);
     }
@@ -38,9 +38,12 @@ public readonly partial record struct Result
     /// <param name="onSuccess">Function to invoke if the result is successful.</param>
     /// <param name="onFailure">Function to invoke if the result is a failure.</param>
     /// <returns>The result of invoking the appropriate function.</returns>
-    public TOut Match<TOut>(Func<TOut> onSuccess, Func<Failure, TOut> onFailure)
+    public TOut Match<TOut>(Func<TOut>          onSuccess,
+                            Func<Failure, TOut> onFailure)
     {
-        return IsSuccess ? onSuccess() : onFailure(_error!);
+        return IsSuccess
+                   ? onSuccess()
+                   : onFailure(_error!);
     }
 }
 
@@ -51,14 +54,13 @@ public readonly partial record struct Result<TValue>
     /// </summary>
     /// <param name="success">Action to execute if the result is successful.</param>
     /// <param name="failure">Action to execute if the result is a failure.</param>
-    public void Match(Action success, Action<Failure> failure)
+    public void Match(Action          success,
+                      Action<Failure> failure)
     {
-        if (IsSuccess)
-        {
+        if (IsSuccess) {
             success();
         }
-        else
-        {
+        else {
             failure(_error!);
         }
     }
@@ -68,7 +70,8 @@ public readonly partial record struct Result<TValue>
     /// </summary>
     /// <param name="success">Action to execute if the result is successful.</param>
     /// <param name="failure">Action to execute if the result is a failure.</param>
-    public void Switch(Action success, Action<Failure> failure)
+    public void Switch(Action          success,
+                       Action<Failure> failure)
     {
         Match(success, failure);
     }
@@ -78,7 +81,8 @@ public readonly partial record struct Result<TValue>
     /// </summary>
     /// <param name="success">Action to execute with the success value if the result is successful.</param>
     /// <param name="failure">Action to execute if the result is a failure.</param>
-    public void Switch(Action<TValue> success, Action<Failure> failure)
+    public void Switch(Action<TValue>  success,
+                       Action<Failure> failure)
     {
         Match(success, failure);
     }
@@ -90,8 +94,11 @@ public readonly partial record struct Result<TValue>
     /// <param name="success">Function to invoke if the result is successful.</param>
     /// <param name="failure">Function to invoke if the result is a failure.</param>
     /// <returns>The result of invoking the appropriate function.</returns>
-    public TOut Match<TOut>(Func<TOut> success, Func<Failure, TOut> failure)
+    public TOut Match<TOut>(Func<TOut>          success,
+                            Func<Failure, TOut> failure)
     {
-        return IsSuccess ? success() : failure(_error!);
+        return IsSuccess
+                   ? success()
+                   : failure(_error!);
     }
 }

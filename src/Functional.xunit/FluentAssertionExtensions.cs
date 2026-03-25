@@ -16,8 +16,7 @@ public static class FluentAssertionExtensions
     /// <returns>A <see cref="ValidationErrorAssertion" /> for the ValidationError.</returns>
     public static ValidationErrorAssertion WhichIsValidationError(this FailureAssertion assertion)
     {
-        if (assertion.Failure is ValidationFailure validationError)
-        {
+        if (assertion.Failure is ValidationFailure validationError) {
             return new ValidationErrorAssertion(validationError);
         }
 
@@ -32,8 +31,7 @@ public static class FluentAssertionExtensions
     /// <returns>A <see cref="NotFoundErrorAssertion" /> for the NotFoundError.</returns>
     public static NotFoundErrorAssertion WhichIsNotFoundError(this FailureAssertion assertion)
     {
-        if (assertion.Failure is NotFoundFailure notFoundError)
-        {
+        if (assertion.Failure is NotFoundFailure notFoundError) {
             return new NotFoundErrorAssertion(notFoundError);
         }
 
@@ -48,8 +46,7 @@ public static class FluentAssertionExtensions
     /// <returns>A <see cref="ConflictErrorAssertion" /> for the ConflictError.</returns>
     public static ConflictErrorAssertion WhichIsConflictError(this FailureAssertion assertion)
     {
-        if (assertion.Failure is ConflictFailure conflictError)
-        {
+        if (assertion.Failure is ConflictFailure conflictError) {
             return new ConflictErrorAssertion(conflictError);
         }
 
@@ -66,8 +63,7 @@ public static class FluentAssertionExtensions
     public static TypedErrorAssertion<TError> WhichIs<TError>(this FailureAssertion assertion)
         where TError : IFailure
     {
-        if (assertion.Failure is TError typedError)
-        {
+        if (assertion.Failure is TError typedError) {
             return new TypedErrorAssertion<TError>(typedError);
         }
 

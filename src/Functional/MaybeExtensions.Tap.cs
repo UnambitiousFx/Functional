@@ -10,11 +10,10 @@ public static partial class MaybeExtensions
     /// <param name="tap">The action to execute if a value is present.</param>
     /// <returns>The original Maybe instance unchanged.</returns>
     public static Maybe<TValue> Tap<TValue>(this Maybe<TValue> maybe,
-        Action<TValue> tap)
+                                            Action<TValue>     tap)
         where TValue : notnull
     {
-        if (maybe.Some(out var value))
-        {
+        if (maybe.Some(out var value)) {
             tap(value);
         }
 

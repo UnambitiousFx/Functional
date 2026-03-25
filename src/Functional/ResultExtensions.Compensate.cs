@@ -15,7 +15,8 @@ public partial class ResultExtensions
     ///     The original result if successful; the original result if rollback succeeds;
     ///     or a failure with an <see cref="Failures.AggregateFailure" /> containing both errors if rollback fails.
     /// </returns>
-    public static Result Compensate(this Result result, Func<Failure, Result> rollback)
+    public static Result Compensate(this Result           result,
+                                    Func<Failure, Result> rollback)
     {
         return result.Match(
             () => result,
@@ -40,7 +41,8 @@ public partial class ResultExtensions
     ///     The original result if successful; the original result if rollback succeeds;
     ///     or a failure with an <see cref="AggregateFailure" /> containing both errors if rollback fails.
     /// </returns>
-    public static Result<TValue> Compensate<TValue>(this Result<TValue> result, Func<Failure, Result> rollback)
+    public static Result<TValue> Compensate<TValue>(this Result<TValue>   result,
+                                                    Func<Failure, Result> rollback)
         where TValue : notnull
     {
         return result.Match(
@@ -66,7 +68,8 @@ public partial class ResultExtensions
     ///     The original result if successful; the original result if the rollback succeeds; or a failure with
     ///     an <see cref="AggregateFailure" /> if the rollback fails.
     /// </returns>
-    public static Result<TValue> Compensate<TValue>(this Result<TValue> result, Func<Result> rollback)
+    public static Result<TValue> Compensate<TValue>(this Result<TValue> result,
+                                                    Func<Result>        rollback)
         where TValue : notnull
     {
         return result.Match(

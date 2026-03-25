@@ -17,7 +17,7 @@ public sealed class OneOfTests_DebuggerDisplay
         var display2 = GetDebuggerDisplay(oneOf2);
 
         // Assert
-        Assert.Equal("First(42)", display1);
+        Assert.Equal("First(42)",     display1);
         Assert.Equal("Second(hello)", display2);
     }
 
@@ -35,9 +35,9 @@ public sealed class OneOfTests_DebuggerDisplay
         var display3 = GetDebuggerDisplay(oneOf3);
 
         // Assert
-        Assert.Equal("First(42)", display1);
+        Assert.Equal("First(42)",     display1);
         Assert.Equal("Second(hello)", display2);
-        Assert.Equal("Third(True)", display3);
+        Assert.Equal("Third(True)",   display3);
     }
 
     [Fact]
@@ -56,9 +56,9 @@ public sealed class OneOfTests_DebuggerDisplay
         var display4 = GetDebuggerDisplay(oneOf4);
 
         // Assert
-        Assert.Equal("First(42)", display1);
-        Assert.Equal("Second(test)", display2);
-        Assert.Equal("Third(False)", display3);
+        Assert.Equal("First(42)",      display1);
+        Assert.Equal("Second(test)",   display2);
+        Assert.Equal("Third(False)",   display3);
         Assert.Equal($"Fourth({5.0})", display4);
     }
 
@@ -74,7 +74,7 @@ public sealed class OneOfTests_DebuggerDisplay
         var display5 = GetDebuggerDisplay(oneOf5);
 
         // Assert
-        Assert.Equal("First(1)", display1);
+        Assert.Equal("First(1)",       display1);
         Assert.Equal($"Fifth({2.0f})", display5);
     }
 
@@ -106,7 +106,7 @@ public sealed class OneOfTests_DebuggerDisplay
         var display7 = GetDebuggerDisplay(oneOf7);
 
         // Assert
-        Assert.Equal("First(1)", display1);
+        Assert.Equal("First(1)",     display1);
         Assert.Equal("Seventh(255)", display7);
     }
 
@@ -138,7 +138,7 @@ public sealed class OneOfTests_DebuggerDisplay
         var display9 = GetDebuggerDisplay(oneOf9);
 
         // Assert
-        Assert.Equal("First(1)", display1);
+        Assert.Equal("First(1)",   display1);
         Assert.Equal("Ninth(999)", display9);
     }
 
@@ -163,10 +163,18 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -183,9 +191,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -201,9 +215,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFourth = (bool?)debugView?.GetType().GetProperty("IsFourth")?.GetValue(debugView);
-        var fourthValue = debugView?.GetType().GetProperty("FourthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFourth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsFourth")
+                                       ?.GetValue(debugView);
+        var fourthValue = debugView?.GetType()
+                                    .GetProperty("FourthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fourth", activeType);
@@ -219,9 +239,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFifth = (bool?)debugView?.GetType().GetProperty("IsFifth")?.GetValue(debugView);
-        var fifthValue = debugView?.GetType().GetProperty("FifthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFifth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFifth")
+                                      ?.GetValue(debugView);
+        var fifthValue = debugView?.GetType()
+                                   .GetProperty("FifthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fifth", activeType);
@@ -237,9 +263,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSixth = (bool?)debugView?.GetType().GetProperty("IsSixth")?.GetValue(debugView);
-        var sixthValue = debugView?.GetType().GetProperty("SixthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSixth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsSixth")
+                                      ?.GetValue(debugView);
+        var sixthValue = debugView?.GetType()
+                                   .GetProperty("SixthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Sixth", activeType);
@@ -255,9 +287,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSeventh = (bool?)debugView?.GetType().GetProperty("IsSeventh")?.GetValue(debugView);
-        var seventhValue = debugView?.GetType().GetProperty("SeventhValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSeventh = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSeventh")
+                                        ?.GetValue(debugView);
+        var seventhValue = debugView?.GetType()
+                                     .GetProperty("SeventhValue")
+                                    ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Seventh", activeType);
@@ -273,9 +311,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isEighth = (bool?)debugView?.GetType().GetProperty("IsEighth")?.GetValue(debugView);
-        var eighthValue = debugView?.GetType().GetProperty("EighthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isEighth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsEighth")
+                                       ?.GetValue(debugView);
+        var eighthValue = debugView?.GetType()
+                                    .GetProperty("EighthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Eighth", activeType);
@@ -291,9 +335,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isNinth = (bool?)debugView?.GetType().GetProperty("IsNinth")?.GetValue(debugView);
-        var ninthValue = debugView?.GetType().GetProperty("NinthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isNinth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsNinth")
+                                      ?.GetValue(debugView);
+        var ninthValue = debugView?.GetType()
+                                   .GetProperty("NinthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Ninth", activeType);
@@ -309,9 +359,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isTenth = (bool?)debugView?.GetType().GetProperty("IsTenth")?.GetValue(debugView);
-        var tenthValue = debugView?.GetType().GetProperty("TenthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isTenth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsTenth")
+                                      ?.GetValue(debugView);
+        var tenthValue = debugView?.GetType()
+                                   .GetProperty("TenthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Tenth", activeType);
@@ -327,9 +383,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -345,9 +407,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -363,9 +431,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -381,9 +455,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -399,9 +479,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -417,9 +503,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -435,9 +527,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -453,9 +551,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -471,9 +575,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -489,9 +599,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFourth = (bool?)debugView?.GetType().GetProperty("IsFourth")?.GetValue(debugView);
-        var fourthValue = debugView?.GetType().GetProperty("FourthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFourth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsFourth")
+                                       ?.GetValue(debugView);
+        var fourthValue = debugView?.GetType()
+                                    .GetProperty("FourthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fourth", activeType);
@@ -507,9 +623,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -525,9 +647,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -543,9 +671,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -561,9 +695,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFourth = (bool?)debugView?.GetType().GetProperty("IsFourth")?.GetValue(debugView);
-        var fourthValue = debugView?.GetType().GetProperty("FourthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFourth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsFourth")
+                                       ?.GetValue(debugView);
+        var fourthValue = debugView?.GetType()
+                                    .GetProperty("FourthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fourth", activeType);
@@ -579,9 +719,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFifth = (bool?)debugView?.GetType().GetProperty("IsFifth")?.GetValue(debugView);
-        var fifthValue = debugView?.GetType().GetProperty("FifthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFifth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFifth")
+                                      ?.GetValue(debugView);
+        var fifthValue = debugView?.GetType()
+                                   .GetProperty("FifthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fifth", activeType);
@@ -597,9 +743,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -615,9 +767,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -633,9 +791,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -651,9 +815,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFourth = (bool?)debugView?.GetType().GetProperty("IsFourth")?.GetValue(debugView);
-        var fourthValue = debugView?.GetType().GetProperty("FourthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFourth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsFourth")
+                                       ?.GetValue(debugView);
+        var fourthValue = debugView?.GetType()
+                                    .GetProperty("FourthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fourth", activeType);
@@ -669,9 +839,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFifth = (bool?)debugView?.GetType().GetProperty("IsFifth")?.GetValue(debugView);
-        var fifthValue = debugView?.GetType().GetProperty("FifthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFifth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFifth")
+                                      ?.GetValue(debugView);
+        var fifthValue = debugView?.GetType()
+                                   .GetProperty("FifthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fifth", activeType);
@@ -687,9 +863,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSixth = (bool?)debugView?.GetType().GetProperty("IsSixth")?.GetValue(debugView);
-        var sixthValue = debugView?.GetType().GetProperty("SixthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSixth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsSixth")
+                                      ?.GetValue(debugView);
+        var sixthValue = debugView?.GetType()
+                                   .GetProperty("SixthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Sixth", activeType);
@@ -705,9 +887,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -723,9 +911,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -741,9 +935,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -759,9 +959,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFourth = (bool?)debugView?.GetType().GetProperty("IsFourth")?.GetValue(debugView);
-        var fourthValue = debugView?.GetType().GetProperty("FourthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFourth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsFourth")
+                                       ?.GetValue(debugView);
+        var fourthValue = debugView?.GetType()
+                                    .GetProperty("FourthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fourth", activeType);
@@ -777,9 +983,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFifth = (bool?)debugView?.GetType().GetProperty("IsFifth")?.GetValue(debugView);
-        var fifthValue = debugView?.GetType().GetProperty("FifthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFifth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFifth")
+                                      ?.GetValue(debugView);
+        var fifthValue = debugView?.GetType()
+                                   .GetProperty("FifthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fifth", activeType);
@@ -795,9 +1007,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSixth = (bool?)debugView?.GetType().GetProperty("IsSixth")?.GetValue(debugView);
-        var sixthValue = debugView?.GetType().GetProperty("SixthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSixth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsSixth")
+                                      ?.GetValue(debugView);
+        var sixthValue = debugView?.GetType()
+                                   .GetProperty("SixthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Sixth", activeType);
@@ -813,9 +1031,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSeventh = (bool?)debugView?.GetType().GetProperty("IsSeventh")?.GetValue(debugView);
-        var seventhValue = debugView?.GetType().GetProperty("SeventhValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSeventh = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSeventh")
+                                        ?.GetValue(debugView);
+        var seventhValue = debugView?.GetType()
+                                     .GetProperty("SeventhValue")
+                                    ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Seventh", activeType);
@@ -831,9 +1055,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -849,9 +1079,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -867,9 +1103,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -885,9 +1127,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFourth = (bool?)debugView?.GetType().GetProperty("IsFourth")?.GetValue(debugView);
-        var fourthValue = debugView?.GetType().GetProperty("FourthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFourth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsFourth")
+                                       ?.GetValue(debugView);
+        var fourthValue = debugView?.GetType()
+                                    .GetProperty("FourthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fourth", activeType);
@@ -903,9 +1151,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFifth = (bool?)debugView?.GetType().GetProperty("IsFifth")?.GetValue(debugView);
-        var fifthValue = debugView?.GetType().GetProperty("FifthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFifth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFifth")
+                                      ?.GetValue(debugView);
+        var fifthValue = debugView?.GetType()
+                                   .GetProperty("FifthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fifth", activeType);
@@ -921,9 +1175,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSixth = (bool?)debugView?.GetType().GetProperty("IsSixth")?.GetValue(debugView);
-        var sixthValue = debugView?.GetType().GetProperty("SixthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSixth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsSixth")
+                                      ?.GetValue(debugView);
+        var sixthValue = debugView?.GetType()
+                                   .GetProperty("SixthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Sixth", activeType);
@@ -939,9 +1199,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSeventh = (bool?)debugView?.GetType().GetProperty("IsSeventh")?.GetValue(debugView);
-        var seventhValue = debugView?.GetType().GetProperty("SeventhValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSeventh = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSeventh")
+                                        ?.GetValue(debugView);
+        var seventhValue = debugView?.GetType()
+                                     .GetProperty("SeventhValue")
+                                    ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Seventh", activeType);
@@ -957,9 +1223,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isEighth = (bool?)debugView?.GetType().GetProperty("IsEighth")?.GetValue(debugView);
-        var eighthValue = debugView?.GetType().GetProperty("EighthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isEighth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsEighth")
+                                       ?.GetValue(debugView);
+        var eighthValue = debugView?.GetType()
+                                    .GetProperty("EighthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Eighth", activeType);
@@ -975,9 +1247,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFirst = (bool?)debugView?.GetType().GetProperty("IsFirst")?.GetValue(debugView);
-        var firstValue = debugView?.GetType().GetProperty("FirstValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFirst = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFirst")
+                                      ?.GetValue(debugView);
+        var firstValue = debugView?.GetType()
+                                   .GetProperty("FirstValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("First", activeType);
@@ -993,9 +1271,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSecond = (bool?)debugView?.GetType().GetProperty("IsSecond")?.GetValue(debugView);
-        var secondValue = debugView?.GetType().GetProperty("SecondValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSecond = (bool?)debugView?.GetType()
+                                        .GetProperty("IsSecond")
+                                       ?.GetValue(debugView);
+        var secondValue = debugView?.GetType()
+                                    .GetProperty("SecondValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Second", activeType);
@@ -1011,9 +1295,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isThird = (bool?)debugView?.GetType().GetProperty("IsThird")?.GetValue(debugView);
-        var thirdValue = debugView?.GetType().GetProperty("ThirdValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isThird = (bool?)debugView?.GetType()
+                                       .GetProperty("IsThird")
+                                      ?.GetValue(debugView);
+        var thirdValue = debugView?.GetType()
+                                   .GetProperty("ThirdValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Third", activeType);
@@ -1029,9 +1319,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFourth = (bool?)debugView?.GetType().GetProperty("IsFourth")?.GetValue(debugView);
-        var fourthValue = debugView?.GetType().GetProperty("FourthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFourth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsFourth")
+                                       ?.GetValue(debugView);
+        var fourthValue = debugView?.GetType()
+                                    .GetProperty("FourthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fourth", activeType);
@@ -1047,9 +1343,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isFifth = (bool?)debugView?.GetType().GetProperty("IsFifth")?.GetValue(debugView);
-        var fifthValue = debugView?.GetType().GetProperty("FifthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isFifth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsFifth")
+                                      ?.GetValue(debugView);
+        var fifthValue = debugView?.GetType()
+                                   .GetProperty("FifthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Fifth", activeType);
@@ -1065,9 +1367,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSixth = (bool?)debugView?.GetType().GetProperty("IsSixth")?.GetValue(debugView);
-        var sixthValue = debugView?.GetType().GetProperty("SixthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSixth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsSixth")
+                                      ?.GetValue(debugView);
+        var sixthValue = debugView?.GetType()
+                                   .GetProperty("SixthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Sixth", activeType);
@@ -1083,9 +1391,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isSeventh = (bool?)debugView?.GetType().GetProperty("IsSeventh")?.GetValue(debugView);
-        var seventhValue = debugView?.GetType().GetProperty("SeventhValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isSeventh = (bool?)debugView?.GetType()
+                                         .GetProperty("IsSeventh")
+                                        ?.GetValue(debugView);
+        var seventhValue = debugView?.GetType()
+                                     .GetProperty("SeventhValue")
+                                    ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Seventh", activeType);
@@ -1101,9 +1415,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isEighth = (bool?)debugView?.GetType().GetProperty("IsEighth")?.GetValue(debugView);
-        var eighthValue = debugView?.GetType().GetProperty("EighthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isEighth = (bool?)debugView?.GetType()
+                                        .GetProperty("IsEighth")
+                                       ?.GetValue(debugView);
+        var eighthValue = debugView?.GetType()
+                                    .GetProperty("EighthValue")
+                                   ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Eighth", activeType);
@@ -1119,9 +1439,15 @@ public sealed class OneOfTests_DebuggerDisplay
 
         // Act
         var debugView = GetDebugView(oneOf);
-        var activeType = debugView?.GetType().GetProperty("ActiveType")?.GetValue(debugView) as string;
-        var isNinth = (bool?)debugView?.GetType().GetProperty("IsNinth")?.GetValue(debugView);
-        var ninthValue = debugView?.GetType().GetProperty("NinthValue")?.GetValue(debugView);
+        var activeType = debugView?.GetType()
+                                   .GetProperty("ActiveType")
+                                  ?.GetValue(debugView) as string;
+        var isNinth = (bool?)debugView?.GetType()
+                                       .GetProperty("IsNinth")
+                                      ?.GetValue(debugView);
+        var ninthValue = debugView?.GetType()
+                                   .GetProperty("NinthValue")
+                                  ?.GetValue(debugView);
 
         // Assert
         Assert.Equal("Ninth", activeType);
@@ -1138,25 +1464,29 @@ public sealed class OneOfTests_DebuggerDisplay
     private static object? GetDebugView<T>(T value)
     {
         var debuggerTypeProxyAttribute = typeof(T).GetCustomAttribute<DebuggerTypeProxyAttribute>();
-        if (debuggerTypeProxyAttribute == null)
-        {
+        if (debuggerTypeProxyAttribute == null) {
             return null;
         }
 
         var proxyTypeName = debuggerTypeProxyAttribute.ProxyTypeName;
-        var proxyTypeGenericName = proxyTypeName.Split(',')[0].Split('.').Last().Split('`')[0];
+        var proxyTypeGenericName = proxyTypeName.Split(',')[0]
+                                                .Split('.')
+                                                .Last()
+                                                .Split('`')[0];
 
         // Get the generic arguments from the OneOf type
         var genericArgs = typeof(T).GetGenericArguments();
-        var arity = genericArgs.Length;
+        var arity       = genericArgs.Length;
 
         // Find the proxy type with the correct arity
         var proxyTypeGeneric = typeof(T).Assembly.GetTypes()
-            .FirstOrDefault(t =>
-                t.Name == $"{proxyTypeGenericName}`{arity}" && t.GetGenericArguments().Length == arity);
+                                        .FirstOrDefault(t =>
+                                                            t.Name == $"{proxyTypeGenericName}`{arity}" &&
+                                                            t.GetGenericArguments()
+                                                             .Length ==
+                                                            arity);
 
-        if (proxyTypeGeneric == null)
-        {
+        if (proxyTypeGeneric == null) {
             return null;
         }
 

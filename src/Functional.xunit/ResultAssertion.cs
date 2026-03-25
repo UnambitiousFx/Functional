@@ -31,8 +31,7 @@ public readonly struct ResultAssertion
     /// </returns>
     public SuccessAssertion Success()
     {
-        if (!_result.IsSuccess)
-        {
+        if (!_result.IsSuccess) {
             Assert.Fail("Expected success result but was failure.");
         }
 
@@ -50,8 +49,7 @@ public readonly struct ResultAssertion
     /// </returns>
     public FailureAssertion Failure()
     {
-        if (!_result.TryGetError(out var error))
-        {
+        if (!_result.TryGetError(out var error)) {
             Assert.Fail("Expected failure result but was success.");
         }
 
@@ -69,7 +67,8 @@ public readonly struct ResultAssertion
 ///     Must be a non-nullable reference or value type.
 /// </typeparam>
 [DebuggerStepThrough]
-public readonly struct ResultAssertion<TValue> where TValue : notnull
+public readonly struct ResultAssertion<TValue>
+    where TValue : notnull
 {
     private readonly Result<TValue> _result;
 
@@ -95,8 +94,7 @@ public readonly struct ResultAssertion<TValue> where TValue : notnull
     /// </exception>
     public SuccessAssertion<TValue> Success()
     {
-        if (!_result.TryGetValue(out var value))
-        {
+        if (!_result.TryGetValue(out var value)) {
             Assert.Fail("Expected success result but was failure.");
         }
 
@@ -110,8 +108,7 @@ public readonly struct ResultAssertion<TValue> where TValue : notnull
     /// <returns>A <see cref="FailureAssertion" /> instance allowing further inspection or validation of the associated error.</returns>
     public FailureAssertion Failure()
     {
-        if (!_result.TryGetError(out var error))
-        {
+        if (!_result.TryGetError(out var error)) {
             Assert.Fail("Expected failure result but was success.");
         }
 

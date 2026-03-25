@@ -1,3 +1,4 @@
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -13,26 +14,26 @@ public sealed partial class ResultExtensions
     public void TapError_CanInspectErrorMetadata()
     {
         // Arrange (Given)
-        var error = new Functional.Failures.Failure(
+        var error = new Failure(
             "ERR_001",
             "Test error",
             new Dictionary<string, object?> { ["timestamp"] = "2024-01-01", ["severity"] = "high" });
-        var result = Result.Failure<int>(error);
+        var result       = Result.Failure<int>(error);
         var metadataKeys = new List<string>();
 
         // Act (When)
         var tapped = result.TapError(err =>
         {
-            foreach (var key in err.Metadata.Keys)
-            {
+            foreach (var key in err.Metadata.Keys) {
                 metadataKeys.Add(key);
             }
         });
 
         // Assert (Then)
-        tapped.ShouldBe().Failure();
+        tapped.ShouldBe()
+              .Failure();
         Assert.Contains("timestamp", metadataKeys);
-        Assert.Contains("severity", metadataKeys);
+        Assert.Contains("severity",  metadataKeys);
     }
 
     #endregion
@@ -43,14 +44,15 @@ public sealed partial class ResultExtensions
     public void TapError_WithSuccess_DoesNotExecuteSideEffect()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result   = Result.Success(42);
         var executed = false;
 
         // Act (When)
         var tapped = result.TapError(error => executed = true);
 
         // Assert (Then)
-        tapped.ShouldBe().Success();
+        tapped.ShouldBe()
+              .Success();
         Assert.False(executed);
     }
 
@@ -58,15 +60,16 @@ public sealed partial class ResultExtensions
     public void TapError_WithFailure_ExecutesSideEffect()
     {
         // Arrange (Given)
-        var error = new Functional.Failures.Failure("Test error");
-        var result = Result.Failure<int>(error);
+        var error           = new Failure("Test error");
+        var result          = Result.Failure<int>(error);
         var capturedMessage = "";
 
         // Act (When)
         var tapped = result.TapError(err => capturedMessage = err.Message);
 
         // Assert (Then)
-        tapped.ShouldBe().Failure();
+        tapped.ShouldBe()
+              .Failure();
         Assert.Equal("Test error", capturedMessage);
     }
 
@@ -74,14 +77,16 @@ public sealed partial class ResultExtensions
     public void TapError_WithFailure_ReturnsOriginalResult()
     {
         // Arrange (Given)
-        var error = new Functional.Failures.Failure("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
         var tapped = result.TapError(err => { });
 
         // Assert (Then)
-        tapped.ShouldBe().Failure().AndMessage("Test error");
+        tapped.ShouldBe()
+              .Failure()
+              .AndMessage("Test error");
     }
 
     #endregion
@@ -92,14 +97,15 @@ public sealed partial class ResultExtensions
     public void TapError_NonGeneric_WithSuccess_DoesNotExecuteSideEffect()
     {
         // Arrange (Given)
-        var result = Result.Success();
+        var result   = Result.Success();
         var executed = false;
 
         // Act (When)
         var tapped = result.TapError(error => executed = true);
 
         // Assert (Then)
-        tapped.ShouldBe().Success();
+        tapped.ShouldBe()
+              .Success();
         Assert.False(executed);
     }
 
@@ -107,15 +113,16 @@ public sealed partial class ResultExtensions
     public void TapError_NonGeneric_WithFailure_ExecutesSideEffect()
     {
         // Arrange (Given)
-        var error = new Functional.Failures.Failure("Test error");
-        var result = Result.Failure(error);
+        var error           = new Failure("Test error");
+        var result          = Result.Failure(error);
         var capturedMessage = "";
 
         // Act (When)
         var tapped = result.TapError(err => capturedMessage = err.Message);
 
         // Assert (Then)
-        tapped.ShouldBe().Failure();
+        tapped.ShouldBe()
+              .Failure();
         Assert.Equal("Test error", capturedMessage);
     }
 
@@ -127,15 +134,16 @@ public sealed partial class ResultExtensions
     public void TapError_CanBeUsedForErrorLogging()
     {
         // Arrange (Given)
-        var error = new Functional.Failures.Failure("Database connection failed");
-        var result = Result.Failure<string>(error);
+        var error    = new Failure("Database connection failed");
+        var result   = Result.Failure<string>(error);
         var errorLog = new List<string>();
 
         // Act (When)
         var tapped = result.TapError(err => errorLog.Add($"[ERROR] {err.Message}"));
 
         // Assert (Then)
-        tapped.ShouldBe().Failure();
+        tapped.ShouldBe()
+              .Failure();
         Assert.Single(errorLog);
         Assert.Equal("[ERROR] Database connection failed", errorLog[0]);
     }
@@ -144,14 +152,15 @@ public sealed partial class ResultExtensions
     public void TapError_WithSuccess_DoesNotLog()
     {
         // Arrange (Given)
-        var result = Result.Success("Success data");
+        var result   = Result.Success("Success data");
         var errorLog = new List<string>();
 
         // Act (When)
         var tapped = result.TapError(err => errorLog.Add($"[ERROR] {err.Message}"));
 
         // Assert (Then)
-        tapped.ShouldBe().Success();
+        tapped.ShouldBe()
+              .Success();
         Assert.Empty(errorLog);
     }
 
@@ -163,21 +172,22 @@ public sealed partial class ResultExtensions
     public void TapError_CanChainMultipleTapErrors()
     {
         // Arrange (Given)
-        var error = new Functional.Failures.Failure("ERR_001", "Test error");
+        var error  = new Failure("ERR_001", "Test error");
         var result = Result.Failure<int>(error);
-        var log = new List<string>();
+        var log    = new List<string>();
 
         // Act (When)
         var tapped = result
-            .TapError(err => log.Add($"Code: {err.Code}"))
-            .TapError(err => log.Add($"Message: {err.Message}"))
-            .TapError(err => log.Add($"Full: [{err.Code}] {err.Message}"));
+                    .TapError(err => log.Add($"Code: {err.Code}"))
+                    .TapError(err => log.Add($"Message: {err.Message}"))
+                    .TapError(err => log.Add($"Full: [{err.Code}] {err.Message}"));
 
         // Assert (Then)
-        tapped.ShouldBe().Failure();
-        Assert.Equal(3, log.Count);
-        Assert.Equal("Code: ERR_001", log[0]);
-        Assert.Equal("Message: Test error", log[1]);
+        tapped.ShouldBe()
+              .Failure();
+        Assert.Equal(3,                            log.Count);
+        Assert.Equal("Code: ERR_001",              log[0]);
+        Assert.Equal("Message: Test error",        log[1]);
         Assert.Equal("Full: [ERR_001] Test error", log[2]);
     }
 
@@ -185,20 +195,21 @@ public sealed partial class ResultExtensions
     public void TapError_CanCombineWithTap()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result     = Result.Success(42);
         var successLog = new List<int>();
-        var errorLog = new List<string>();
+        var errorLog   = new List<string>();
 
         // Act (When)
         var tapped = result
-            .Tap(value => successLog.Add(value))
-            .TapError(err => errorLog.Add(err.Message))
-            .Map(x => x * 2)
-            .Tap(value => successLog.Add(value))
-            .TapError(err => errorLog.Add(err.Message));
+                    .Tap(value => successLog.Add(value))
+                    .TapError(err => errorLog.Add(err.Message))
+                    .Map(x => x * 2)
+                    .Tap(value => successLog.Add(value))
+                    .TapError(err => errorLog.Add(err.Message));
 
         // Assert (Then)
-        tapped.ShouldBe().Success();
+        tapped.ShouldBe()
+              .Success();
         Assert.Equal(new[] { 42, 84 }, successLog);
         Assert.Empty(errorLog);
     }
@@ -207,20 +218,23 @@ public sealed partial class ResultExtensions
     public void TapError_InPipeline_TracksErrors()
     {
         // Arrange (Given)
-        var result = Result.Success(5);
+        var result   = Result.Success(5);
         var errorLog = new List<string>();
 
         // Act (When)
         var final = result
-            .TapError(err => errorLog.Add($"Step 1: {err.Message}"))
-            .Bind(x => x > 10 ? Result.Success(x) : Result.Failure<int>("Too small"))
-            .TapError(err => errorLog.Add($"Step 2: {err.Message}"))
-            .Map(x => x * 2)
-            .TapError(err => errorLog.Add($"Step 3: {err.Message}"));
+                   .TapError(err => errorLog.Add($"Step 1: {err.Message}"))
+                   .Bind(x => x > 10
+                                  ? Result.Success(x)
+                                  : Result.Failure<int>("Too small"))
+                   .TapError(err => errorLog.Add($"Step 2: {err.Message}"))
+                   .Map(x => x * 2)
+                   .TapError(err => errorLog.Add($"Step 3: {err.Message}"));
 
         // Assert (Then)
-        final.ShouldBe().Failure();
-        Assert.Equal(2, errorLog.Count);
+        final.ShouldBe()
+             .Failure();
+        Assert.Equal(2,                   errorLog.Count);
         Assert.Equal("Step 2: Too small", errorLog[0]);
         Assert.Equal("Step 3: Too small", errorLog[1]);
     }

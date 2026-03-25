@@ -24,8 +24,7 @@ public static class ResultAssertionExtensions
     /// </summary>
     /// <param name="awaitableResult">The awaited result to be asserted.</param>
     /// <returns>A <see cref="ResultAssertion" /> instance representing the assertion of the provided result.</returns>
-    public static async ValueTask<ResultAssertion<TValue>> ShouldBe<TValue>(
-        this ValueTask<Result<TValue>> awaitableResult)
+    public static async ValueTask<ResultAssertion<TValue>> ShouldBe<TValue>(this ValueTask<Result<TValue>> awaitableResult)
         where TValue : notnull
     {
         var result = await awaitableResult;
@@ -51,8 +50,7 @@ public static class ResultAssertionExtensions
     /// <typeparam name="TValue">The type of the value within the successful result assertion.</typeparam>
     /// <param name="awaitableAssertion">The awaited result assertion to validate success against.</param>
     /// <returns>A <see cref="SuccessAssertion{TValue}" /> instance encapsulating the value of the successful result assertion.</returns>
-    public static async ValueTask<SuccessAssertion<TValue>> Success<TValue>(
-        this ValueTask<ResultAssertion<TValue>> awaitableAssertion)
+    public static async ValueTask<SuccessAssertion<TValue>> Success<TValue>(this ValueTask<ResultAssertion<TValue>> awaitableAssertion)
         where TValue : notnull
     {
         var assertion = await awaitableAssertion;
@@ -78,8 +76,7 @@ public static class ResultAssertionExtensions
     /// <param name="awaitableAssertion">The awaited assertion to be validated as failure.</param>
     /// <typeparam name="TValue">The type of the result's value.</typeparam>
     /// <returns>A <see cref="FailureAssertion" /> instance representing the failure of the provided assertion.</returns>
-    public static async ValueTask<FailureAssertion> Failure<TValue>(
-        this ValueTask<ResultAssertion<TValue>> awaitableAssertion)
+    public static async ValueTask<FailureAssertion> Failure<TValue>(this ValueTask<ResultAssertion<TValue>> awaitableAssertion)
         where TValue : notnull
     {
         var assertion = await awaitableAssertion;
@@ -97,9 +94,8 @@ public static class ResultAssertionExtensions
     ///     A <see cref="SuccessAssertion{TValue}" /> instance representing the assertion after applying the additional
     ///     action.
     /// </returns>
-    public static async ValueTask<SuccessAssertion<TValue>> And<TValue>(
-        this ValueTask<SuccessAssertion<TValue>> awaitableAssertion,
-        Action<TValue> assertion)
+    public static async ValueTask<SuccessAssertion<TValue>> And<TValue>(this ValueTask<SuccessAssertion<TValue>> awaitableAssertion,
+                                                                        Action<TValue>                           assertion)
         where TValue : notnull
     {
         var assertionResult = await awaitableAssertion;
@@ -122,10 +118,10 @@ public static class ResultAssertionExtensions
     /// <returns>
     ///     A new <see cref="SuccessAssertion{TOut}" /> instance containing the value projected using the mapping function.
     /// </returns>
-    public static async ValueTask<SuccessAssertion<TOut>> Map<TValue, TOut>(
-        this ValueTask<SuccessAssertion<TValue>> awaitableAssertion,
-        Func<TValue, TOut> map)
-        where TValue : notnull where TOut : notnull
+    public static async ValueTask<SuccessAssertion<TOut>> Map<TValue, TOut>(this ValueTask<SuccessAssertion<TValue>> awaitableAssertion,
+                                                                            Func<TValue, TOut>                       map)
+        where TValue : notnull
+        where TOut : notnull
     {
         var assertionResult = await awaitableAssertion;
         return assertionResult.Map(map);
@@ -137,9 +133,8 @@ public static class ResultAssertionExtensions
     /// <param name="awaitableAssertion">The awaited <see cref="FailureAssertion" /> to assert against.</param>
     /// <param name="expectedMessage">The expected error message to validate.</param>
     /// <returns>The updated <see cref="FailureAssertion" /> instance with the message assertion applied.</returns>
-    public static async ValueTask<FailureAssertion> AndMessage(
-        this ValueTask<FailureAssertion> awaitableAssertion,
-        string expectedMessage)
+    public static async ValueTask<FailureAssertion> AndMessage(this ValueTask<FailureAssertion> awaitableAssertion,
+                                                               string                           expectedMessage)
     {
         var assertionResult = await awaitableAssertion;
         return assertionResult.AndMessage(expectedMessage);

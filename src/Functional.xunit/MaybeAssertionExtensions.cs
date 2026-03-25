@@ -19,8 +19,11 @@ public static class MaybeAssertionExtensions
     ///     non-nullable.
     /// </typeparam>
     /// <returns>A <see cref="MaybeAssertion{TValue}" /> instance for the given <see cref="Maybe{TValue}" />.</returns>
-    public static MaybeAssertion<TValue> ShouldBe<TValue>(this Maybe<TValue> maybe) where TValue : notnull =>
-        new(maybe);
+    public static MaybeAssertion<TValue> ShouldBe<TValue>(this Maybe<TValue> maybe)
+        where TValue : notnull
+    {
+        return new MaybeAssertion<TValue>(maybe);
+    }
 
     /// <summary>
     ///     Applies a predicate to the value inside a SomeAssertion, failing if the predicate is not satisfied.
@@ -31,13 +34,12 @@ public static class MaybeAssertionExtensions
     /// <param name="because">An optional reason to include if the assertion fails.</param>
     /// <returns>The same SomeAssertion instance.</returns>
     public static SomeAssertion<T> Where<T>(this SomeAssertion<T> assertion,
-        Func<T, bool> predicate,
-        string? because = null)
+                                            Func<T, bool>         predicate,
+                                            string?               because = null)
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        if (!predicate(assertion.Value))
-        {
+        if (!predicate(assertion.Value)) {
             Assert.Fail(because ?? $"Value '{assertion.Value}' does not satisfy predicate.");
         }
 

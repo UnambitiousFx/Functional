@@ -18,7 +18,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Success();
+        combined.ShouldBe()
+                .Success();
     }
 
     [Fact]
@@ -34,7 +35,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
+        combined.ShouldBe()
+                .Failure();
         Assert.True(combined.TryGetError(out var error));
         Assert.IsType<AggregateFailure>(error);
     }
@@ -49,7 +51,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
+        combined.ShouldBe()
+                .Failure();
     }
 
     [Fact]
@@ -62,7 +65,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Success();
+        combined.ShouldBe()
+                .Success();
     }
 
     [Fact]
@@ -76,8 +80,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         combined.ShouldBe()
-            .Success()
-            .And(values => Assert.Equal([1, 2, 3], values));
+                .Success()
+                .And(values => Assert.Equal([1, 2, 3], values));
     }
 
     [Fact]
@@ -93,7 +97,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
+        combined.ShouldBe()
+                .Failure();
         Assert.False(combined.TryGet(out _, out var error));
         Assert.IsType<AggregateFailure>(error);
     }
@@ -111,7 +116,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
+        combined.ShouldBe()
+                .Failure();
     }
 
     [Fact]
@@ -125,8 +131,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         combined.ShouldBe()
-            .Success()
-            .And(values => Assert.Empty(values));
+                .Success()
+                .And(values => Assert.Empty(values));
     }
 
     [Theory]
@@ -142,7 +148,7 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         combined.ShouldBe()
-            .Success()
-            .And(values => Assert.Equal(inputValues, values));
+                .Success()
+                .And(values => Assert.Equal(inputValues, values));
     }
 }

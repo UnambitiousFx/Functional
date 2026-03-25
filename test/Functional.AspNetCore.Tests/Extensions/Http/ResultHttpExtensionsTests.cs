@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Http;
@@ -45,7 +46,7 @@ public class ResultHttpExtensionsTests
         var result = Result.Success(42);
 
         // When
-        var httpResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v));
+        var httpResult = result.ToHttpResult(v => Results.Ok(v));
 
         // Then
         var okResult = Assert.IsType<Ok<int>>(httpResult);
@@ -73,7 +74,7 @@ public class ResultHttpExtensionsTests
         var result = Result.Failure<int>(new NotFoundFailure("Item", "123"));
 
         // When
-        var httpResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v));
+        var httpResult = result.ToHttpResult(v => Results.Ok(v));
 
         // Then
         Assert.IsType<ProblemHttpResult>(httpResult);
@@ -86,7 +87,7 @@ public class ResultHttpExtensionsTests
         var result = Result.Success(42);
 
         // When
-        var httpResult = result.ToHttpResult(x => Microsoft.AspNetCore.Http.Results.Ok(new { Value = x.ToString() }));
+        var httpResult = result.ToHttpResult(x => Results.Ok(new { Value = x.ToString() }));
 
         // Then
         Assert.NotNull(httpResult);
@@ -115,13 +116,12 @@ public class ResultHttpExtensionsTests
         var result = Result.Success();
 
         // When
-        var httpResult = result.ToHttpResult(() => Microsoft.AspNetCore.Http.Results.Ok(new { Message = "Success" }));
+        var httpResult = result.ToHttpResult(() => Results.Ok(new { Message = "Success" }));
 
         // Then
         Assert.NotNull(httpResult);
         Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
     }
-
 
     [Fact(DisplayName = "ToCreatedHttpResult with failure returns ProblemDetails")]
     public void ToCreatedHttpResult_Failure_ReturnsProblemDetails()
@@ -167,7 +167,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithProblemDetailsMapper_ReturnsProblemDetails()
     {
         // Given
-        var result = Result.Failure(new ValidationFailure(["Invalid input"]));
+        var result       = Result.Failure(new ValidationFailure(["Invalid input"]));
         var customMapper = new CustomProblemDetailsMapper();
 
         // When
@@ -181,7 +181,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithCustomMapperReturningNull_FallsBackToDefault()
     {
         // Given
-        var result = Result.Failure(new ValidationFailure(["Invalid input"]));
+        var result       = Result.Failure(new ValidationFailure(["Invalid input"]));
         var customMapper = new NullReturningMapper();
 
         // When
@@ -195,7 +195,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithUnsupportedErrorStatusCode_Returns500()
     {
         // Given
-        var result = Result.Failure(new CustomFailure(418, "I'm a teapot"));
+        var result       = Result.Failure(new CustomFailure(418, "I'm a teapot"));
         var customMapper = new CustomStatusCodeMapper();
 
         // When
@@ -209,7 +209,7 @@ public class ResultHttpExtensionsTests
     public void ToHttpResult_WithError500AndBody_ReturnsProblem()
     {
         // Given
-        var result = Result.Failure(new CustomFailure(500, "Internal server error"));
+        var result       = Result.Failure(new CustomFailure(500, "Internal server error"));
         var customMapper = new CustomStatusCodeMapper();
 
         // When
@@ -227,7 +227,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
+        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
 
         // Then
         var objectResult = Assert.IsType<BadRequest<object>>(actionResult);
@@ -242,7 +242,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
+        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
 
         // Then
         var objectResult = Assert.IsType<UnauthorizedHttpResult>(actionResult);
@@ -257,7 +257,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
+        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<ForbidHttpResult>(actionResult);
@@ -271,7 +271,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
+        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<NotFound<object>>(actionResult);
@@ -285,7 +285,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
+        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<Conflict<object>>(actionResult);
@@ -299,7 +299,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
+        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<ProblemHttpResult>(actionResult);
@@ -313,7 +313,7 @@ public class ResultHttpExtensionsTests
         var mapper = new CustomStatusCodeMapper();
 
         // When
-        var actionResult = result.ToHttpResult(v => Microsoft.AspNetCore.Http.Results.Ok(v), mapper);
+        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
 
         // Then
         Assert.IsType<StatusCodeHttpResult>(actionResult);
@@ -325,7 +325,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResult_ToHttpResult_Success_ReturnsNoContent()
     {
         // Given
-        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Success());
+        var resultTask = ValueTask.FromResult(Result.Success());
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -338,10 +338,10 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResult_ToHttpResult_WithCustomSuccessMapper_ReturnsCustomResult()
     {
         // Given
-        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Success());
+        var resultTask = ValueTask.FromResult(Result.Success());
 
         // When
-        var httpResult = await resultTask.ToHttpResult(() => Microsoft.AspNetCore.Http.Results.Ok(new { Message = "Success" }));
+        var httpResult = await resultTask.ToHttpResult(() => Results.Ok(new { Message = "Success" }));
 
         // Then
         Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
@@ -351,7 +351,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResult_ToHttpResult_Failure_ReturnsProblemDetails()
     {
         // Given
-        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
+        var resultTask = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -364,7 +364,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToHttpResult_Success_Returns200WithValue()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
+        var resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -378,10 +378,10 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToHttpResult_WithCustomSuccessMapper_TransformsValue()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
+        var resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
-        var httpResult = await resultTask.ToHttpResult(x => Microsoft.AspNetCore.Http.Results.Ok(new { Value = x.ToString() }));
+        var httpResult = await resultTask.ToHttpResult(x => Results.Ok(new { Value = x.ToString() }));
 
         // Then
         Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
@@ -391,7 +391,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToHttpResult_Failure_ReturnsProblemDetails()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
+        var resultTask = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -404,7 +404,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToCreatedHttpResult_Success_Returns201WithLocation()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
+        var resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
@@ -418,7 +418,7 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToCreatedHttpResult_Failure_ReturnsProblemDetails()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid input"])));
+        var resultTask = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid input"])));
 
         // When
         var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
@@ -431,8 +431,8 @@ public class ResultHttpExtensionsTests
     public async Task ValueTaskResultGeneric_ToCreatedHttpResult_WithCustomErrorMapper_ReturnsCustomError()
     {
         // Given
-        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(409, "Conflict")));
-        var mapper = new CustomStatusCodeMapper();
+        var resultTask = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(409, "Conflict")));
+        var mapper     = new CustomStatusCodeMapper();
 
         // When
         var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}", mapper);
@@ -466,17 +466,19 @@ public class ResultHttpExtensionsTests
     {
         public ErrorHttpResponse? GetErrorResponse(IFailure failure)
         {
-            if (failure is ValidationFailure)
+            if (failure is ValidationFailure) {
                 return new ErrorHttpResponse
                 {
                     StatusCode = 400,
                     Body = new ProblemDetails
                     {
-                        Title = "Validation Error",
+                        Title  = "Validation Error",
                         Status = 400,
                         Detail = "One or more validation errors occurred."
                     }
                 };
+            }
+
             return null;
         }
     }
@@ -489,19 +491,24 @@ public class ResultHttpExtensionsTests
         }
     }
 
-    private record CustomFailure(int StatusCode, string Message) : Failure(Message);
+    private record CustomFailure(int    StatusCode,
+                                 string Message) : Failure(Message);
 
     private class CustomStatusCodeMapper : IErrorHttpMapper
     {
         public ErrorHttpResponse? GetErrorResponse(IFailure failure)
         {
-            var body = string.IsNullOrWhiteSpace(failure.Message) ? null : new { failure.Message };
-            if (failure is CustomFailure customError)
+            var body = string.IsNullOrWhiteSpace(failure.Message)
+                           ? null
+                           : new { failure.Message };
+            if (failure is CustomFailure customError) {
                 return new ErrorHttpResponse
                 {
                     StatusCode = customError.StatusCode,
-                    Body = body
+                    Body       = body
                 };
+            }
+
             return null;
         }
     }

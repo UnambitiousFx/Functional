@@ -15,9 +15,13 @@ internal sealed class ResultDebugView<TValue>
     public bool IsSuccess => _result.IsSuccess;
     public bool IsFaulted => _result.IsFailure;
 
-    public TValue? Value => _result.TryGetValue(out var value) ? value : default;
+    public TValue? Value => _result.TryGetValue(out var value)
+                                ? value
+                                : default;
 
-    public Failure? Error => _result.TryGet(out _, out var error) ? null : error;
+    public Failure? Error => _result.TryGet(out _, out var error)
+                                 ? null
+                                 : error;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
@@ -25,7 +29,7 @@ internal sealed class ResultDebugView<TValue>
     {
         get
         {
-            if (!_result.TryGet(out _, out var error))
+            if (!_result.TryGet(out _, out var error)) {
                 return error switch
                 {
                     AggregateFailure agg => new
@@ -34,10 +38,17 @@ internal sealed class ResultDebugView<TValue>
                     },
                     ExceptionalFailure exc => new
                     {
-                        Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType().Name
+                        Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType()
+                                                                                     .Name
                     },
-                    _ => new { Type = error.GetType().Name, error.Code, error.Message }
+                    _ => new
+                    {
+                        Type = error.GetType()
+                                    .Name,
+                        error.Code, error.Message
+                    }
                 };
+            }
 
             return null;
         }
@@ -56,7 +67,9 @@ internal sealed class ResultDebugView
     public bool IsSuccess => _result.IsSuccess;
     public bool IsFaulted => _result.IsFailure;
 
-    public Failure? Error => !_result.TryGetError(out var error) ? null : error;
+    public Failure? Error => !_result.TryGetError(out var error)
+                                 ? null
+                                 : error;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
@@ -64,7 +77,9 @@ internal sealed class ResultDebugView
     {
         get
         {
-            if (!_result.TryGetError(out var error)) return null;
+            if (!_result.TryGetError(out var error)) {
+                return null;
+            }
 
             return error switch
             {
@@ -74,9 +89,15 @@ internal sealed class ResultDebugView
                 },
                 ExceptionalFailure exc => new
                 {
-                    Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType().Name
+                    Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType()
+                                                                                 .Name
                 },
-                _ => new { Type = error.GetType().Name, error.Code, error.Message }
+                _ => new
+                {
+                    Type = error.GetType()
+                                .Name,
+                    error.Code, error.Message
+                }
             };
         }
     }

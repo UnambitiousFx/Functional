@@ -12,7 +12,8 @@ public static partial class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="selector">The projection to apply when successful.</param>
     /// <returns>A projected result when successful; otherwise the original failure.</returns>
-    public static Result<TOut> Select<TIn, TOut>(this Result<TIn> result, Func<TIn, TOut> selector)
+    public static Result<TOut> Select<TIn, TOut>(this Result<TIn> result,
+                                                 Func<TIn, TOut>  selector)
         where TIn : notnull
         where TOut : notnull
     {
@@ -27,7 +28,8 @@ public static partial class ResultExtensions
     /// <param name="result">The source result.</param>
     /// <param name="binder">The bind function to apply when successful.</param>
     /// <returns>A bound result when successful; otherwise the original failure.</returns>
-    public static Result<TOut> SelectMany<TIn, TOut>(this Result<TIn> result, Func<TIn, Result<TOut>> binder)
+    public static Result<TOut> SelectMany<TIn, TOut>(this Result<TIn>        result,
+                                                     Func<TIn, Result<TOut>> binder)
         where TIn : notnull
         where TOut : notnull
     {
@@ -44,15 +46,15 @@ public static partial class ResultExtensions
     /// <param name="binder">The bind function to apply when successful.</param>
     /// <param name="projector">The projection to apply when both results are successful.</param>
     /// <returns>A projected result when successful; otherwise the original failure.</returns>
-    public static Result<TOut> SelectMany<TIn, TCollection, TOut>(
-        this Result<TIn> result,
-        Func<TIn, Result<TCollection>> binder,
-        Func<TIn, TCollection, TOut> projector)
+    public static Result<TOut> SelectMany<TIn, TCollection, TOut>(this Result<TIn>               result,
+                                                                  Func<TIn, Result<TCollection>> binder,
+                                                                  Func<TIn, TCollection, TOut>   projector)
         where TIn : notnull
         where TCollection : notnull
         where TOut : notnull
     {
-        return result.Bind(left => binder(left).Map(right => projector(left, right)));
+        return result.Bind(left => binder(left)
+                              .Map(right => projector(left, right)));
     }
 
     /// <summary>
@@ -64,7 +66,8 @@ public static partial class ResultExtensions
     /// <returns>
     ///     The original success when the predicate is true; otherwise a validation failure.
     /// </returns>
-    public static Result<TValue> Where<TValue>(this Result<TValue> result, Func<TValue, bool> predicate)
+    public static Result<TValue> Where<TValue>(this Result<TValue> result,
+                                               Func<TValue, bool>  predicate)
         where TValue : notnull
     {
         return result.Ensure(

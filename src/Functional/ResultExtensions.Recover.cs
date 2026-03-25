@@ -6,7 +6,8 @@ public static partial class ResultExtensions
 {
     /// <param name="result">The result to recover from.</param>
     /// <typeparam name="TValue">The type of the first value.</typeparam>
-    extension<TValue>(Result<TValue> result) where TValue : notnull
+    extension<TValue>(Result<TValue> result)
+        where TValue : notnull
     {
         /// <summary>
         ///     Recovers from a failed result by providing fallback values through a recovery function.
@@ -15,8 +16,7 @@ public static partial class ResultExtensions
         /// <returns>A successful result with the fallback values if the original result failed; otherwise, the original result.</returns>
         public Result<TValue> Recover(Func<Failure, TValue> recoverFunc)
         {
-            if (!result.TryGetError(out var error))
-            {
+            if (!result.TryGetError(out var error)) {
                 return result;
             }
 

@@ -11,7 +11,7 @@ public sealed class MaybeExtensionsLinqTests
     public void Linq_QuerySyntax_WithSomeValues_ReturnsProjectedSome()
     {
         // Arrange (Given)
-        var left = Maybe.Some(10);
+        var left  = Maybe.Some(10);
         var right = Maybe.Some(2);
 
         // Act (When)
@@ -22,14 +22,16 @@ public sealed class MaybeExtensionsLinqTests
             select l + r;
 
         // Assert (Then)
-        maybe.ShouldBe().Some().And(v => Assert.Equal(12, v));
+        maybe.ShouldBe()
+             .Some()
+             .And(v => Assert.Equal(12, v));
     }
 
     [Fact]
     public void Linq_QuerySyntax_WithNoneSource_ReturnsNone()
     {
         // Arrange (Given)
-        var left = Maybe.None<int>();
+        var left  = Maybe.None<int>();
         var right = Maybe.Some(2);
 
         // Act (When)
@@ -39,14 +41,15 @@ public sealed class MaybeExtensionsLinqTests
             select l + r;
 
         // Assert (Then)
-        maybe.ShouldBe().None();
+        maybe.ShouldBe()
+             .None();
     }
 
     [Fact]
     public void Linq_QuerySyntax_WithFalseWhere_ReturnsNone()
     {
         // Arrange (Given)
-        var left = Maybe.Some(1);
+        var left  = Maybe.Some(1);
         var right = Maybe.Some(2);
 
         // Act (When)
@@ -57,6 +60,7 @@ public sealed class MaybeExtensionsLinqTests
             select l + r;
 
         // Assert (Then)
-        maybe.ShouldBe().None();
+        maybe.ShouldBe()
+             .None();
     }
 }
