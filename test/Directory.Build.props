@@ -5,7 +5,7 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <TargetFramework Condition="$(CI) != 'true'">$(LatestTargetFramework)</TargetFramework>
-        <TargetFrameworks Condition="$(CI) == 'true'">$(GoalTargetFrameworks)</TargetFrameworks>
+        <TargetFrameworks Condition="$(CI) == 'true'">$(LibraryTargetFrameworks)</TargetFrameworks>
     </PropertyGroup>
 
     <!-- Code coverage configuration -->
