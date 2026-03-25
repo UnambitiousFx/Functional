@@ -1,15 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <PackageReference Include="xunit.assert" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="xunit.assert"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Functional\Functional.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Functional\Functional.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="README.md" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Remove="README.md"/>
+    </ItemGroup>
 
 </Project>
