@@ -22,6 +22,16 @@ public readonly partial record struct Result
     }
 
     /// <summary>
+    ///     Executes the appropriate action based on whether the result is successful or failed.
+    /// </summary>
+    /// <param name="onSuccess">Action to execute if the result is successful.</param>
+    /// <param name="onFailure">Action to execute if the result is a failure.</param>
+    public void Switch(Action onSuccess, Action<Failure> onFailure)
+    {
+        Match(onSuccess, onFailure);
+    }
+
+    /// <summary>
     ///     Pattern matches the result, returning a value from the appropriate function.
     /// </summary>
     /// <typeparam name="TOut">The type of value to return.</typeparam>
@@ -51,6 +61,26 @@ public readonly partial record struct Result<TValue>
         {
             failure(_error!);
         }
+    }
+
+    /// <summary>
+    ///     Executes the appropriate action based on whether the result is successful or failed.
+    /// </summary>
+    /// <param name="success">Action to execute if the result is successful.</param>
+    /// <param name="failure">Action to execute if the result is a failure.</param>
+    public void Switch(Action success, Action<Failure> failure)
+    {
+        Match(success, failure);
+    }
+
+    /// <summary>
+    ///     Executes the appropriate action based on whether the result is successful or failed.
+    /// </summary>
+    /// <param name="success">Action to execute with the success value if the result is successful.</param>
+    /// <param name="failure">Action to execute if the result is a failure.</param>
+    public void Switch(Action<TValue> success, Action<Failure> failure)
+    {
+        Match(success, failure);
     }
 
     /// <summary>

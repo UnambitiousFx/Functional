@@ -416,5 +416,41 @@ public sealed class MaybeTests
         Assert.True(noneExecuted);
     }
 
+    [Fact]
+    public void Switch_WithSome_ExecutesSomeAction()
+    {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+        var someExecuted = false;
+        var noneExecuted = false;
+
+        // Act (When)
+        maybe.Switch(
+            _ => someExecuted = true,
+            () => noneExecuted = true);
+
+        // Assert (Then)
+        Assert.True(someExecuted);
+        Assert.False(noneExecuted);
+    }
+
+    [Fact]
+    public void Switch_WithNone_ExecutesNoneAction()
+    {
+        // Arrange (Given)
+        var maybe = Maybe.None<int>();
+        var someExecuted = false;
+        var noneExecuted = false;
+
+        // Act (When)
+        maybe.Switch(
+            _ => someExecuted = true,
+            () => noneExecuted = true);
+
+        // Assert (Then)
+        Assert.False(someExecuted);
+        Assert.True(noneExecuted);
+    }
+
     #endregion
 }

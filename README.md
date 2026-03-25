@@ -19,7 +19,7 @@ A lightweight, modern functional programming library for .NET that makes error h
 - **`Result<T>`** - Railway-oriented programming for error handling without exceptions
 - **`Maybe<T>`** - Type-safe optional values, no more null reference exceptions
 - **`OneOf<T1..T10>`** - Discriminated unions via source generators
-- **Rich Error Types** - `ValidationError`, `NotFoundError`, `ConflictError`, `UnauthorizedError`, and more
+- **Rich Error Types** - `ValidationFailure`, `NotFoundFailure`, `ConflictFailure`, `UnauthorizedFailure`, and more
 - **Comprehensive Extensions** - Bind, Map, Match, Tap, Ensure, Recover, and dozens more
 - **Async First** - Full support for `Task<T>` and `ValueTask<T>`
 - **ASP.NET Core Integration** - Convert results to HTTP responses effortlessly
@@ -68,7 +68,7 @@ public Result<User> GetUser(int id)
     var user = _repository.Find(id);
     return user is not null
         ? Result.Success(user)
-        : Result.Failure<User>(new NotFoundError($"User {id} not found"));
+        : Result.Failure<User>(new NotFoundFailure($"User {id} not found"));
 }
 ```
 
@@ -89,7 +89,7 @@ result.Match(
 public Result<Order> CreateOrder(int userId, OrderRequest request)
 {
     return GetUser(userId)
-        .Ensure(user => user.IsActive, new ValidationError("User is not active"))
+        .Ensure(user => user.IsActive, new ValidationFailure("User is not active"))
         .Bind(user => ValidateOrder(request))
         .Bind(validOrder => SaveOrder(validOrder))
         .Tap(order => _eventBus.Publish(new OrderCreated(order.Id)))
@@ -116,21 +116,21 @@ maybeUser.Match(
 );
 
 // Convert to Result
-var result = maybeUser.ToResult(new NotFoundError("User not found"));
+var result = maybeUser.ToResult(new NotFoundFailure("User not found"));
 ```
 
 ### OneOf<T> - Discriminated Unions
 
 ```csharp
 // Represent a value that can be one of several types
-public OneOf<Success, ValidationError, NotFoundError> ProcessRequest(int id)
+public OneOf<Success, ValidationFailure, NotFoundFailure> ProcessRequest(int id)
 {
     if (id <= 0)
-        return new ValidationError("Invalid ID");
+        return new ValidationFailure("Invalid ID");
 
     var item = _repository.Find(id);
     if (item is null)
-        return new NotFoundError($"Item {id} not found");
+        return new NotFoundFailure($"Item {id} not found");
 
     return new Success();
 }
@@ -175,7 +175,7 @@ Result<User> result = GetUser(id)
 
 // Ensure - Add validation
 Result<User> result = GetUser(id)
-    .Ensure(user => user.Age >= 18, new ValidationError("Must be 18+"));
+    .Ensure(user => user.Age >= 18, new ValidationFailure("Must be 18+"));
 ```
 
 #### Side Effects
@@ -222,20 +222,20 @@ var user = result.ValueOrThrow(); // Throws if failed
 var error = new Error("Something went wrong");
 
 // Validation error with field details
-var validationError = new ValidationError("Invalid input", new Dictionary<string, object?>
+var validationError = new ValidationFailure("Invalid input", new Dictionary<string, object?>
 {
     ["Email"] = "Invalid email format",
     ["Age"] = "Must be at least 18"
 });
 
 // Not found error
-var notFoundError = new NotFoundError("User not found");
+var notFoundError = new NotFoundFailure("User not found");
 
 // Conflict error
-var conflictError = new ConflictError("Email already exists");
+var conflictError = new ConflictFailure("Email already exists");
 
 // Unauthorized error
-var unauthorizedError = new UnauthorizedError("Access denied");
+var unauthorizedError = new UnauthorizedFailure("Access denied");
 
 // Exceptional error (wrap exceptions)
 try
@@ -244,14 +244,14 @@ try
 }
 catch (Exception ex)
 {
-    return Result.Failure(new ExceptionalError(ex));
+    return Result.Failure(new ExceptionalFailure(ex));
 }
 
 // Aggregate error (multiple errors)
 var errors = new List<Error>
 {
-    new ValidationError("Invalid name"),
-    new ValidationError("Invalid email")
+    new ValidationFailure("Invalid name"),
+    new ValidationFailure("Invalid email")
 };
 var aggregateError = new AggregateError(errors);
 ```
@@ -299,7 +299,7 @@ public async ValueTask<Result<User>> GetUserAsync(int id)
     var user = await _repository.FindAsync(id);
     return user is not null
         ? Result.Success(user)
-        : Result.Failure<User>(new NotFoundError($"User {id} not found"));
+        : Result.Failure<User>(new NotFoundFailure($"User {id} not found"));
 }
 ```
 
@@ -336,10 +336,10 @@ Configure error mapping:
 ```csharp
 services.AddResultHttp(options =>
 {
-    options.MapError<ValidationError>(StatusCodes.Status400BadRequest);
-    options.MapError<NotFoundError>(StatusCodes.Status404NotFound);
-    options.MapError<ConflictError>(StatusCodes.Status409Conflict);
-    options.MapError<UnauthorizedError>(StatusCodes.Status401Unauthorized);
+    options.MapError<ValidationFailure>(StatusCodes.Status400BadRequest);
+    options.MapError<NotFoundFailure>(StatusCodes.Status404NotFound);
+    options.MapError<ConflictFailure>(StatusCodes.Status409Conflict);
+    options.MapError<UnauthorizedFailure>(StatusCodes.Status401Unauthorized);
 });
 ```
 
@@ -363,7 +363,7 @@ public void CreateUser_WithValidData_ReturnsSuccess()
 }
 
 [Fact]
-public void CreateUser_WithInvalidEmail_ReturnsValidationError()
+public void CreateUser_WithInvalidEmail_ReturnsValidationFailure()
 {
     // Arrange
     var request = new CreateUserRequest { Name = "John", Email = "invalid" };
@@ -373,7 +373,7 @@ public void CreateUser_WithInvalidEmail_ReturnsValidationError()
 
     // Assert
     result.Should().BeFailure()
-        .WithError<ValidationError>()
+        .WithError<ValidationFailure>()
         .Which(error => error.Message.Should().Contain("email"));
 }
 

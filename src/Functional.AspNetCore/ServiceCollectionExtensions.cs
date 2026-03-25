@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
 
         var mapper = options.BuildMapper();
         services.AddSingleton(mapper);
+        services.AddSingleton(options.Policy);
 
         return services;
     }

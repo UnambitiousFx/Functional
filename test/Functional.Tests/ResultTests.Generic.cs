@@ -52,6 +52,16 @@ public sealed class ResultOfTValueTests
         });
     }
 
+    [Fact]
+    public void Ok_WithValue_CreatesSuccessfulResult()
+    {
+        // Arrange (Given) & Act (When)
+        var result = Result.Ok(42);
+
+        // Assert (Then)
+        result.ShouldBe().Success().And(v => Assert.Equal(42, v));
+    }
+
     #endregion
 
     #region TryGet with Value
@@ -76,7 +86,7 @@ public sealed class ResultOfTValueTests
     {
         // Arrange (Given)
         var testError = new Failure("Test error");
-        var result = Result.Failure<int>(testError);
+        var result = Result.Fail<int>(testError);
 
         // Act (When)
         var success = result.TryGet(out var value, out var error);
@@ -197,6 +207,40 @@ public sealed class ResultOfTValueTests
 
         // Act (When)
         result.Match(
+            v => capturedValue = v,
+            _ => { });
+
+        // Assert (Then)
+        Assert.Equal(42, capturedValue);
+    }
+
+    [Fact]
+    public void Switch_Action_WithSuccess_ExecutesSuccessAction()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+        var successCalled = false;
+        var failureCalled = false;
+
+        // Act (When)
+        result.Switch(
+            () => successCalled = true,
+            _ => failureCalled = true);
+
+        // Assert (Then)
+        Assert.True(successCalled);
+        Assert.False(failureCalled);
+    }
+
+    [Fact]
+    public void Switch_ActionWithValue_WithSuccess_PassesValue()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+        var capturedValue = 0;
+
+        // Act (When)
+        result.Switch(
             v => capturedValue = v,
             _ => { });
 

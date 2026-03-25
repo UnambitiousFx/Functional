@@ -16,6 +16,17 @@ public class ResultHttpOptionsTests
         Assert.False(options.IncludeExceptionDetails);
     }
 
+    [Fact(DisplayName = "Policy defaults to Result=NoContent and MaybeNone=NotFound")]
+    public void Policy_DefaultValue_IsExpected()
+    {
+        // Arrange (Given) & Act (When)
+        var options = new ResultHttpOptions();
+
+        // Assert (Then)
+        Assert.Equal(ResultSuccessHttpBehavior.NoContent, options.Policy.ResultSuccessBehavior);
+        Assert.Equal(MaybeNoneHttpBehavior.NotFound, options.Policy.MaybeNoneBehavior);
+    }
+
     [Fact(DisplayName = "CustomMappers is empty by default")]
     public void CustomMappers_DefaultValue_IsEmpty()
     {
@@ -192,5 +203,130 @@ public class ResultHttpOptionsTests
 
         // Assert (Then)
         Assert.IsAssignableFrom<IReadOnlyList<IErrorHttpMapper>>(mappers);
+    }
+
+    [Fact(DisplayName = "AddMapper<TFailure>(statusCode) adds typed mapper to collection")]
+    public void AddMapper_TypedWithStatusCode_AddsMapperToCustomMappers()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+
+        // Act (When)
+        options.AddMapper<ValidationFailure>(400);
+
+        // Assert (Then)
+        Assert.Single(options.CustomMappers);
+    }
+
+    [Fact(DisplayName = "AddMapper<TFailure>(statusCode) returns options for fluent chaining")]
+    public void AddMapper_TypedWithStatusCode_ReturnsOptionsForFluentChaining()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+
+        // Act (When)
+        var result = options.AddMapper<ValidationFailure>(400);
+
+        // Assert (Then)
+        Assert.Same(options, result);
+    }
+
+    [Fact(DisplayName = "AddMapper<TFailure>(statusCode) produces correct status code for matching failure")]
+    public void AddMapper_TypedWithStatusCode_ProducesCorrectStatusCodeForMatchingFailure()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+        options.AddMapper<ValidationFailure>(422);
+        var failure = new ValidationFailure(["Bad input"]);
+
+        // Act (When)
+        var mapper = options.BuildMapper();
+        var response = mapper.GetErrorResponse(failure);
+
+        // Assert (Then)
+        Assert.NotNull(response);
+        Assert.Equal(422, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "AddMapper<TFailure>(statusCode) falls through to default for non-matching failure")]
+    public void AddMapper_TypedWithStatusCode_FallsThroughForNonMatchingFailure()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+        options.AddMapper<ConflictFailure>(409);
+        var failure = new NotFoundFailure("User", "1");
+
+        // Act (When)
+        var mapper = options.BuildMapper();
+        var response = mapper.GetErrorResponse(failure);
+
+        // Assert (Then)
+        // Default mapper produces 404 for NotFoundFailure
+        Assert.NotNull(response);
+        Assert.Equal(404, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "AddMapper<TFailure>(factory) adds typed mapper to collection")]
+    public void AddMapper_TypedWithFactory_AddsMapperToCustomMappers()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+
+        // Act (When)
+        options.AddMapper<ValidationFailure>(f => new ErrorHttpResponse { StatusCode = 400, Body = new { f.Message } });
+
+        // Assert (Then)
+        Assert.Single(options.CustomMappers);
+    }
+
+    [Fact(DisplayName = "AddMapper<TFailure>(factory) invokes factory with typed failure")]
+    public void AddMapper_TypedWithFactory_InvokesFactoryWithTypedFailure()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+        var failure = new ConflictFailure("Already taken");
+        options.AddMapper<ConflictFailure>(f => new ErrorHttpResponse
+        {
+            StatusCode = 409,
+            Body = new { message = f.Message }
+        });
+
+        // Act (When)
+        var mapper = options.BuildMapper();
+        var response = mapper.GetErrorResponse(failure);
+
+        // Assert (Then)
+        Assert.NotNull(response);
+        Assert.Equal(409, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "AddMapper<TFailure>(factory) throws when factory is null")]
+    public void AddMapper_TypedWithFactory_ThrowsWhenFactoryIsNull()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+
+        // Act (When) & Assert (Then)
+        Assert.Throws<ArgumentNullException>(
+            () => options.AddMapper<ValidationFailure>((Func<ValidationFailure, ErrorHttpResponse>)null!));
+    }
+
+    [Fact(DisplayName = "Multiple typed mappers are evaluated in add order")]
+    public void AddMapper_MultipleTypedMappers_EvaluatedInAddOrder()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+        options.AddMapper<ValidationFailure>(400);
+        options.AddMapper<ValidationFailure>(422); // second should never be reached for ValidationFailure
+
+        var failure = new ValidationFailure(["Bad"]);
+
+        // Act (When)
+        var mapper = options.BuildMapper();
+        var response = mapper.GetErrorResponse(failure);
+
+        // Assert (Then)
+        Assert.NotNull(response);
+        Assert.Equal(400, response.StatusCode); // first match wins
     }
 }

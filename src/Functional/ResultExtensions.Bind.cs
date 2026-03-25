@@ -29,36 +29,34 @@ public static partial class ResultExtensions
         }
 
         /// <summary>
-        ///     Chains a function that returns a new result, propagating any failures.
+        ///     Chains a function that returns a new async result, propagating any failures.
         /// </summary>
         /// <param name="bind">The function to execute if the current result is successful.</param>
         /// <returns>The result from the bind function, or a failure result.</returns>
-        public ResultTask Bind(Func<ResultTask> bind)
+        public ValueTask<Result> Bind(Func<ValueTask<Result>> bind)
         {
             return result.Match<ValueTask<Result>>(async () =>
-                    {
-                        var result = await bind();
-                        return result.WithMetadata(result.Metadata);
-                    },
-                    err => ValueTask.FromResult(Result.Failure(err).WithMetadata(result.Metadata)))
-                .AsAsync();
+                {
+                    var bound = await bind();
+                    return bound.WithMetadata(result.Metadata);
+                },
+                err => ValueTask.FromResult(Result.Failure(err).WithMetadata(result.Metadata)));
         }
 
         /// <summary>
-        ///     Chains a function that returns a Result, propagating failures.
+        ///     Chains a function that returns an async Result, propagating failures.
         /// </summary>
         /// <param name="bind">The function to execute if the result is successful.</param>
         /// <returns>The result from the bind function, or a failure result.</returns>
-        public ResultTask<TOut> Bind<TOut>(Func<ResultTask<TOut>> bind)
+        public ValueTask<Result<TOut>> Bind<TOut>(Func<ValueTask<Result<TOut>>> bind)
             where TOut : notnull
         {
             return result.Match<ValueTask<Result<TOut>>>(async () =>
-                    {
-                        var result = await bind();
-                        return result.WithMetadata(result.Metadata);
-                    },
-                    err => ValueTask.FromResult(Result.Failure<TOut>(err).WithMetadata(result.Metadata)))
-                .AsAsync();
+                {
+                    var bound = await bind();
+                    return bound.WithMetadata(result.Metadata);
+                },
+                err => ValueTask.FromResult(Result.Failure<TOut>(err).WithMetadata(result.Metadata)));
         }
     }
 
@@ -94,7 +92,7 @@ public static partial class ResultExtensions
         /// </summary>
         /// <param name="bind">The async function to execute if the result is successful.</param>
         /// <returns>A task with the result from the bind function.</returns>
-        public ResultTask Bind(Func<TValue, ResultTask> bind)
+        public ValueTask<Result> Bind(Func<TValue, ValueTask<Result>> bind)
         {
             return result.Match<ValueTask<Result>>(async v =>
             {
@@ -105,7 +103,7 @@ public static partial class ResultExtensions
                 var response = Result.Failure(err)
                     .WithMetadata(result.Metadata);
                 return ValueTask.FromResult(response);
-            }).AsAsync();
+            });
         }
 
         /// <summary>
@@ -114,7 +112,7 @@ public static partial class ResultExtensions
         /// <typeparam name="TOut">Output value type 1.</typeparam>
         /// <param name="bind">The async function to execute if the result is successful.</param>
         /// <returns>A task with the result from the bind function.</returns>
-        public ResultTask<TOut> Bind<TOut>(Func<TValue, ResultTask<TOut>> bind) where TOut : notnull
+        public ValueTask<Result<TOut>> Bind<TOut>(Func<TValue, ValueTask<Result<TOut>>> bind) where TOut : notnull
         {
             return result.Match<ValueTask<Result<TOut>>>(async v =>
             {
@@ -124,7 +122,7 @@ public static partial class ResultExtensions
             {
                 var response = Result.Failure<TOut>(err).WithMetadata(result.Metadata);
                 return ValueTask.FromResult(response);
-            }).AsAsync();
+            });
         }
     }
 }

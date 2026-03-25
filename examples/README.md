@@ -28,8 +28,9 @@ dotnet run
 A minimal API demonstrating integration with ASP.NET Core:
 
 - Converting `Result<T>` to `IResult` with `ToHttpResult()`
-- Converting `Maybe<T>` to `Result<T>` then to `IResult`
+- Converting `Maybe<T>` directly to `IResult` with `ToHttpResult()`
 - Automatic HTTP status code mapping for different error types
+- Policy-based defaults for non-generic `Result` and `Maybe.None`
 - Validation error handling
 - Authorization error handling
 - RESTful API endpoints
@@ -58,11 +59,11 @@ curl https://localhost:5001/api/users/123
 # Not found case - unknown user
 curl https://localhost:5001/api/users/999
 
-# Success case - get config value
-curl https://localhost:5001/api/config/app-name
+# Success case - get profile
+curl https://localhost:5001/api/profiles/123
 
-# Not found case - missing config
-curl https://localhost:5001/api/config/unknown-key
+# Not found case - missing profile
+curl https://localhost:5001/api/profiles/999
 
 # Success case - create user
 curl -X POST https://localhost:5001/api/users \
@@ -120,13 +121,13 @@ Use specific error types for different failure scenarios:
 
 ```csharp
 // Not found
-Result.Failure<User>(new NotFoundError("User", id));
+Result.Failure<User>(new NotFoundFailure("User", id));
 
 // Validation
-Result.Failure<User>(new ValidationError("Email is required"));
+Result.Failure<User>(new ValidationFailure("Email is required"));
 
 // Unauthorized
-Result.Failure<User>(new UnauthorizedError("Admin access required"));
+Result.Failure<User>(new UnauthorizedFailure("Admin access required"));
 ```
 
 ### ASP.NET Core Integration
@@ -138,6 +139,12 @@ app.MapGet("/api/users/{id}", (string id) =>
 {
     var result = GetUser(id);
     return result.ToHttpResult(); // Automatic status code mapping
+});
+
+app.MapGet("/api/profiles/{id}", (string id) =>
+{
+  var maybe = TryGetProfile(id);
+  return maybe.ToHttpResult(); // Some -> 200, None -> 404 (default)
 });
 ```
 

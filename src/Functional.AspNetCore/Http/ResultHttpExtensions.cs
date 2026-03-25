@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using UnambitiousFx.Functional.AspNetCore.Internal;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Failures;
 using IHttpResult = Microsoft.AspNetCore.Http.IResult;
@@ -12,6 +13,16 @@ namespace UnambitiousFx.Functional.AspNetCore.Http;
 /// </summary>
 public static class ResultHttpExtensions
 {
+    private static Func<IHttpResult> BuildDefaultSuccessMapper(ResultHttpAdapterPolicy? policy)
+    {
+        var effectivePolicy = policy ?? ResultHttpAdapterPolicy.Default;
+        return effectivePolicy.ResultSuccessBehavior switch
+        {
+            ResultSuccessHttpBehavior.Ok => () => HttpResults.Ok(),
+            _ => HttpResults.NoContent
+        };
+    }
+
     private static IHttpResult ProblemDetailToActionResult(ProblemDetails details)
     {
         return HttpResults.Problem(details);
@@ -58,19 +69,8 @@ public static class ResultHttpExtensions
 
     private static IHttpResult MapErrorToHttpResult(Failure failure, IErrorHttpMapper? customMapper)
     {
-        var mappedResponse = customMapper?.GetErrorResponse(failure);
-        if (mappedResponse != null)
-        {
-            return ErrorHttpResponseToHttpResult(mappedResponse);
-        }
-
-        var defaultResponse = DefaultErrorHttpMapper.Instance.GetErrorResponse(failure);
-        if (defaultResponse is not null)
-        {
-            return ErrorHttpResponseToHttpResult(defaultResponse);
-        }
-
-        return HttpResults.StatusCode(StatusCodes.Status500InternalServerError);
+        var response = FailureHttpResponseResolver.Resolve(failure, customMapper);
+        return ErrorHttpResponseToHttpResult(response);
     }
 
     /// <summary>
@@ -113,42 +113,60 @@ public static class ResultHttpExtensions
         /// <param name="errorHttpMapper">
         ///     Optional custom error mapper to translate failures into HTTP responses. The default mapper is used if not provided.
         /// </param>
+        /// <param name="policy">
+        ///     Optional adapter policy controlling default success behavior when no success mapper is provided.
+        /// </param>
         /// <returns>An IResult representing either a successful or failed result mapped to an appropriate HTTP response.</returns>
         public IHttpResult ToHttpResult(
             Func<IHttpResult>? successHttpMapper = null,
-            IErrorHttpMapper? errorHttpMapper = null)
+            IErrorHttpMapper? errorHttpMapper = null,
+            ResultHttpAdapterPolicy? policy = null)
         {
-            return successHttpMapper is not null
-                ? result.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorHttpMapper))
-                : result.Match(HttpResults.NoContent, error => MapErrorToHttpResult(error, errorHttpMapper));
+            successHttpMapper ??= BuildDefaultSuccessMapper(policy);
+            return result.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorHttpMapper));
         }
     }
 
-    extension(ResultTask resultTask)
+    /// <summary>
+    ///     Converts an asynchronous Result into an <see cref="Microsoft.AspNetCore.Http.IResult" /> for minimal API endpoints.
+    /// </summary>
+    /// <param name="resultTask">The asynchronous result to convert.</param>
+    /// <param name="successHttpMapper">
+    ///     An optional function to define the HTTP response when the operation is successful. Defaults to a NoContent response
+    ///     if not provided.
+    /// </param>
+    /// <param name="errorHttpMapper">
+    ///     An optional custom error mapper to translate failure results into specific HTTP responses. Uses the default error
+    ///     mapper if not provided.
+    /// </param>
+    /// <param name="policy">
+    ///     Optional adapter policy controlling default success behavior when no success mapper is provided.
+    /// </param>
+    /// <returns>
+    ///     A <see cref="Microsoft.AspNetCore.Http.IResult" /> representing either a successful result or a mapped failure
+    ///     response.
+    /// </returns>
+    public static async ValueTask<IHttpResult> ToHttpResult(
+        this ValueTask<Result> resultTask,
+        Func<IHttpResult>? successHttpMapper = null,
+        IErrorHttpMapper? errorHttpMapper = null,
+        ResultHttpAdapterPolicy? policy = null)
     {
-        /// <summary>
-        ///     Converts a <see cref="ResultTask" /> into an <see cref="Microsoft.AspNetCore.Http.IResult" /> for use with minimal
-        ///     API endpoints, mapping success and failure to corresponding HTTP responses.
-        /// </summary>
-        /// <param name="successHttpMapper">
-        ///     An optional function to define the HTTP response when the operation is successful. Defaults to a NoContent response
-        ///     if not provided.
-        /// </param>
-        /// <param name="errorHttpMapper">
-        ///     An optional custom error mapper to translate failure results into specific HTTP responses. Uses the default error
-        ///     mapper if not provided.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="Microsoft.AspNetCore.Http.IResult" /> representing either a successful result or a mapped failure
-        ///     response.
-        /// </returns>
-        public ValueTask<IHttpResult> ToHttpResult(
-            Func<IHttpResult>? successHttpMapper = null,
-            IErrorHttpMapper? errorHttpMapper = null)
-        {
-            successHttpMapper ??= HttpResults.NoContent;
-            return resultTask.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorHttpMapper));
-        }
+        successHttpMapper ??= BuildDefaultSuccessMapper(policy);
+        var result = await resultTask;
+        return result.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorHttpMapper));
+    }
+
+    /// <summary>
+    ///     Converts an asynchronous Result into an <see cref="Microsoft.AspNetCore.Http.IResult" /> for minimal API endpoints.
+    /// </summary>
+    public static ValueTask<IHttpResult> ToHttpResult(
+        this Task<Result> resultTask,
+        Func<IHttpResult>? successHttpMapper = null,
+        IErrorHttpMapper? errorHttpMapper = null,
+        ResultHttpAdapterPolicy? policy = null)
+    {
+        return ToHttpResult(new ValueTask<Result>(resultTask), successHttpMapper, errorHttpMapper, policy);
     }
 
     /// <param name="result">The result to convert.</param>
@@ -171,69 +189,75 @@ public static class ResultHttpExtensions
 
         /// <summary>
         ///     Converts a <see cref="Result{TValue}" /> into an <see cref="IHttpResult" /> for minimal API responses.
-        ///     Maps the result's success value to an HTTP response using the provided DTO and HTTP mappers, or maps errors to HTTP
-        ///     responses using an error mapper.
+        ///     Maps the result's success value to an HTTP response, defaulting to 200 OK with the value when no mapper is given.
         /// </summary>
-        /// <param name="successHttpMapper">A function to create an HTTP result from the result value and its mapped DTO.</param>
+        /// <param name="successHttpMapper">
+        ///     An optional function to create an HTTP result from the success value.
+        ///     Defaults to 200 OK with the value when not provided.
+        /// </param>
         /// <param name="errorHttpMapper">
         ///     An optional mapper to handle errors and convert them into HTTP responses. Defaults to a
         ///     predefined implementation if not provided.
         /// </param>
         /// <returns>An <see cref="IHttpResult" /> representing the HTTP response for the result.</returns>
         public IHttpResult ToHttpResult(
-            Func<TValue, IHttpResult> successHttpMapper,
+            Func<TValue, IHttpResult>? successHttpMapper = null,
             IErrorHttpMapper? errorHttpMapper = null)
         {
+            successHttpMapper ??= HttpResults.Ok;
             return result.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorHttpMapper));
         }
     }
 
-    extension<TValue>(ResultTask<TValue> resultTask) where TValue : notnull
+    /// <summary>
+    ///     Converts an asynchronous Result to an HTTP 201 Created response, including a "Location" header derived from the
+    ///     provided location factory.
+    /// </summary>
+    public static ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(
+        this ValueTask<Result<TValue>> resultTask,
+        Func<TValue, string> locationFactory,
+        IErrorHttpMapper? mapper = null)
+        where TValue : notnull
     {
-        /// <summary>
-        ///     Converts a ResultTask to an HTTP 201 Created response, including a "Location" header derived from the provided
-        ///     location factory.
-        /// </summary>
-        /// <param name="locationFactory">
-        ///     A function that generates the URI for the "Location" header from the successful result value.
-        /// </param>
-        /// <param name="mapper">
-        ///     An optional error mapper to convert failure results into appropriate HTTP responses. If not provided, a default
-        ///     error handler is used.
-        /// </param>
-        /// <returns>
-        ///     A ValueTask containing an IHttpResult, which is an HTTP 201 Created response on success, or an error-specific
-        ///     response on failure.
-        /// </returns>
-        public ValueTask<IHttpResult> ToCreatedHttpResult(
-            Func<TValue, string> locationFactory,
-            IErrorHttpMapper? mapper = null)
-        {
-            return resultTask.ToHttpResult(v => HttpResults.Created(locationFactory(v), v), mapper);
-        }
+        return resultTask.ToHttpResult(v => HttpResults.Created(locationFactory(v), v), mapper);
+    }
 
+    /// <summary>
+    ///     Converts an asynchronous Result into an <see cref="IHttpResult" /> for minimal API endpoints,
+    ///     allowing customization of success and failure HTTP responses.
+    /// </summary>
+    public static async ValueTask<IHttpResult> ToHttpResult<TValue>(
+        this ValueTask<Result<TValue>> resultTask,
+        Func<TValue, IHttpResult>? successHttpMapper = null,
+        IErrorHttpMapper? errorMapper = null)
+        where TValue : notnull
+    {
+        successHttpMapper ??= HttpResults.Ok;
+        var result = await resultTask;
+        return result.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorMapper));
+    }
 
-        /// <summary>
-        ///     Converts a <see cref="ResultTask{TValue}" /> into an <see cref="IHttpResult" /> for minimal API endpoints,
-        ///     allowing customization of success and failure HTTP responses.
-        /// </summary>
-        /// <param name="successHttpMapper">
-        ///     A function to map successful result values to an <see cref="IHttpResult" />.
-        /// </param>
-        /// <param name="errorMapper">
-        ///     Optional custom error mapper to translate failures into HTTP responses. If not provided, the default mapper is
-        ///     used.
-        /// </param>
-        /// <returns>
-        ///     An asynchronous <see cref="ValueTask{TResult}" /> resolving to an <see cref="IHttpResult" /> representing the
-        ///     result.
-        /// </returns>
-        public ValueTask<IHttpResult> ToHttpResult(
-            Func<TValue, IHttpResult>? successHttpMapper = null,
-            IErrorHttpMapper? errorMapper = null)
-        {
-            successHttpMapper ??= HttpResults.Ok;
-            return resultTask.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorMapper));
-        }
+    /// <summary>
+    ///     Converts an asynchronous Result to an HTTP 201 Created response.
+    /// </summary>
+    public static ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(
+        this Task<Result<TValue>> resultTask,
+        Func<TValue, string> locationFactory,
+        IErrorHttpMapper? mapper = null)
+        where TValue : notnull
+    {
+        return ToCreatedHttpResult(new ValueTask<Result<TValue>>(resultTask), locationFactory, mapper);
+    }
+
+    /// <summary>
+    ///     Converts an asynchronous Result into an <see cref="IHttpResult" /> for minimal API endpoints.
+    /// </summary>
+    public static ValueTask<IHttpResult> ToHttpResult<TValue>(
+        this Task<Result<TValue>> resultTask,
+        Func<TValue, IHttpResult>? successHttpMapper = null,
+        IErrorHttpMapper? errorMapper = null)
+        where TValue : notnull
+    {
+        return ToHttpResult(new ValueTask<Result<TValue>>(resultTask), successHttpMapper, errorMapper);
     }
 }

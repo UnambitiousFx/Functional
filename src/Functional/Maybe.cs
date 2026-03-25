@@ -118,6 +118,16 @@ public readonly record struct Maybe<TValue> : IMaybe<TValue>
     }
 
     /// <summary>
+    ///     Executes the appropriate action based on whether the maybe contains a value.
+    /// </summary>
+    /// <param name="some">Action to execute when a value is present.</param>
+    /// <param name="none">Action to execute when no value is present.</param>
+    public void Switch(Action<TValue> some, Action none)
+    {
+        Match(some, none);
+    }
+
+    /// <summary>
     ///     Creates a Maybe instance that represents no value.
     /// </summary>
     /// <returns>An empty <see cref="Maybe{TValue}" /> instance.</returns>

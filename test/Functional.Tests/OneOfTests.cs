@@ -65,6 +65,75 @@ public sealed class OneOfTests
     }
 
     [Fact]
+    public void Is_WithMatchingCaseType_ReturnsTrue()
+    {
+        // Arrange (Given)
+        var oneOf = OneOf<int, string>.FromSecond("hello");
+
+        // Act (When)
+        var isString = oneOf.Is<string>();
+
+        // Assert (Then)
+        Assert.True(isString);
+    }
+
+    [Fact]
+    public void Is_WithNonMatchingCaseType_ReturnsFalse()
+    {
+        // Arrange (Given)
+        var oneOf = OneOf<int, string>.FromSecond("hello");
+
+        // Act (When)
+        var isInt = oneOf.Is<int>();
+
+        // Assert (Then)
+        Assert.False(isInt);
+    }
+
+    [Fact]
+    public void TryAs_WithMatchingCaseType_ReturnsTrueAndValue()
+    {
+        // Arrange (Given)
+        var oneOf = OneOf<int, string>.FromSecond("hello");
+
+        // Act (When)
+        var ok = oneOf.TryAs<string>(out var value);
+
+        // Assert (Then)
+        Assert.True(ok);
+        Assert.Equal("hello", value);
+    }
+
+    [Fact]
+    public void TryAs_WithNonMatchingCaseType_ReturnsFalseAndDefault()
+    {
+        // Arrange (Given)
+        var oneOf = OneOf<int, string>.FromSecond("hello");
+
+        // Act (When)
+        var ok = oneOf.TryAs<int>(out var value);
+
+        // Assert (Then)
+        Assert.False(ok);
+        Assert.Equal(default, value);
+    }
+
+    [Fact]
+    public void MatchByType_Arity2_CanMatchByTypeOrder()
+    {
+        // Arrange (Given)
+        var oneOf = OneOf<int, string>.FromSecond("hello");
+
+        // Act (When)
+        var value = oneOf.MatchByType<string, int, int>(
+            s => s.Length,
+            i => i);
+
+        // Assert (Then)
+        Assert.Equal(5, value);
+    }
+
+    [Fact]
     public void First_WhenIsFirst_ReturnsTrueAndValue()
     {
         // Arrange (Given)
@@ -330,6 +399,22 @@ public sealed class OneOfTests
     #endregion
 
     #region OneOf<T1, T2, T3>
+
+    [Fact]
+    public void MatchByType_Arity3_CanMatchByTypeOrder()
+    {
+        // Arrange (Given)
+        var oneOf = OneOf<int, string, bool>.FromThird(true);
+
+        // Act (When)
+        var value = oneOf.MatchByType<bool, int, string, string>(
+            b => b ? "true" : "false",
+            i => i.ToString(),
+            s => s);
+
+        // Assert (Then)
+        Assert.Equal("true", value);
+    }
 
     [Fact]
     public void OneOf3_FromFirst_CreatesFirst()
@@ -672,6 +757,23 @@ public sealed class OneOfTests
     #endregion
 
     #region OneOf<T1, T2, T3, T4>
+
+    [Fact]
+    public void MatchByType_Arity4_CanMatchByTypeOrder()
+    {
+        // Arrange (Given)
+        var oneOf = OneOf<int, string, bool, double>.FromFourth(4.2);
+
+        // Act (When)
+        var value = oneOf.MatchByType<double, string, bool, int, string>(
+            d => d.ToString("0.0"),
+            s => s,
+            b => b ? "true" : "false",
+            i => i.ToString());
+
+        // Assert (Then)
+        Assert.Equal("4.2", value);
+    }
 
     [Fact]
     public void OneOf4_FromFirst_CreatesFirst()

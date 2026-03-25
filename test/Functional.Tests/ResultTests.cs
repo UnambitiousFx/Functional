@@ -41,6 +41,26 @@ public sealed class ResultTests
         result.ShouldBe().Success().And(v => Assert.Equal("hello", v));
     }
 
+    [Fact]
+    public void Ok_CreatesSuccessfulResult()
+    {
+        // Arrange (Given) & Act (When)
+        var result = Result.Ok();
+
+        // Assert (Then)
+        result.ShouldBe().Success();
+    }
+
+    [Fact]
+    public void Ok_WithValue_CreatesSuccessfulResult()
+    {
+        // Arrange (Given) & Act (When)
+        var result = Result.Ok(42);
+
+        // Assert (Then)
+        result.ShouldBe().Success().And(v => Assert.Equal(42, v));
+    }
+
     #endregion
 
     #region Failure Creation
@@ -81,6 +101,19 @@ public sealed class ResultTests
 
         // Act (When)
         var result = Result.Failure(message);
+
+        // Assert (Then)
+        result.ShouldBe().Failure().AndMessage(message);
+    }
+
+    [Fact]
+    public void Fail_FromString_CreatesFailedResult()
+    {
+        // Arrange (Given)
+        var message = "Something went wrong";
+
+        // Act (When)
+        var result = Result.Fail(message);
 
         // Assert (Then)
         result.ShouldBe().Failure().AndMessage(message);
@@ -264,6 +297,42 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.StartsWith("failure:", value);
+    }
+
+    [Fact]
+    public void Switch_WithSuccess_ExecutesSuccessAction()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+        var successCalled = false;
+        var failureCalled = false;
+
+        // Act (When)
+        result.Switch(
+            () => successCalled = true,
+            _ => failureCalled = true);
+
+        // Assert (Then)
+        Assert.True(successCalled);
+        Assert.False(failureCalled);
+    }
+
+    [Fact]
+    public void Switch_WithFailure_ExecutesFailureAction()
+    {
+        // Arrange (Given)
+        var result = Result.Failure("Error");
+        var successCalled = false;
+        var failureCalled = false;
+
+        // Act (When)
+        result.Switch(
+            () => successCalled = true,
+            _ => failureCalled = true);
+
+        // Assert (Then)
+        Assert.False(successCalled);
+        Assert.True(failureCalled);
     }
 
     #endregion

@@ -1,8 +1,10 @@
 using UnambitiousFx.Functional;
+using UnambitiousFx.Functional.AspNetCore;
 using UnambitiousFx.Functional.AspNetCore.Http;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddResultHttp();
 
 var app = builder.Build();
 
@@ -30,12 +32,12 @@ app.MapGet("/api/users/{id}", (string id) =>
 // ============================================================================
 // Example 3: Maybe<T> to IResult conversion
 // ============================================================================
-app.MapGet("/api/config/{key}", (string key) =>
+app.MapGet("/api/profiles/{id}", (string id) =>
 {
-    var config = GetConfigValue(key);
-    return config.ToResult(new NotFoundError("Config", key)).ToHttpResult();
+    var profile = TryGetProfile(id);
+    return profile.ToHttpResult();
 })
-.WithName("GetConfig")
+.WithName("GetProfile")
 ;
 
 // ============================================================================
@@ -69,48 +71,53 @@ app.Run();
 static Result<double> Divide(int numerator, int denominator)
 {
     if (denominator == 0)
-        return Result.Failure<double>(new ValidationError(["Cannot divide by zero"]));
+        return Result.Fail<double>(new ValidationFailure(["Cannot divide by zero"]));
 
-    return Result.Success((double)numerator / denominator);
+    return Result.Ok((double)numerator / denominator);
 }
 
 static Result<User> GetUser(string id)
 {
     if (string.IsNullOrWhiteSpace(id))
-        return Result.Failure<User>(new ValidationError(["User ID is required"]));
+        return Result.Fail<User>(new ValidationFailure(["User ID is required"]));
 
     if (id == "123")
-        return Result.Success(new User(id, "John Doe", "john@example.com"));
+        return Result.Ok(new User(id, "John Doe", "john@example.com"));
 
-    return Result.Failure<User>(new NotFoundError("User", id));
+    return Result.Fail<User>(new NotFoundFailure("User", id));
 }
 
-static Maybe<string> GetConfigValue(string key)
+static Maybe<UserProfile> TryGetProfile(string id)
 {
-    var config = new Dictionary<string, string>
+    if (string.IsNullOrWhiteSpace(id))
     {
-        ["app-name"] = "AspNetCoreExample",
-        ["version"] = "1.0.0"
+        return Maybe.None<UserProfile>();
+    }
+
+    var profiles = new Dictionary<string, UserProfile>
+    {
+        ["123"] = new UserProfile("123", "Engineering", "UTC"),
+        ["456"] = new UserProfile("456", "Design", "Europe/Paris")
     };
 
-    return config.TryGetValue(key, out var value)
+    return profiles.TryGetValue(id, out var value)
         ? Maybe.Some(value)
-        : Maybe.None<string>();
+        : Maybe.None<UserProfile>();
 }
 
 static Result<User> CreateUser(CreateUserRequest request)
 {
     if (string.IsNullOrWhiteSpace(request.Name))
-        return Result.Failure<User>(new ValidationError(["Name is required"]));
+        return Result.Fail<User>(new ValidationFailure(["Name is required"]));
 
     if (string.IsNullOrWhiteSpace(request.Email))
-        return Result.Failure<User>(new ValidationError(["Email is required"]));
+        return Result.Fail<User>(new ValidationFailure(["Email is required"]));
 
     if (!request.Email.Contains('@'))
-        return Result.Failure<User>(new ValidationError(["Invalid email format"]));
+        return Result.Fail<User>(new ValidationFailure(["Invalid email format"]));
 
     var user = new User(Guid.NewGuid().ToString(), request.Name, request.Email);
-    return Result.Success(user);
+    return Result.Ok(user);
 }
 
 static Result<User> GetUserWithAuth(string id)
@@ -119,7 +126,7 @@ static Result<User> GetUserWithAuth(string id)
     var isAuthorized = false; // In real app, check claims/tokens
 
     if (!isAuthorized)
-        return Result.Failure<User>(new UnauthorizedError("Admin access required"));
+        return Result.Fail<User>(new UnauthorizedFailure("Admin access required"));
 
     return GetUser(id);
 }
@@ -129,4 +136,5 @@ static Result<User> GetUserWithAuth(string id)
 // ============================================================================
 
 record User(string Id, string Name, string Email);
+record UserProfile(string UserId, string Department, string TimeZone);
 record CreateUserRequest(string Name, string Email);

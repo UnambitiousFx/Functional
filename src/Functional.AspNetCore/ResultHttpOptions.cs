@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore;
 
@@ -17,6 +19,11 @@ public sealed class ResultHttpOptions
     public bool IncludeExceptionDetails { get; set; }
 
     /// <summary>
+    ///     Adapter policy defaults used by HTTP conversion extensions.
+    /// </summary>
+    public ResultHttpAdapterPolicy Policy { get; set; } = ResultHttpAdapterPolicy.Default;
+
+    /// <summary>
     ///     Gets the collection of custom error mappers.
     ///     Custom mappers are evaluated before the default mapper.
     /// </summary>
@@ -33,6 +40,43 @@ public sealed class ResultHttpOptions
         ArgumentNullException.ThrowIfNull(mapper);
         _customMappers.Add(mapper);
         return this;
+    }
+
+    /// <summary>
+    ///     Adds a typed mapper for <typeparamref name="TFailure" /> that returns a response with the given status code
+    ///     and a default <see cref="ProblemDetails" /> body containing the failure message.
+    ///     Custom mappers are tried before the default mapper, in the order they are added.
+    /// </summary>
+    /// <typeparam name="TFailure">The failure type to handle.</typeparam>
+    /// <param name="statusCode">The HTTP status code to return for this failure type.</param>
+    /// <returns>This options instance for fluent configuration.</returns>
+    public ResultHttpOptions AddMapper<TFailure>(int statusCode)
+        where TFailure : IFailure
+    {
+        return AddMapper(new TypedErrorHttpMapper<TFailure>(f => new ErrorHttpResponse
+        {
+            StatusCode = statusCode,
+            Body = new ProblemDetails
+            {
+                Title = "An error occurred.",
+                Detail = f.Message,
+                Status = statusCode
+            }
+        }));
+    }
+
+    /// <summary>
+    ///     Adds a typed mapper for <typeparamref name="TFailure" /> using a custom factory delegate.
+    ///     Custom mappers are tried before the default mapper, in the order they are added.
+    /// </summary>
+    /// <typeparam name="TFailure">The failure type to handle.</typeparam>
+    /// <param name="factory">The factory that produces an <see cref="ErrorHttpResponse" /> for the failure.</param>
+    /// <returns>This options instance for fluent configuration.</returns>
+    public ResultHttpOptions AddMapper<TFailure>(Func<TFailure, ErrorHttpResponse> factory)
+        where TFailure : IFailure
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return AddMapper(new TypedErrorHttpMapper<TFailure>(factory));
     }
 
     /// <summary>

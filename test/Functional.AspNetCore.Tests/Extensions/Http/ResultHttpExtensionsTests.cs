@@ -52,6 +52,20 @@ public class ResultHttpExtensionsTests
         Assert.Equal(42, okResult.Value);
     }
 
+    [Fact(DisplayName = "ToHttpResult<T> with no mapper defaults to 200 OK with value")]
+    public void ToHttpResult_Generic_Success_WithDefaultMapper_ReturnsOk()
+    {
+        // Given
+        var result = Result.Success(42);
+
+        // When
+        var httpResult = result.ToHttpResult();
+
+        // Then
+        var okResult = Assert.IsType<Ok<int>>(httpResult);
+        Assert.Equal(42, okResult.Value);
+    }
+
     [Fact(DisplayName = "ToHttpResult<T> returns ProblemDetails for NotFoundError")]
     public void ToHttpResult_Generic_NotFoundError_ReturnsProblemDetails()
     {
@@ -305,13 +319,13 @@ public class ResultHttpExtensionsTests
         Assert.IsType<StatusCodeHttpResult>(actionResult);
     }
 
-    #region Async (ResultTask) Tests
+    #region Async (ValueTask<Result>) Tests
 
-    [Fact(DisplayName = "ResultTask ToHttpResult returns NoContent for success")]
-    public async Task ResultTask_ToHttpResult_Success_ReturnsNoContent()
+    [Fact(DisplayName = "ValueTask<Result> ToHttpResult returns NoContent for success")]
+    public async Task ValueTaskResult_ToHttpResult_Success_ReturnsNoContent()
     {
         // Given
-        ResultTask resultTask = Result.Success();
+        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Success());
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -320,11 +334,11 @@ public class ResultHttpExtensionsTests
         Assert.IsType<NoContent>(httpResult);
     }
 
-    [Fact(DisplayName = "ResultTask ToHttpResult with custom success mapper returns custom result")]
-    public async Task ResultTask_ToHttpResult_WithCustomSuccessMapper_ReturnsCustomResult()
+    [Fact(DisplayName = "ValueTask<Result> ToHttpResult with custom success mapper returns custom result")]
+    public async Task ValueTaskResult_ToHttpResult_WithCustomSuccessMapper_ReturnsCustomResult()
     {
         // Given
-        ResultTask resultTask = Result.Success();
+        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Success());
 
         // When
         var httpResult = await resultTask.ToHttpResult(() => Microsoft.AspNetCore.Http.Results.Ok(new { Message = "Success" }));
@@ -333,11 +347,11 @@ public class ResultHttpExtensionsTests
         Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
     }
 
-    [Fact(DisplayName = "ResultTask ToHttpResult with failure returns ProblemDetails")]
-    public async Task ResultTask_ToHttpResult_Failure_ReturnsProblemDetails()
+    [Fact(DisplayName = "ValueTask<Result> ToHttpResult with failure returns ProblemDetails")]
+    public async Task ValueTaskResult_ToHttpResult_Failure_ReturnsProblemDetails()
     {
         // Given
-        ResultTask resultTask = Result.Failure(new ValidationFailure(["Invalid input"]));
+        ValueTask<Result> resultTask = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -346,11 +360,11 @@ public class ResultHttpExtensionsTests
         Assert.IsType<ProblemHttpResult>(httpResult);
     }
 
-    [Fact(DisplayName = "ResultTask<T> ToHttpResult returns 200 OK with value for success")]
-    public async Task ResultTaskGeneric_ToHttpResult_Success_Returns200WithValue()
+    [Fact(DisplayName = "ValueTask<Result<T>> ToHttpResult returns 200 OK with value for success")]
+    public async Task ValueTaskResultGeneric_ToHttpResult_Success_Returns200WithValue()
     {
         // Given
-        ResultTask<int> resultTask = Result.Success(42);
+        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -360,11 +374,11 @@ public class ResultHttpExtensionsTests
         Assert.Equal(42, okResult.Value);
     }
 
-    [Fact(DisplayName = "ResultTask<T> ToHttpResult with custom success mapper transforms value")]
-    public async Task ResultTaskGeneric_ToHttpResult_WithCustomSuccessMapper_TransformsValue()
+    [Fact(DisplayName = "ValueTask<Result<T>> ToHttpResult with custom success mapper transforms value")]
+    public async Task ValueTaskResultGeneric_ToHttpResult_WithCustomSuccessMapper_TransformsValue()
     {
         // Given
-        ResultTask<int> resultTask = Result.Success(42);
+        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var httpResult = await resultTask.ToHttpResult(x => Microsoft.AspNetCore.Http.Results.Ok(new { Value = x.ToString() }));
@@ -373,11 +387,11 @@ public class ResultHttpExtensionsTests
         Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
     }
 
-    [Fact(DisplayName = "ResultTask<T> ToHttpResult with failure returns ProblemDetails")]
-    public async Task ResultTaskGeneric_ToHttpResult_Failure_ReturnsProblemDetails()
+    [Fact(DisplayName = "ValueTask<Result<T>> ToHttpResult with failure returns ProblemDetails")]
+    public async Task ValueTaskResultGeneric_ToHttpResult_Failure_ReturnsProblemDetails()
     {
         // Given
-        ResultTask<int> resultTask = Result.Failure<int>(new NotFoundFailure("Item", "123"));
+        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
 
         // When
         var httpResult = await resultTask.ToHttpResult();
@@ -386,11 +400,11 @@ public class ResultHttpExtensionsTests
         Assert.IsType<ProblemHttpResult>(httpResult);
     }
 
-    [Fact(DisplayName = "ResultTask<T> ToCreatedHttpResult returns 201 Created with location")]
-    public async Task ResultTaskGeneric_ToCreatedHttpResult_Success_Returns201WithLocation()
+    [Fact(DisplayName = "ValueTask<Result<T>> ToCreatedHttpResult returns 201 Created with location")]
+    public async Task ValueTaskResultGeneric_ToCreatedHttpResult_Success_Returns201WithLocation()
     {
         // Given
-        ResultTask<int> resultTask = Result.Success(42);
+        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Success(42));
 
         // When
         var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
@@ -400,11 +414,11 @@ public class ResultHttpExtensionsTests
         Assert.Equal(42, createdResult.Value);
     }
 
-    [Fact(DisplayName = "ResultTask<T> ToCreatedHttpResult with failure returns ProblemDetails")]
-    public async Task ResultTaskGeneric_ToCreatedHttpResult_Failure_ReturnsProblemDetails()
+    [Fact(DisplayName = "ValueTask<Result<T>> ToCreatedHttpResult with failure returns ProblemDetails")]
+    public async Task ValueTaskResultGeneric_ToCreatedHttpResult_Failure_ReturnsProblemDetails()
     {
         // Given
-        ResultTask<int> resultTask = Result.Failure<int>(new ValidationFailure(["Invalid input"]));
+        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid input"])));
 
         // When
         var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
@@ -413,11 +427,11 @@ public class ResultHttpExtensionsTests
         Assert.IsType<ProblemHttpResult>(httpResult);
     }
 
-    [Fact(DisplayName = "ResultTask<T> ToCreatedHttpResult with custom error mapper")]
-    public async Task ResultTaskGeneric_ToCreatedHttpResult_WithCustomErrorMapper_ReturnsCustomError()
+    [Fact(DisplayName = "ValueTask<Result<T>> ToCreatedHttpResult with custom error mapper")]
+    public async Task ValueTaskResultGeneric_ToCreatedHttpResult_WithCustomErrorMapper_ReturnsCustomError()
     {
         // Given
-        ResultTask<int> resultTask = Result.Failure<int>(new CustomFailure(409, "Conflict"));
+        ValueTask<Result<int>> resultTask = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(409, "Conflict")));
         var mapper = new CustomStatusCodeMapper();
 
         // When
@@ -425,6 +439,23 @@ public class ResultHttpExtensionsTests
 
         // Then
         Assert.IsType<Conflict<object>>(httpResult);
+    }
+
+    [Fact(DisplayName = "ToHttpResult with policy ResultSuccess=Ok returns Ok")]
+    public void ToHttpResult_WithPolicyResultSuccessOk_ReturnsOk()
+    {
+        // Given
+        var result = Result.Success();
+        var policy = new ResultHttpAdapterPolicy
+        {
+            ResultSuccessBehavior = ResultSuccessHttpBehavior.Ok
+        };
+
+        // When
+        var httpResult = result.ToHttpResult(policy: policy);
+
+        // Then
+        Assert.IsType<Ok>(httpResult);
     }
 
     #endregion

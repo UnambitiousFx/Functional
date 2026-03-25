@@ -218,6 +218,15 @@ public readonly partial record struct Result : IResult
     }
 
     /// <summary>
+    ///     Creates a successful result.
+    /// </summary>
+    /// <returns>A successful result.</returns>
+    public static Result Ok()
+    {
+        return Success();
+    }
+
+    /// <summary>
     ///     Creates a successful result with a value.
     /// </summary>
     /// <typeparam name="TValue1">The type of the value.</typeparam>
@@ -226,6 +235,17 @@ public readonly partial record struct Result : IResult
     public static Result<TValue1> Success<TValue1>(TValue1 value1) where TValue1 : notnull
     {
         return new Result<TValue1>(true, value1, null, null);
+    }
+
+    /// <summary>
+    ///     Creates a successful result with a value.
+    /// </summary>
+    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <param name="value1">The success value.</param>
+    /// <returns>A successful result containing the value.</returns>
+    public static Result<TValue1> Ok<TValue1>(TValue1 value1) where TValue1 : notnull
+    {
+        return Success(value1);
     }
 
     #endregion
@@ -243,6 +263,16 @@ public readonly partial record struct Result : IResult
     }
 
     /// <summary>
+    ///     Creates a failed result from an exception.
+    /// </summary>
+    /// <param name="error">The exception that caused the failure.</param>
+    /// <returns>A failed result containing the exception.</returns>
+    public static Result Fail(Exception error)
+    {
+        return Failure(error);
+    }
+
+    /// <summary>
     ///     Creates a failed result from an error.
     /// </summary>
     /// <param name="failure">The error that caused the failure.</param>
@@ -250,6 +280,16 @@ public readonly partial record struct Result : IResult
     public static Result Failure(Failure failure)
     {
         return new Result(false, failure, null);
+    }
+
+    /// <summary>
+    ///     Creates a failed result from an error.
+    /// </summary>
+    /// <param name="failure">The error that caused the failure.</param>
+    /// <returns>A failed result containing the error.</returns>
+    public static Result Fail(Failure failure)
+    {
+        return Failure(failure);
     }
 
     /// <summary>
@@ -263,6 +303,16 @@ public readonly partial record struct Result : IResult
     }
 
     /// <summary>
+    ///     Creates a failed result from an error message.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <returns>A failed result containing the error message.</returns>
+    public static Result Fail(string message)
+    {
+        return Failure(message);
+    }
+
+    /// <summary>
     ///     Creates a failed result from multiple errors.
     /// </summary>
     /// <param name="errors">The collection of errors.</param>
@@ -270,6 +320,16 @@ public readonly partial record struct Result : IResult
     public static Result Failure(params IEnumerable<Failure> errors)
     {
         return new Result(false, new AggregateFailure(errors), null);
+    }
+
+    /// <summary>
+    ///     Creates a failed result from multiple errors.
+    /// </summary>
+    /// <param name="errors">The collection of errors.</param>
+    /// <returns>A failed result containing the aggregated errors.</returns>
+    public static Result Fail(params IEnumerable<Failure> errors)
+    {
+        return Failure(errors);
     }
 
     /// <summary>
@@ -284,6 +344,17 @@ public readonly partial record struct Result : IResult
     }
 
     /// <summary>
+    ///     Creates a failed result with a typed value from an exception.
+    /// </summary>
+    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <param name="error">The exception that caused the failure.</param>
+    /// <returns>A failed result containing the exception.</returns>
+    public static Result<TValue1> Fail<TValue1>(Exception error) where TValue1 : notnull
+    {
+        return Failure<TValue1>(error);
+    }
+
+    /// <summary>
     ///     Creates a failed result with a typed value from an error.
     /// </summary>
     /// <typeparam name="TValue1">The type of the value.</typeparam>
@@ -292,6 +363,17 @@ public readonly partial record struct Result : IResult
     public static Result<TValue1> Failure<TValue1>(Failure failure) where TValue1 : notnull
     {
         return new Result<TValue1>(false, default, failure, null);
+    }
+
+    /// <summary>
+    ///     Creates a failed result with a typed value from an error.
+    /// </summary>
+    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <param name="failure">The error that caused the failure.</param>
+    /// <returns>A failed result containing the error.</returns>
+    public static Result<TValue1> Fail<TValue1>(Failure failure) where TValue1 : notnull
+    {
+        return Failure<TValue1>(failure);
     }
 
     /// <summary>
@@ -306,6 +388,17 @@ public readonly partial record struct Result : IResult
     }
 
     /// <summary>
+    ///     Creates a failed result with a typed value from an error message.
+    /// </summary>
+    /// <typeparam name="TValue1">The type of the value.</typeparam>
+    /// <param name="message">The error message.</param>
+    /// <returns>A failed result containing the error message.</returns>
+    public static Result<TValue1> Fail<TValue1>(string message) where TValue1 : notnull
+    {
+        return Failure<TValue1>(message);
+    }
+
+    /// <summary>
     ///     Creates a failed result with a typed value from multiple errors.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
@@ -314,6 +407,17 @@ public readonly partial record struct Result : IResult
     public static Result<TValue> Failure<TValue>(params IEnumerable<Failure> errors) where TValue : notnull
     {
         return new Result<TValue>(false, default, new AggregateFailure(errors), null);
+    }
+
+    /// <summary>
+    ///     Creates a failed result with a typed value from multiple errors.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <param name="errors">The collection of errors.</param>
+    /// <returns>A failed result containing the aggregated errors.</returns>
+    public static Result<TValue> Fail<TValue>(params IEnumerable<Failure> errors) where TValue : notnull
+    {
+        return Failure<TValue>(errors);
     }
 
     #endregion

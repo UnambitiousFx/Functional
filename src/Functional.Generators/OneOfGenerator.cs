@@ -99,6 +99,8 @@ public class OneOfGenerator : IIncrementalGenerator
         using (sb.Indent())
         {
             WriteInterfaceIsProperties(sb, typeCount);
+            WriteInterfaceTypeAccessMethods(sb);
+            WriteInterfaceMatchByType(sb, typeCount);
             WriteInterfaceMatchValue(sb, typeCount);
             WriteInterfaceMatchActions(sb, typeCount);
             WriteInterfaceBind(sb, typeCount);
@@ -142,6 +144,8 @@ public class OneOfGenerator : IIncrementalGenerator
             WriteOneOfDebuggerDisplay(sb, typeCount);
             WriteOneOfConstructor(sb);
             WriteIsProperties(sb, typeCount);
+            WriteTypeAccessMethods(sb);
+            WriteMatchByType(sb, typeCount);
             WriteMatchValue(sb, typeCount);
             WriteMatchActions(sb, typeCount);
             WriteBind(sb, typeCount);
@@ -223,6 +227,137 @@ public class OneOfGenerator : IIncrementalGenerator
             sb.Line($"public bool Is{GetOrdinal(i)} {{ get; }}");
             sb.Line();
         }
+    }
+
+    private static void WriteTypeAccessMethods(TemplateBuilder sb)
+    {
+        sb.Line("/// <inheritdoc/>");
+        sb.Line("public bool Is<TCase>() where TCase : notnull");
+        sb.Line("{");
+        using (sb.Indent())
+        {
+            sb.Line("return _value is TCase;");
+        }
+
+        sb.Line("}");
+        sb.Line();
+
+        sb.Line("/// <inheritdoc/>");
+        sb.Line("public bool TryAs<TCase>([NotNullWhen(true)] out TCase? value) where TCase : notnull");
+        sb.Line("{");
+        using (sb.Indent())
+        {
+            sb.Line("if (_value is TCase typed)");
+            sb.Line("{");
+            using (sb.Indent())
+            {
+                sb.Line("value = typed;");
+                sb.Line("return true;");
+            }
+
+            sb.Line("}");
+            sb.Line("value = default;");
+            sb.Line("return false;");
+        }
+
+        sb.Line("}");
+        sb.Line();
+    }
+
+    private static void WriteInterfaceTypeAccessMethods(TemplateBuilder sb)
+    {
+        sb.Line("/// <summary>");
+        sb.Line("///     Checks whether the current value is of the requested case type.");
+        sb.Line("/// </summary>");
+        sb.Line("/// <typeparam name=\"TCase\">The case type to check.</typeparam>");
+        sb.Line("/// <returns>True when the current value is assignable to TCase; otherwise false.</returns>");
+        sb.Line("public bool Is<TCase>() where TCase : notnull;");
+        sb.Line();
+
+        sb.Line("/// <summary>");
+        sb.Line("///     Attempts to extract the current value as the requested case type.");
+        sb.Line("/// </summary>");
+        sb.Line("/// <typeparam name=\"TCase\">The case type to extract.</typeparam>");
+        sb.Line("/// <param name=\"value\">The extracted value when successful.</param>");
+        sb.Line("/// <returns>True when the current value is assignable to TCase; otherwise false.</returns>");
+        sb.Line("public bool TryAs<TCase>([NotNullWhen(true)] out TCase? value) where TCase : notnull;");
+        sb.Line();
+    }
+
+    private static void WriteMatchByType(TemplateBuilder sb, int typeCount)
+    {
+        var typeCaseParams = string.Join(", ", Enumerable.Range(1, typeCount).Select(i => $"TCase{i}"));
+        var handlerParams = string.Join(", ",
+            Enumerable.Range(1, typeCount).Select(i => $"Func<TCase{i}, TOut> {GetOrdinalLower(i)}Case"));
+
+        sb.Line("/// <inheritdoc/>");
+        sb.Line($"public TOut MatchByType<{typeCaseParams}, TOut>({handlerParams})");
+        using (sb.Indent())
+        {
+            foreach (var i in Enumerable.Range(1, typeCount))
+            {
+                sb.Line($"where TCase{i} : notnull");
+            }
+
+            sb.Line("where TOut : notnull");
+        }
+
+        sb.Line("{");
+        using (sb.Indent())
+        {
+            foreach (var i in Enumerable.Range(1, typeCount))
+            {
+                sb.Line($"if (_value is TCase{i} {GetOrdinalLower(i)}Value)");
+                sb.Line("{");
+                using (sb.Indent())
+                {
+                    sb.Line($"return {GetOrdinalLower(i)}Case({GetOrdinalLower(i)}Value);");
+                }
+
+                sb.Line("}");
+            }
+
+            sb.Line("throw new InvalidOperationException(\"No matching case handler for current value type.\");");
+        }
+
+        sb.Line("}");
+        sb.Line();
+    }
+
+    private static void WriteInterfaceMatchByType(TemplateBuilder sb, int typeCount)
+    {
+        var typeCaseParams = string.Join(", ", Enumerable.Range(1, typeCount).Select(i => $"TCase{i}"));
+        var handlerParams = string.Join(", ",
+            Enumerable.Range(1, typeCount).Select(i => $"Func<TCase{i}, TOut> {GetOrdinalLower(i)}Case"));
+
+        sb.Line("/// <summary>");
+        sb.Line("///     Type-driven matching for unions.");
+        sb.Line("/// </summary>");
+        for (var i = 1; i <= typeCount; i++)
+        {
+            sb.Line($"/// <typeparam name=\"TCase{i}\">The {GetOrdinalLower(i)} handled case type.</typeparam>");
+        }
+
+        sb.Line("/// <typeparam name=\"TOut\">The return type.</typeparam>");
+        for (var i = 1; i <= typeCount; i++)
+        {
+            sb.Line($"/// <param name=\"{GetOrdinalLower(i)}Case\">Handler for TCase{i}.</param>");
+        }
+
+        sb.Line("/// <returns>The result of the matching handler.</returns>");
+        sb.Line($"public TOut MatchByType<{typeCaseParams}, TOut>({handlerParams})");
+        using (sb.Indent())
+        {
+            foreach (var i in Enumerable.Range(1, typeCount))
+            {
+                sb.Line($"where TCase{i} : notnull");
+            }
+
+            sb.Line("where TOut : notnull");
+        }
+
+        sb.Line(";");
+        sb.Line();
     }
 
     private static void WriteMatchValue(TemplateBuilder sb, int typeCount)
@@ -577,7 +712,7 @@ public class OneOfGenerator : IIncrementalGenerator
 
     private static ImmutableArray<string> BuildWhereConstraints(int typeCount, string prefix)
     {
-        return [..Enumerable.Range(1, typeCount).Select(i => $"where {prefix}{i} : notnull")];
+        return [.. Enumerable.Range(1, typeCount).Select(i => $"where {prefix}{i} : notnull")];
     }
 
     private static string BuildGenericTypeArity(int typeCount)

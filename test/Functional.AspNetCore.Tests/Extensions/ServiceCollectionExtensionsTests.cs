@@ -161,4 +161,30 @@ public class ServiceCollectionExtensionsTests
         // Assert (Then)
         Assert.IsType<DefaultErrorHttpMapper>(mapper);
     }
+
+    [Fact(DisplayName = "AddResultHttp registers configurable ResultHttpAdapterPolicy as singleton")]
+    public void AddResultHttp_RegistersPolicyAsSingleton()
+    {
+        // Arrange (Given)
+        var services = new ServiceCollection();
+
+        // Act (When)
+        services.AddResultHttp(options =>
+        {
+            options.Policy = options.Policy with
+            {
+                ResultSuccessBehavior = ResultSuccessHttpBehavior.Ok,
+                MaybeNoneBehavior = MaybeNoneHttpBehavior.NoContent
+            };
+        });
+
+        var provider = services.BuildServiceProvider();
+        var policy1 = provider.GetRequiredService<ResultHttpAdapterPolicy>();
+        var policy2 = provider.GetRequiredService<ResultHttpAdapterPolicy>();
+
+        // Assert (Then)
+        Assert.Same(policy1, policy2);
+        Assert.Equal(ResultSuccessHttpBehavior.Ok, policy1.ResultSuccessBehavior);
+        Assert.Equal(MaybeNoneHttpBehavior.NoContent, policy1.MaybeNoneBehavior);
+    }
 }
