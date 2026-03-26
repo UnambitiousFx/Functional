@@ -63,4 +63,40 @@ public sealed class MaybeExtensionsLinqTests
         maybe.ShouldBe()
              .None();
     }
+
+    [Fact]
+    public void Linq_QuerySyntax_WithLetClause_UsesProjector()
+    {
+        // Arrange (Given)
+        var value = Maybe.Some(10);
+
+        // Act (When)
+        var maybe =
+            from v in value
+            let doubled = v * 2
+            let tripled = v * 3
+            select doubled + tripled;
+
+        // Assert (Then)
+        maybe.ShouldBe()
+             .Some()
+             .And(result => Assert.Equal(50, result)); // (10*2) + (10*3) = 20 + 30 = 50
+    }
+
+    [Fact]
+    public void Linq_QuerySyntax_WithLetClause_NoneReturnsNone()
+    {
+        // Arrange (Given)
+        var value = Maybe.None<int>();
+
+        // Act (When)
+        var maybe =
+            from v in value
+            let doubled = v * 2
+            select doubled;
+
+        // Assert (Then)
+        maybe.ShouldBe()
+             .None();
+    }
 }

@@ -31,14 +31,17 @@ public readonly struct MaybeAssertion<TValue>
     /// <summary>
     ///     Asserts that the current instance of <see cref="Maybe{TValue}" /> contains a value (Option.Some).
     /// </summary>
+    /// <param name="because">
+    ///     Optional reason why this assertion should succeed. Will be included in the failure message if the assertion fails.
+    /// </param>
     /// <returns>
     ///     An instance of <see cref="SomeAssertion{TValue}" /> containing the value if the assertion is successful.
     ///     Throws an assertion failure if the current instance does not represent an Option.Some.
     /// </returns>
-    public SomeAssertion<TValue> Some()
+    public SomeAssertion<TValue> Some(string? because = null)
     {
         if (!_maybe.Some(out var value)) {
-            Assert.Fail("Expected Option.Some but was None.");
+            Assert.Fail(because != null ? $"Expected Option.Some but was None because {because}." : "Expected Option.Some but was None.");
         }
 
         return new SomeAssertion<TValue>(value);
@@ -47,11 +50,22 @@ public readonly struct MaybeAssertion<TValue>
     /// <summary>
     ///     Ensures that the current instance of <see cref="Maybe{TValue}" /> is in a "none" state.
     /// </summary>
+    /// <param name="because">
+    ///     Optional reason why this assertion should succeed. Will be included in the failure message if the assertion fails.
+    /// </param>
     /// <returns>An instance of <see cref="NoneAssertion" /> for chaining further none-specific assertions.</returns>
-    public NoneAssertion None()
+    public NoneAssertion None(string? because = null)
     {
         if (_maybe.IsSome) {
-            Assert.Fail("Expected Option.None but was Some.");
+            if (_maybe.Some(out var value)) {
+                var message = because != null
+                    ? $"Expected Option.None but was Some because {because}. Actual value: {value}"
+                    : $"Expected Option.None but was Some. Actual value: {value}";
+                Assert.Fail(message);
+            }
+            else {
+                Assert.Fail(because != null ? $"Expected Option.None but was Some because {because}." : "Expected Option.None but was Some.");
+            }
         }
 
         return new NoneAssertion();

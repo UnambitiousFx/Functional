@@ -1,273 +1,175 @@
 using UnambitiousFx.Functional.Failures;
 
-#pragma warning disable CS1591
-
 namespace UnambitiousFx.Functional;
 
-public static partial class MaybeExtensions
-{
+/// <summary>
+///     Provides extension methods for working with asynchronous operations on the <see cref="Maybe{TValue}" /> type.
+///     These extensions enable mapping, binding, tapping, switching, and conversion to <see cref="Result{TValue}" />
+///     for <see cref="Task" /> and <see cref="ValueTask" /> contexts encapsulating <see cref="Maybe{TValue}" /> values.
+/// </summary>
+///     The type of the value wrapped by the <see cref="Maybe{TValue}" /> instance within the
+///     asynchronous operation.
+public static partial class MaybeExtensions {
     /// <summary>
-    ///     Executes a side effect when a value is present and returns the original maybe.
+    ///     Provides extension methods for handling asynchronous operations on the <see cref="Maybe{TValue}" /> type.
+    ///     These methods allow mapping, binding, tapping, converting to a result, and switching actions
+    ///     on <see cref="ValueTask{TResult}" /> encapsulating <see cref="Maybe{TValue}" /> values.
     /// </summary>
-    public static Maybe<TValue> TapSome<TValue>(this Maybe<TValue> maybe,
-                                                Action<TValue>     tap)
-        where TValue : notnull
-    {
-        return maybe.Tap(tap);
+    ///     The type of the value contained within the <see cref="Maybe{TValue}" /> in the asynchronous
+    ///     operation.
+    extension<TIn>(ValueTask<Maybe<TIn>> maybeTask)
+        where TIn : notnull {
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using the provided failure
+        ///     if the <see cref="Maybe{TValue}" /> has no value.
+        /// </summary>
+        /// <param name="failure">
+        ///     The failure to assign to the result if the <see cref="Maybe{TValue}" /> has no value.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Result{TValue}" /> that contains the value if present or the specified failure if the value is absent.
+        /// </returns>
+        public async ValueTask<Result<TIn>> ToResult(Failure failure) {
+            var maybe = await maybeTask;
+            return maybe.ToResult(failure);
+        }
+
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using a failure created by the factory
+        ///     if the <see cref="Maybe{TValue}" /> has no value.
+        /// </summary>
+        /// <param name="errorFactory">
+        ///     The factory function to create a failure if the <see cref="Maybe{TValue}" /> has no value.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Result{TValue}" /> that contains the value if present or the failure from the factory if the value is
+        ///     absent.
+        /// </returns>
+        public async ValueTask<Result<TIn>> ToResult(Func<Failure> errorFactory) {
+            var maybe = await maybeTask;
+            return maybe.ToResult(errorFactory);
+        }
+
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using the provided error message
+        ///     if the <see cref="Maybe{TValue}" /> has no value.
+        /// </summary>
+        /// <param name="message">
+        ///     The error message to use if the <see cref="Maybe{TValue}" /> has no value.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Result{TValue}" /> that contains the value if present or a failure with the message if the value is
+        ///     absent.
+        /// </returns>
+        public async ValueTask<Result<TIn>> ToResult(string message) {
+            var maybe = await maybeTask;
+            return maybe.ToResult(message);
+        }
+
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using a failure created by the
+        ///     asynchronous factory
+        ///     if the <see cref="Maybe{TValue}" /> has no value.
+        /// </summary>
+        /// <param name="errorFactory">
+        ///     The asynchronous factory function to create a failure if the <see cref="Maybe{TValue}" /> has no value.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Result{TValue}" /> that contains the value if present or the failure from the asynchronous factory if
+        ///     the value is absent.
+        /// </returns>
+        public async ValueTask<Result<TIn>> ToResult(Func<ValueTask<Failure>> errorFactory) {
+            var maybe = await maybeTask;
+            if (maybe.Some(out var value)) {
+                return Result.Success(value);
+            }
+
+            return Result.Failure<TIn>(await errorFactory());
+        }
     }
 
     /// <summary>
-    ///     Executes a side effect when no value is present and returns the original maybe.
+    ///     Provides extension methods for asynchronous operations on the <see cref="Maybe{TValue}" /> type.
+    ///     These extensions allow for mapping, binding, tapping, switching, and converting to other functional types
+    ///     like <see cref="Result{TValue}" /> within asynchronous contexts represented by <see cref="Task" /> or
+    ///     <see cref="ValueTask" />.
     /// </summary>
-    public static Maybe<TValue> TapNone<TValue>(this Maybe<TValue> maybe,
-                                                Action             tap)
-        where TValue : notnull
-    {
-        if (maybe.IsNone) {
-            tap();
+    ///     The type of the value encapsulated by the <see cref="Maybe{TValue}" /> in the asynchronous
+    ///     operation.
+    extension<TIn>(Task<Maybe<TIn>> maybeTask)
+        where TIn : notnull {
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" />.
+        ///     If the maybe contains a value, the result contains the same value.
+        ///     If the maybe is empty, the result is constructed with the provided failure.
+        /// </summary>
+        /// <param name="failure">The failure to use if the maybe is empty.</param>
+        /// <returns>
+        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
+        ///     The result contains the value from the maybe if present, or the given failure otherwise.
+        /// </returns>
+        public ValueTask<Result<TIn>> ToResult(Failure failure) {
+            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, failure));
+
+            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>> maybeTask,
+                                                        Failure          failure) {
+                return (await maybeTask).ToResult(failure);
+            }
         }
 
-        return maybe;
-    }
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using a failure created by the factory
+        ///     if the maybe is empty.
+        /// </summary>
+        /// <param name="errorFactory">The factory function to create a failure if the maybe is empty.</param>
+        /// <returns>
+        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
+        ///     The result contains the value from the maybe if present, or the failure from the factory otherwise.
+        /// </returns>
+        public ValueTask<Result<TIn>> ToResult(Func<Failure> errorFactory) {
+            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, errorFactory));
 
-    public static async ValueTask<Maybe<TOut>> Map<TIn, TOut>(this ValueTask<Maybe<TIn>> maybeTask,
-                                                              Func<TIn, TOut>            map)
-        where TIn : notnull
-        where TOut : notnull
-    {
-        var maybe = await maybeTask;
-        return maybe.Map(map);
-    }
-
-    public static async ValueTask<Maybe<TOut>> Bind<TIn, TOut>(this ValueTask<Maybe<TIn>> maybeTask,
-                                                               Func<TIn, Maybe<TOut>>     bind)
-        where TIn : notnull
-        where TOut : notnull
-    {
-        var maybe = await maybeTask;
-        return maybe.Bind(bind);
-    }
-
-    public static async ValueTask<Maybe<TOut>> Bind<TIn, TOut>(this ValueTask<Maybe<TIn>>        maybeTask,
-                                                               Func<TIn, ValueTask<Maybe<TOut>>> bind)
-        where TIn : notnull
-        where TOut : notnull
-    {
-        var maybe = await maybeTask;
-        if (!maybe.Some(out var value)) {
-            return Maybe.None<TOut>();
+            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>> maybeTask,
+                                                        Func<Failure>    errorFactory) {
+                return (await maybeTask).ToResult(errorFactory);
+            }
         }
 
-        return await bind(value);
-    }
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using the provided error message
+        ///     if the maybe is empty.
+        /// </summary>
+        /// <param name="message">The error message to use if the maybe is empty.</param>
+        /// <returns>
+        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
+        ///     The result contains the value from the maybe if present, or a failure with the message otherwise.
+        /// </returns>
+        public ValueTask<Result<TIn>> ToResult(string message) {
+            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, message));
 
-    public static async ValueTask<Maybe<TValue>> TapSome<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
-                                                                 Action<TValue>                tap)
-        where TValue : notnull
-    {
-        var maybe = await maybeTask;
-        return maybe.TapSome(tap);
-    }
-
-    public static async ValueTask<Maybe<TValue>> TapSome<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
-                                                                 Func<TValue, ValueTask>       tap)
-        where TValue : notnull
-    {
-        var maybe = await maybeTask;
-        if (maybe.Some(out var value)) {
-            await tap(value);
+            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>> maybeTask,
+                                                        string           message) {
+                return (await maybeTask).ToResult(message);
+            }
         }
 
-        return maybe;
-    }
+        /// <summary>
+        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using a failure created by the
+        ///     asynchronous factory
+        ///     if the maybe is empty.
+        /// </summary>
+        /// <param name="errorFactory">The asynchronous factory function to create a failure if the maybe is empty.</param>
+        /// <returns>
+        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
+        ///     The result contains the value from the maybe if present, or the failure from the asynchronous factory otherwise.
+        /// </returns>
+        public ValueTask<Result<TIn>> ToResult(Func<ValueTask<Failure>> errorFactory) {
+            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, errorFactory));
 
-    public static async ValueTask<Maybe<TValue>> TapNone<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
-                                                                 Action                        tap)
-        where TValue : notnull
-    {
-        var maybe = await maybeTask;
-        return maybe.TapNone(tap);
-    }
-
-    public static async ValueTask<Maybe<TValue>> TapNone<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
-                                                                 Func<ValueTask>               tap)
-        where TValue : notnull
-    {
-        var maybe = await maybeTask;
-        if (maybe.IsNone) {
-            await tap();
-        }
-
-        return maybe;
-    }
-
-    public static async ValueTask<Result<TValue>> ToResult<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
-                                                                   Failure                       failure)
-        where TValue : notnull
-    {
-        var maybe = await maybeTask;
-        return maybe.ToResult(failure);
-    }
-
-    public static async ValueTask Switch<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
-                                                 Action<TValue>                some,
-                                                 Action                        none)
-        where TValue : notnull
-    {
-        var maybe = await maybeTask;
-        maybe.Switch(some, none);
-    }
-
-    public static async ValueTask Switch<TValue>(this ValueTask<Maybe<TValue>> maybeTask,
-                                                 Func<TValue, ValueTask>       some,
-                                                 Func<ValueTask>               none)
-        where TValue : notnull
-    {
-        var maybe = await maybeTask;
-        if (maybe.Some(out var value)) {
-            await some(value);
-            return;
-        }
-
-        await none();
-    }
-
-    public static ValueTask<Maybe<TOut>> Map<TIn, TOut>(this Task<Maybe<TIn>> maybeTask,
-                                                        Func<TIn, TOut>       map)
-        where TIn : notnull
-        where TOut : notnull
-    {
-        return new ValueTask<Maybe<TOut>>(MapCore(maybeTask, map));
-
-        static async Task<Maybe<TOut>> MapCore(Task<Maybe<TIn>> maybeTask,
-                                               Func<TIn, TOut>  map)
-        {
-            return (await maybeTask).Map(map);
-        }
-    }
-
-    public static ValueTask<Maybe<TOut>> Bind<TIn, TOut>(this Task<Maybe<TIn>>  maybeTask,
-                                                         Func<TIn, Maybe<TOut>> bind)
-        where TIn : notnull
-        where TOut : notnull
-    {
-        return new ValueTask<Maybe<TOut>>(BindCore(maybeTask, bind));
-
-        static async Task<Maybe<TOut>> BindCore(Task<Maybe<TIn>>       maybeTask,
-                                                Func<TIn, Maybe<TOut>> bind)
-        {
-            return (await maybeTask).Bind(bind);
-        }
-    }
-
-    public static ValueTask<Maybe<TOut>> Bind<TIn, TOut>(this Task<Maybe<TIn>>             maybeTask,
-                                                         Func<TIn, ValueTask<Maybe<TOut>>> bind)
-        where TIn : notnull
-        where TOut : notnull
-    {
-        return new ValueTask<Maybe<TOut>>(BindCore(maybeTask, bind));
-
-        static async Task<Maybe<TOut>> BindCore(Task<Maybe<TIn>>                  maybeTask,
-                                                Func<TIn, ValueTask<Maybe<TOut>>> bind)
-        {
-            return await new ValueTask<Maybe<TIn>>(maybeTask).Bind(bind);
-        }
-    }
-
-    public static ValueTask<Maybe<TValue>> TapSome<TValue>(this Task<Maybe<TValue>> maybeTask,
-                                                           Action<TValue>           tap)
-        where TValue : notnull
-    {
-        return new ValueTask<Maybe<TValue>>(TapSomeCore(maybeTask, tap));
-
-        static async Task<Maybe<TValue>> TapSomeCore(Task<Maybe<TValue>> maybeTask,
-                                                     Action<TValue>      tap)
-        {
-            return (await maybeTask).TapSome(tap);
-        }
-    }
-
-    public static ValueTask<Maybe<TValue>> TapSome<TValue>(this Task<Maybe<TValue>> maybeTask,
-                                                           Func<TValue, ValueTask>  tap)
-        where TValue : notnull
-    {
-        return new ValueTask<Maybe<TValue>>(TapSomeCore(maybeTask, tap));
-
-        static async Task<Maybe<TValue>> TapSomeCore(Task<Maybe<TValue>>     maybeTask,
-                                                     Func<TValue, ValueTask> tap)
-        {
-            return await new ValueTask<Maybe<TValue>>(maybeTask).TapSome(tap);
-        }
-    }
-
-    public static ValueTask<Maybe<TValue>> TapNone<TValue>(this Task<Maybe<TValue>> maybeTask,
-                                                           Action                   tap)
-        where TValue : notnull
-    {
-        return new ValueTask<Maybe<TValue>>(TapNoneCore(maybeTask, tap));
-
-        static async Task<Maybe<TValue>> TapNoneCore(Task<Maybe<TValue>> maybeTask,
-                                                     Action              tap)
-        {
-            return (await maybeTask).TapNone(tap);
-        }
-    }
-
-    public static ValueTask<Maybe<TValue>> TapNone<TValue>(this Task<Maybe<TValue>> maybeTask,
-                                                           Func<ValueTask>          tap)
-        where TValue : notnull
-    {
-        return new ValueTask<Maybe<TValue>>(TapNoneCore(maybeTask, tap));
-
-        static async Task<Maybe<TValue>> TapNoneCore(Task<Maybe<TValue>> maybeTask,
-                                                     Func<ValueTask>     tap)
-        {
-            return await new ValueTask<Maybe<TValue>>(maybeTask).TapNone(tap);
-        }
-    }
-
-    public static ValueTask<Result<TValue>> ToResult<TValue>(this Task<Maybe<TValue>> maybeTask,
-                                                             Failure                  failure)
-        where TValue : notnull
-    {
-        return new ValueTask<Result<TValue>>(ToResultCore(maybeTask, failure));
-
-        static async Task<Result<TValue>> ToResultCore(Task<Maybe<TValue>> maybeTask,
-                                                       Failure             failure)
-        {
-            return (await maybeTask).ToResult(failure);
-        }
-    }
-
-    public static ValueTask Switch<TValue>(this Task<Maybe<TValue>> maybeTask,
-                                           Action<TValue>           some,
-                                           Action                   none)
-        where TValue : notnull
-    {
-        return new ValueTask(SwitchCore(maybeTask, some, none));
-
-        static async Task SwitchCore(Task<Maybe<TValue>> maybeTask,
-                                     Action<TValue>      some,
-                                     Action              none)
-        {
-            (await maybeTask).Switch(some, none);
-        }
-    }
-
-    public static ValueTask Switch<TValue>(this Task<Maybe<TValue>> maybeTask,
-                                           Func<TValue, ValueTask>  some,
-                                           Func<ValueTask>          none)
-        where TValue : notnull
-    {
-        return new ValueTask(SwitchCore(maybeTask, some, none));
-
-        static async Task SwitchCore(Task<Maybe<TValue>>     maybeTask,
-                                     Func<TValue, ValueTask> some,
-                                     Func<ValueTask>         none)
-        {
-            await new ValueTask<Maybe<TValue>>(maybeTask).Switch(some, none);
+            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>>         maybeTask,
+                                                        Func<ValueTask<Failure>> errorFactory) {
+                return await new ValueTask<Maybe<TIn>>(maybeTask).ToResult(errorFactory);
+            }
         }
     }
 }
-
-#pragma warning restore CS1591

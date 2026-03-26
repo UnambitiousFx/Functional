@@ -29,6 +29,14 @@ public readonly struct FailureAssertion
     public IFailure Failure { get; }
 
     /// <summary>
+    ///     Gets the subject (underlying failure) of the failure assertion.
+    /// </summary>
+    /// <remarks>
+    ///     This is an alias for <see cref="Failure" /> to provide a more FluentAssertions-like API.
+    /// </remarks>
+    public IFailure Subject => Failure;
+
+    /// <summary>
     ///     Applies the specified assertion action to the encapsulated errors and returns the current failure assertion
     ///     instance to allow method chaining.
     /// </summary>
@@ -59,6 +67,24 @@ public readonly struct FailureAssertion
     public FailureAssertion AndCode(string expected)
     {
         Assert.Equal(expected, Failure.Code);
+        return this;
+    }
+
+    /// <summary>
+    ///     Inspects the current failure by invoking the specified action, useful for debugging without breaking the chain.
+    /// </summary>
+    /// <param name="inspector">An action to perform on the failure for inspection purposes.</param>
+    /// <returns>The current <see cref="FailureAssertion" /> instance, enabling further chaining.</returns>
+    /// <example>
+    ///     result.ShouldBe()
+    ///           .Failure()
+    ///           .Inspect(f => Console.WriteLine($"Debug: error is [{f.Code}] {f.Message}"))
+    ///           .AndMessage("Expected error");
+    /// </example>
+    public FailureAssertion Inspect(Action<IFailure> inspector)
+    {
+        ArgumentNullException.ThrowIfNull(inspector);
+        inspector(Failure);
         return this;
     }
 }

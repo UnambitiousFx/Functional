@@ -274,6 +274,177 @@ public sealed class ResultTests_DebuggerDisplay
         Assert.Equal("Test error", errorProp.Message);
     }
 
+    [Fact]
+    public void DebugView_Success_ErrorDetailsPropertyIsNull()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.Null(errorDetails);
+    }
+
+    [Fact]
+    public void DebugView_GenericSuccess_ErrorDetailsPropertyIsNull()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.Null(errorDetails);
+    }
+
+    [Fact]
+    public void DebugView_Failure_WithAggregateFailure_ReturnsAggregateErrorDetails()
+    {
+        // Arrange (Given)
+        var errors = new[]
+        {
+            new Failure("Error 1"),
+            new Failure("Error 2"),
+            new Failure("Error 3")
+        };
+        var result = Result.Failure(errors.AsEnumerable());
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.NotNull(errorDetails);
+        var type = errorDetails?.GetType()
+                                .GetProperty("Type")
+                               ?.GetValue(errorDetails) as string;
+        Assert.Equal("AggregateError", type);
+    }
+
+    [Fact]
+    public void DebugView_Failure_WithExceptionalFailure_ReturnsExceptionalErrorDetails()
+    {
+        // Arrange (Given)
+        var exception = new InvalidOperationException("Test exception");
+        var result    = Result.Failure(exception);
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.NotNull(errorDetails);
+        var type = errorDetails?.GetType()
+                                .GetProperty("Type")
+                               ?.GetValue(errorDetails) as string;
+        Assert.Equal("ExceptionalError", type);
+    }
+
+    [Fact]
+    public void DebugView_Failure_WithRegularFailure_ReturnsRegularErrorDetails()
+    {
+        // Arrange (Given)
+        var failure = new Failure("VALIDATION", "Validation failed");
+        var result  = Result.Failure(failure);
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.NotNull(errorDetails);
+        var type = errorDetails?.GetType()
+                                .GetProperty("Type")
+                               ?.GetValue(errorDetails) as string;
+        Assert.Equal("Failure", type);
+        var code = errorDetails?.GetType()
+                                .GetProperty("Code")
+                               ?.GetValue(errorDetails) as string;
+        Assert.Equal("VALIDATION", code);
+    }
+
+    [Fact]
+    public void DebugView_GenericFailure_WithAggregateFailure_ReturnsAggregateErrorDetails()
+    {
+        // Arrange (Given)
+        var errors = new[]
+        {
+            new Failure("Error 1"),
+            new Failure("Error 2")
+        };
+        var result = Result.Failure<int>(errors.AsEnumerable());
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.NotNull(errorDetails);
+        var type = errorDetails?.GetType()
+                                .GetProperty("Type")
+                               ?.GetValue(errorDetails) as string;
+        Assert.Equal("AggregateError", type);
+    }
+
+    [Fact]
+    public void DebugView_GenericFailure_WithExceptionalFailure_ReturnsExceptionalErrorDetails()
+    {
+        // Arrange (Given)
+        var exception = new ArgumentException("Invalid argument");
+        var result    = Result.Failure<string>(exception);
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.NotNull(errorDetails);
+        var type = errorDetails?.GetType()
+                                .GetProperty("Type")
+                               ?.GetValue(errorDetails) as string;
+        Assert.Equal("ExceptionalError", type);
+    }
+
+    [Fact]
+    public void DebugView_GenericFailure_WithRegularFailure_ReturnsRegularErrorDetails()
+    {
+        // Arrange (Given)
+        var failure = new Failure("NOT_FOUND", "Resource not found");
+        var result  = Result.Failure<bool>(failure);
+
+        // Act (When)
+        var debugView     = GetDebugView(result);
+        var errorDetails = debugView?.GetType()
+                                     .GetProperty("ErrorDetails")
+                                    ?.GetValue(debugView);
+
+        // Assert (Then)
+        Assert.NotNull(errorDetails);
+        var type = errorDetails?.GetType()
+                                .GetProperty("Type")
+                               ?.GetValue(errorDetails) as string;
+        Assert.Equal("Failure", type);
+    }
+
     #endregion
 
     #region Helper Methods

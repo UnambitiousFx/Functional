@@ -5,14 +5,14 @@ namespace UnambitiousFx.Functional;
 /// </summary>
 public sealed class MetadataBuilder
 {
-    private readonly Metadata _metadata;
+    private readonly Dictionary<string, object?> _data;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="MetadataBuilder" /> class.
     /// </summary>
     public MetadataBuilder()
     {
-        _metadata = new Metadata();
+        _data = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -21,7 +21,10 @@ public sealed class MetadataBuilder
     /// <param name="initial">The initial metadata to start with</param>
     public MetadataBuilder(IReadOnlyMetadata initial)
     {
-        _metadata = new Metadata(initial);
+        _data = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in initial) {
+            _data[kv.Key] = kv.Value;
+        }
     }
 
     /// <summary>
@@ -33,7 +36,7 @@ public sealed class MetadataBuilder
     public MetadataBuilder Add(string  key,
                                object? value)
     {
-        _metadata[key] = value;
+        _data[key] = value;
         return this;
     }
 
@@ -49,7 +52,7 @@ public sealed class MetadataBuilder
                                  object? value)
     {
         if (condition) {
-            _metadata[key] = value;
+            _data[key] = value;
         }
 
         return this;
@@ -67,7 +70,7 @@ public sealed class MetadataBuilder
                                  object?    value)
     {
         if (condition()) {
-            _metadata[key] = value;
+            _data[key] = value;
         }
 
         return this;
@@ -81,7 +84,7 @@ public sealed class MetadataBuilder
     public MetadataBuilder AddRange(IEnumerable<KeyValuePair<string, object?>> items)
     {
         foreach (var item in items) {
-            _metadata[item.Key] = item.Value;
+            _data[item.Key] = item.Value;
         }
 
         return this;
@@ -95,7 +98,7 @@ public sealed class MetadataBuilder
     public MetadataBuilder AddRange(IReadOnlyMetadata metadata)
     {
         foreach (var item in metadata) {
-            _metadata[item.Key] = item.Value;
+            _data[item.Key] = item.Value;
         }
 
         return this;
@@ -109,7 +112,7 @@ public sealed class MetadataBuilder
     public MetadataBuilder AddRange(params (string Key, object? Value)[] items)
     {
         foreach (var (key, value) in items) {
-            _metadata[key] = value;
+            _data[key] = value;
         }
 
         return this;
@@ -122,7 +125,7 @@ public sealed class MetadataBuilder
     /// <returns>The current builder instance for method chaining</returns>
     public MetadataBuilder Remove(string key)
     {
-        _metadata.TryGetValue(key, out _);
+        _data.Remove(key);
         return this;
     }
 
@@ -132,10 +135,7 @@ public sealed class MetadataBuilder
     /// <returns>The current builder instance for method chaining</returns>
     public MetadataBuilder Clear()
     {
-        foreach (var key in _metadata.Keys.ToList()) {
-            _metadata.TryGetValue(key, out _);
-        }
-
+        _data.Clear();
         return this;
     }
 
@@ -145,7 +145,7 @@ public sealed class MetadataBuilder
     /// <returns>A new Metadata instance with all added values</returns>
     public Metadata Build()
     {
-        return new Metadata(_metadata);
+        return new Metadata(_data);
     }
 
     /// <summary>

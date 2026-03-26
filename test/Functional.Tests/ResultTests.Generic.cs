@@ -107,6 +107,35 @@ public sealed class ResultOfTValueTests
         Assert.Equal("Test error", error.Message);
     }
 
+    [Fact]
+    public void TryGetValue_WithSuccess_ReturnsTrueAndValue()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var success = result.TryGetValue(out var value);
+
+        // Assert (Then)
+        Assert.True(success);
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void TryGetValue_WithFailure_ReturnsFalseAndDefault()
+    {
+        // Arrange (Given)
+        var testError = new Failure("Test error");
+        var result    = Result.Fail<int>(testError);
+
+        // Act (When)
+        var success = result.TryGetValue(out var value);
+
+        // Assert (Then)
+        Assert.False(success);
+        Assert.Equal(default, value);
+    }
+
     #endregion
 
     #region Match with Value

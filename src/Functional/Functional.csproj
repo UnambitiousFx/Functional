@@ -2,11 +2,6 @@
     <PropertyGroup>
         <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
     </PropertyGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Functional.Generators\Functional.Generators.csproj"
-                          OutputItemType="Analyzer"
-                          ReferenceOutputAssembly="false"/>
-    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="AsyncFixer">

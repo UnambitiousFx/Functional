@@ -45,6 +45,14 @@ public readonly struct SuccessAssertion<TValue>
     public TValue Value => _value;
 
     /// <summary>
+    ///     Gets the subject (underlying value) of the success assertion.
+    /// </summary>
+    /// <remarks>
+    ///     This is an alias for <see cref="Value" /> to provide a more FluentAssertions-like API.
+    /// </remarks>
+    public TValue Subject => _value;
+
+    /// <summary>
     ///     Executes additional assertions on the success value while maintaining a fluent context.
     /// </summary>
     /// <param name="assert">An action to perform custom assertions on the success value.</param>
@@ -84,5 +92,23 @@ public readonly struct SuccessAssertion<TValue>
     public void Deconstruct(out TValue value)
     {
         value = _value;
+    }
+
+    /// <summary>
+    ///     Inspects the current value by invoking the specified action, useful for debugging without breaking the chain.
+    /// </summary>
+    /// <param name="inspector">An action to perform on the value for inspection purposes.</param>
+    /// <returns>The current <see cref="SuccessAssertion{TValue}" /> instance, enabling further chaining.</returns>
+    /// <example>
+    ///     result.ShouldBe()
+    ///           .Success()
+    ///           .Inspect(v => Console.WriteLine($"Debug: value is {v}"))
+    ///           .And(v => Assert.Equal(42, v));
+    /// </example>
+    public SuccessAssertion<TValue> Inspect(Action<TValue> inspector)
+    {
+        ArgumentNullException.ThrowIfNull(inspector);
+        inspector(_value);
+        return this;
     }
 }

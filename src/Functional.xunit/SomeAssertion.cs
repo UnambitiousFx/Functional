@@ -41,6 +41,14 @@ public readonly struct SomeAssertion<T>
     public T Value => _value;
 
     /// <summary>
+    ///     Gets the subject (underlying value) of the Some assertion.
+    /// </summary>
+    /// <remarks>
+    ///     This is an alias for <see cref="Value" /> to provide a more FluentAssertions-like API.
+    /// </remarks>
+    public T Subject => _value;
+
+    /// <summary>
     ///     Chains an action to be executed on the encapsulated value of the current assertion.
     /// </summary>
     /// <param name="assert">The action to perform on the encapsulated value. Must not be null.</param>
@@ -74,5 +82,23 @@ public readonly struct SomeAssertion<T>
     public void Deconstruct(out T value)
     {
         value = _value;
+    }
+
+    /// <summary>
+    ///     Inspects the current value by invoking the specified action, useful for debugging without breaking the chain.
+    /// </summary>
+    /// <param name="inspector">An action to perform on the value for inspection purposes.</param>
+    /// <returns>The current <see cref="SomeAssertion{T}" /> instance, enabling further chaining.</returns>
+    /// <example>
+    ///     maybe.ShouldBe()
+    ///          .Some()
+    ///          .Inspect(v => Console.WriteLine($"Debug: value is {v}"))
+    ///          .And(v => Assert.Equal(42, v));
+    /// </example>
+    public SomeAssertion<T> Inspect(Action<T> inspector)
+    {
+        ArgumentNullException.ThrowIfNull(inspector);
+        inspector(_value);
+        return this;
     }
 }

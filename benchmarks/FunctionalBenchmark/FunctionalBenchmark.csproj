@@ -8,7 +8,6 @@
         <PackageReference Include="Ardalis.Result"/>
         <PackageReference Include="BenchmarkDotNet"/>
         <PackageReference Include="FluentResults"/>
-        <PackageReference Include="OneOf"/>
     </ItemGroup>
 
     <ItemGroup>

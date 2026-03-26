@@ -295,6 +295,75 @@ public sealed class MetadataTests
         Assert.Equal("value", meta["key"]);
     }
 
+    [Fact]
+    public void MetadataBuilder_Remove_RemovesKey()
+    {
+        // Arrange (Given)
+        var builder = new MetadataBuilder()
+                     .Add("key1", "value1")
+                     .Add("key2", "value2");
+
+        // Act (When)
+        var result = builder.Remove("key1");
+        var meta   = result.Build();
+
+        // Assert (Then)
+        Assert.Same(builder, result);
+        Assert.Single(meta);
+        Assert.False(meta.ContainsKey("key1"));
+        Assert.Equal("value2", meta["key2"]);
+    }
+
+    [Fact]
+    public void MetadataBuilder_Remove_NonExistentKey_DoesNotThrow()
+    {
+        // Arrange (Given)
+        var builder = new MetadataBuilder()
+                     .Add("key1", "value1");
+
+        // Act (When)
+        var result = builder.Remove("nonexistent");
+        var meta   = result.Build();
+
+        // Assert (Then)
+        Assert.Same(builder, result);
+        Assert.Single(meta);
+        Assert.Equal("value1", meta["key1"]);
+    }
+
+    [Fact]
+    public void MetadataBuilder_Clear_RemovesAllKeys()
+    {
+        // Arrange (Given)
+        var builder = new MetadataBuilder()
+                     .Add("key1", "value1")
+                     .Add("key2", "value2")
+                     .Add("key3", "value3");
+
+        // Act (When)
+        var result = builder.Clear();
+        var meta   = result.Build();
+
+        // Assert (Then)
+        Assert.Same(builder, result);
+        Assert.Empty(meta);
+    }
+
+    [Fact]
+    public void MetadataBuilder_Clear_OnEmptyBuilder_DoesNotThrow()
+    {
+        // Arrange (Given)
+        var builder = new MetadataBuilder();
+
+        // Act (When)
+        var result = builder.Clear();
+        var meta   = result.Build();
+
+        // Assert (Then)
+        Assert.Same(builder, result);
+        Assert.Empty(meta);
+    }
+
     #endregion
 
     #region Result WithMetadata Tests
@@ -426,6 +495,315 @@ public sealed class MetadataTests
         Assert.Equal("validation", result.Metadata["step3"]);
         Assert.Equal("completion", result.Metadata["step4"]);
         Assert.Equal("success",    result.Metadata["status"]);
+    }
+
+    #endregion
+
+    #region Metadata Indexer and ToString Tests
+
+    [Fact]
+    public void Metadata_IndexerSetter_UpdatesExistingValue()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key", "initial value"));
+
+        // Act (When)
+        meta["key"] = "updated value";
+
+        // Assert (Then)
+        Assert.Equal("updated value", meta["key"]);
+    }
+
+    [Fact]
+    public void Metadata_IndexerSetter_AddsNewKey()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"));
+
+        // Act (When)
+        meta["key2"] = "value2";
+
+        // Assert (Then)
+        Assert.Equal(2, meta.Count);
+        Assert.Equal("value2", meta["key2"]);
+    }
+
+    [Fact]
+    public void Metadata_ToString_WithZeroTake_ReturnsEmpty()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key", "value"));
+
+        // Act (When)
+        var result = meta.ToString(0);
+
+        // Assert (Then)
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void Metadata_ToString_WithNegativeTake_ReturnsEmpty()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key", "value"));
+
+        // Act (When)
+        var result = meta.ToString(-5);
+
+        // Assert (Then)
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void Metadata_ToString_WithEmptyMetadata_ReturnsEmpty()
+    {
+        // Arrange (Given)
+        var meta = Metadata.Empty;
+
+        // Act (When)
+        var result = meta.ToString(10);
+
+        // Assert (Then)
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void Metadata_ToString_WithTakeGreaterThanCount_ReturnsAll()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"), ("key2", "value2"));
+
+        // Act (When)
+        var result = meta.ToString(100);
+
+        // Assert (Then)
+        Assert.Contains("key1:value1", result);
+        Assert.Contains("key2:value2", result);
+    }
+
+    #endregion
+
+    #region Keys and Values Tests
+
+    [Fact]
+    public void Metadata_Keys_ReturnsAllKeys()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"), ("key2", 42), ("key3", true));
+
+        // Act (When)
+        var keys = meta.Keys.ToList();
+
+        // Assert (Then)
+        Assert.Equal(3, keys.Count);
+        Assert.Contains("key1", keys);
+        Assert.Contains("key2", keys);
+        Assert.Contains("key3", keys);
+    }
+
+    [Fact]
+    public void Metadata_Values_ReturnsAllValues()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"), ("key2", 42), ("key3", true));
+
+        // Act (When)
+        var values = meta.Values.ToList();
+
+        // Assert (Then)
+        Assert.Equal(3, values.Count);
+        Assert.Contains("value1", values);
+        Assert.Contains(42, values);
+        Assert.Contains(true, values);
+    }
+
+    [Fact]
+    public void Metadata_Keys_OnEmpty_ReturnsEmpty()
+    {
+        // Arrange (Given)
+        var meta = Metadata.Empty;
+
+        // Act (When)
+        var keys = meta.Keys;
+
+        // Assert (Then)
+        Assert.Empty(keys);
+    }
+
+    [Fact]
+    public void Metadata_Values_OnEmpty_ReturnsEmpty()
+    {
+        // Arrange (Given)
+        var meta = Metadata.Empty;
+
+        // Act (When)
+        var values = meta.Values;
+
+        // Assert (Then)
+        Assert.Empty(values);
+    }
+
+    #endregion
+
+    #region TryGetValue Tests
+
+    [Fact]
+    public void Metadata_TryGetValue_WithExistingKey_ReturnsTrueAndValue()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key", "value"));
+
+        // Act (When)
+        var found = meta.TryGetValue("key", out var value);
+
+        // Assert (Then)
+        Assert.True(found);
+        Assert.Equal("value", value);
+    }
+
+    [Fact]
+    public void Metadata_TryGetValue_WithNonExistentKey_ReturnsFalse()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"));
+
+        // Act (When)
+        var found = meta.TryGetValue("key2", out var value);
+
+        // Assert (Then)
+        Assert.False(found);
+        Assert.Null(value);
+    }
+
+    [Fact]
+    public void Metadata_TryGetValue_CaseInsensitive()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("Key", "value"));
+
+        // Act (When)
+        var found = meta.TryGetValue("key", out var value);
+
+        // Assert (Then)
+        Assert.True(found);
+        Assert.Equal("value", value);
+    }
+
+    [Fact]
+    public void Metadata_TryGetValue_WithNullValue_ReturnsTrueAndNull()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key", (object?)null));
+
+        // Act (When)
+        var found = meta.TryGetValue("key", out var value);
+
+        // Assert (Then)
+        Assert.True(found);
+        Assert.Null(value);
+    }
+
+    #endregion
+
+    #region IEnumerable Tests
+
+    [Fact]
+    public void Metadata_GetEnumerator_ReturnsAllKeyValuePairs()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"), ("key2", 42));
+
+        // Act (When)
+        var pairs = meta.ToList();
+
+        // Assert (Then)
+        Assert.Equal(2, pairs.Count);
+        Assert.Contains(pairs, p => p.Key == "key1" && (string?)p.Value == "value1");
+        Assert.Contains(pairs, p => p.Key == "key2" && (int?)p.Value == 42);
+    }
+
+    [Fact]
+    public void Metadata_NonGenericGetEnumerator_ReturnsAllKeyValuePairs()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"), ("key2", 42));
+        System.Collections.IEnumerable enumerable = meta;
+
+        // Act (When)
+        var enumerator = enumerable.GetEnumerator();
+        var count = 0;
+        while (enumerator.MoveNext())
+        {
+            count++;
+        }
+
+        // Assert (Then)
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public void Metadata_ContainsKey_WithExistingKey_ReturnsTrue()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"));
+
+        // Act (When)
+        var contains = meta.ContainsKey("key1");
+
+        // Assert (Then)
+        Assert.True(contains);
+    }
+
+    [Fact]
+    public void Metadata_ContainsKey_WithNonExistentKey_ReturnsFalse()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key1", "value1"));
+
+        // Act (When)
+        var contains = meta.ContainsKey("key2");
+
+        // Assert (Then)
+        Assert.False(contains);
+    }
+
+    [Fact]
+    public void Metadata_ContainsKey_CaseInsensitive()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("Key", "value"));
+
+        // Act (When)
+        var contains = meta.ContainsKey("key");
+
+        // Assert (Then)
+        Assert.True(contains);
+    }
+
+    [Fact]
+    public void Metadata_ToString_WithEmptyMetadata_ReturnsEmptyString()
+    {
+        // Arrange (Given)
+        var meta = Metadata.Empty;
+
+        // Act (When)
+        var result = meta.ToString();
+
+        // Assert (Then)
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void Metadata_ToString_WithNullValue_ShowsNull()
+    {
+        // Arrange (Given)
+        var meta = Metadata.From(("key", (object?)null));
+
+        // Act (When)
+        var result = meta.ToString();
+
+        // Assert (Then)
+        Assert.Contains("key:null", result);
     }
 
     #endregion

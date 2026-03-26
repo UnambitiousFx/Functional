@@ -70,4 +70,49 @@ public static class FluentAssertionExtensions
         Assert.Fail($"Expected {typeof(TError).Name} but was {assertion.Failure.GetType().Name}.");
         throw new InvalidOperationException("Unreachable");
     }
+
+    /// <summary>
+    ///     Asserts that the failure is a TimeoutError and returns a strongly-typed assertion for further validation.
+    /// </summary>
+    /// <param name="assertion">The failure assertion to validate.</param>
+    /// <returns>A <see cref="TypedErrorAssertion{TimeoutFailure}" /> for the TimeoutError.</returns>
+    public static TypedErrorAssertion<TimeoutFailure> WhichIsTimeoutError(this FailureAssertion assertion)
+    {
+        if (assertion.Failure is TimeoutFailure timeoutError) {
+            return new TypedErrorAssertion<TimeoutFailure>(timeoutError);
+        }
+
+        Assert.Fail($"Expected TimeoutError but was {assertion.Failure.GetType().Name}.");
+        throw new InvalidOperationException("Unreachable");
+    }
+
+    /// <summary>
+    ///     Asserts that the failure is an UnauthenticatedError and returns a strongly-typed assertion for further validation.
+    /// </summary>
+    /// <param name="assertion">The failure assertion to validate.</param>
+    /// <returns>A <see cref="TypedErrorAssertion{UnauthenticatedFailure}" /> for the UnauthenticatedError.</returns>
+    public static TypedErrorAssertion<UnauthenticatedFailure> WhichIsUnauthenticatedError(this FailureAssertion assertion)
+    {
+        if (assertion.Failure is UnauthenticatedFailure unauthenticatedError) {
+            return new TypedErrorAssertion<UnauthenticatedFailure>(unauthenticatedError);
+        }
+
+        Assert.Fail($"Expected UnauthenticatedError but was {assertion.Failure.GetType().Name}.");
+        throw new InvalidOperationException("Unreachable");
+    }
+
+    /// <summary>
+    ///     Asserts that the failure is an UnauthorizedError and returns a strongly-typed assertion for further validation.
+    /// </summary>
+    /// <param name="assertion">The failure assertion to validate.</param>
+    /// <returns>A <see cref="TypedErrorAssertion{UnauthorizedFailure}" /> for the UnauthorizedError.</returns>
+    public static TypedErrorAssertion<UnauthorizedFailure> WhichIsUnauthorizedError(this FailureAssertion assertion)
+    {
+        if (assertion.Failure is UnauthorizedFailure unauthorizedError) {
+            return new TypedErrorAssertion<UnauthorizedFailure>(unauthorizedError);
+        }
+
+        Assert.Fail($"Expected UnauthorizedError but was {assertion.Failure.GetType().Name}.");
+        throw new InvalidOperationException("Unreachable");
+    }
 }
