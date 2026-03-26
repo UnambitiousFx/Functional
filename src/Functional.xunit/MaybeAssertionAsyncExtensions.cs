@@ -4,7 +4,7 @@ namespace UnambitiousFx.Functional.xunit.ValueTasks;
 ///     Provides extension methods for asserting instances of <see cref="Maybe{TValue}" /> types
 ///     within asynchronous contexts using tasks.
 /// </summary>
-public static class MaybeAssertionExtensions
+public static class MaybeAssertionAsyncExtensions
 {
     /// <summary>
     ///     Asserts the specified <see cref="Maybe{TValue}" /> instance and returns a <see cref="MaybeAssertion{TValue}" />

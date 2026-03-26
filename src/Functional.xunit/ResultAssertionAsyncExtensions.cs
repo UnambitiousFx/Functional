@@ -4,7 +4,7 @@ namespace UnambitiousFx.Functional.xunit.ValueTasks;
 ///     Provides extension methods for asserting instances of <see cref="Result" /> or <see cref="Result{TValue}" />
 ///     asynchronously.
 /// </summary>
-public static class ResultAssertionExtensions
+public static class ResultAssertionAsyncExtensions
 {
     /// <summary>
     ///     Asserts the specified <see cref="Result" /> and returns a <see cref="ResultAssertion" /> instance for further

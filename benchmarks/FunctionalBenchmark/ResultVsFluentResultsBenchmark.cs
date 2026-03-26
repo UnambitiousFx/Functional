@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Ardalis.Result;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
@@ -12,6 +13,7 @@ namespace UnambitiousFx.Benchmarks.FunctionalBenchmark;
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 [RankColumn]
 [Config(typeof(Config))]
+[ExcludeFromCodeCoverage]
 public class ResultComparisonBenchmark
 {
     private const int A = 42;
