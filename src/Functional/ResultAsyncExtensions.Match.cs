@@ -34,7 +34,7 @@ public static partial class ResultAsyncExtensions
             return await onSuccess(value);
         }
 
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         return await onFailure(error!);
     }
 

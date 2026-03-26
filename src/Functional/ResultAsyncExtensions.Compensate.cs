@@ -21,7 +21,7 @@ public static partial class ResultAsyncExtensions
             return result;
         }
 
-        result.TryGetError(out var originalError);
+        result.TryGetFailure(out var originalError);
         var rollbackResult = await rollback(originalError!);
 
         return rollbackResult.Match(

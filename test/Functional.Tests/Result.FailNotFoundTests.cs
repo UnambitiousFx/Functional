@@ -64,7 +64,7 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound("Product", "abc-123");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<NotFoundFailure>(error);
         var notFoundError = (NotFoundFailure)error;
         Assert.Equal("Product", notFoundError.Resource);
@@ -153,7 +153,7 @@ public sealed class ResultFailNotFoundTests
         var result = Result.FailNotFound<string>("Product", "abc-123");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<NotFoundFailure>(error);
         var notFoundError = (NotFoundFailure)error;
         Assert.Equal("Product", notFoundError.Resource);

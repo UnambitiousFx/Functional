@@ -64,7 +64,7 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized("Permission denied");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<UnauthorizedFailure>(error);
     }
 
@@ -138,7 +138,7 @@ public sealed class ResultFailUnauthorizedTests
         var result = Result.FailUnauthorized<string>("Permission denied");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<UnauthorizedFailure>(error);
     }
 

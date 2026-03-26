@@ -45,7 +45,7 @@ public readonly partial record struct Result : IResult
     /// </summary>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
     /// <returns>True if the operation failed, false otherwise.</returns>
-    public bool TryGetError([NotNullWhen(true)] out Failure? error)
+    public bool TryGetFailure([NotNullWhen(true)] out Failure? error)
     {
         error = _error;
         return IsFailure;
@@ -60,7 +60,7 @@ public readonly partial record struct Result : IResult
         var message = string.Empty;
         var code    = string.Empty;
 
-        if (TryGetError(out var error)) {
+        if (TryGetFailure(out var error)) {
             message = $"({error.Message})";
             reasons = error is IAggregateFailure aggregate
                           ? aggregate.Errors.Count()
@@ -480,7 +480,7 @@ public readonly partial record struct Result<TValue> : IResult
     /// </summary>
     /// <param name="error">The error if the operation failed, otherwise null.</param>
     /// <returns>True if the operation failed, false otherwise.</returns>
-    public bool TryGetError([NotNullWhen(true)] out Failure? error)
+    public bool TryGetFailure([NotNullWhen(true)] out Failure? error)
     {
         error = _error;
         return IsFailure;
@@ -495,7 +495,7 @@ public readonly partial record struct Result<TValue> : IResult
         var message = string.Empty;
         var code    = string.Empty;
 
-        if (TryGetError(out var error)) {
+        if (TryGetFailure(out var error)) {
             message = $"({error.Message})";
             reasons = error is IAggregateFailure aggregate
                           ? aggregate.Errors.Count()
@@ -693,7 +693,7 @@ public readonly partial record struct Result<TValue> : IResult
     /// <returns>An untyped result with the same success/failure state and metadata.</returns>
     public Result ToResult()
     {
-        var r = TryGetError(out var error)
+        var r = TryGetFailure(out var error)
                     ? Result.Failure(error)
                     : Result.Success();
         return Metadata.Count == 0

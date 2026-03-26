@@ -13,7 +13,7 @@ public static partial class ResultExtensions
     {
         var errors = new List<Failure>();
         foreach (var result in results) {
-            if (result.TryGetError(out var err)) {
+            if (result.TryGetFailure(out var err)) {
                 errors.Add(err);
             }
         }

@@ -35,7 +35,7 @@ public readonly struct ResultAssertion
     public SuccessAssertion Success(string? because = null)
     {
         if (!_result.IsSuccess) {
-            if (_result.TryGetError(out var error)) {
+            if (_result.TryGetFailure(out var error)) {
                 var message = because != null
                     ? $"Expected success result but was failure because {because}. Actual error: [{error.Code}] {error.Message}"
                     : $"Expected success result but was failure. Actual error: [{error.Code}] {error.Message}";
@@ -63,7 +63,7 @@ public readonly struct ResultAssertion
     /// </returns>
     public FailureAssertion Failure(string? because = null)
     {
-        if (!_result.TryGetError(out var error)) {
+        if (!_result.TryGetFailure(out var error)) {
             Assert.Fail(because != null ? $"Expected failure result but was success because {because}." : "Expected failure result but was success.");
         }
 
@@ -112,7 +112,7 @@ public readonly struct ResultAssertion<TValue>
     public SuccessAssertion<TValue> Success(string? because = null)
     {
         if (!_result.TryGetValue(out var value)) {
-            if (_result.TryGetError(out var error)) {
+            if (_result.TryGetFailure(out var error)) {
                 var message = because != null
                     ? $"Expected success result but was failure because {because}. Actual error: [{error.Code}] {error.Message}"
                     : $"Expected success result but was failure. Actual error: [{error.Code}] {error.Message}";
@@ -136,7 +136,7 @@ public readonly struct ResultAssertion<TValue>
     /// <returns>A <see cref="FailureAssertion" /> instance allowing further inspection or validation of the associated error.</returns>
     public FailureAssertion Failure(string? because = null)
     {
-        if (!_result.TryGetError(out var error)) {
+        if (!_result.TryGetFailure(out var error)) {
             if (_result.TryGetValue(out var value)) {
                 var message = because != null
                     ? $"Expected failure result but was success because {because}. Actual value: {value}"

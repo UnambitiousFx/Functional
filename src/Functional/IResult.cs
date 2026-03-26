@@ -23,7 +23,7 @@ public interface IResult
     /// </summary>
     /// <param name="error">When this method returns false, contains the error; otherwise, null.</param>
     /// <returns>False if the result is faulted and contains an error; otherwise, true.</returns>
-    bool TryGetError([NotNullWhen(true)] out Failure? error);
+    bool TryGetFailure([NotNullWhen(true)] out Failure? error);
 }
 
 /// <summary>

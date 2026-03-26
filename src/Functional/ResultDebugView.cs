@@ -69,7 +69,7 @@ internal sealed class ResultDebugView
     public bool IsSuccess => _result.IsSuccess;
     public bool IsFaulted => _result.IsFailure;
 
-    public Failure? Error => !_result.TryGetError(out var error)
+    public Failure? Error => !_result.TryGetFailure(out var error)
                                  ? null
                                  : error;
 
@@ -79,7 +79,7 @@ internal sealed class ResultDebugView
     {
         get
         {
-            if (!_result.TryGetError(out var error)) {
+            if (!_result.TryGetFailure(out var error)) {
                 return null;
             }
 

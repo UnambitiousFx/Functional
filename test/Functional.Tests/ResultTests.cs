@@ -146,7 +146,7 @@ public sealed class ResultTests
         // Assert (Then)
         result.ShouldBe()
               .Failure();
-        Assert.True(result.TryGetError(out var error));
+        Assert.True(result.TryGetFailure(out var error));
         Assert.NotNull(error);
         Assert.IsType<AggregateFailure>(error);
     }
@@ -216,13 +216,13 @@ public sealed class ResultTests
     #region TryGet
 
     [Fact]
-    public void TryGetError_WithSuccess_ReturnsFalseAndNullError()
+    public void TryGetFailure_WithSuccess_ReturnsFalseAndNullError()
     {
         // Arrange (Given)
         var result = Result.Success();
 
         // Act (When)
-        var hasError = result.TryGetError(out var error);
+        var hasError = result.TryGetFailure(out var error);
 
         // Assert (Then)
         Assert.False(hasError);
@@ -230,14 +230,14 @@ public sealed class ResultTests
     }
 
     [Fact]
-    public void TryGetError_WithFailure_ReturnsTrueAndError()
+    public void TryGetFailure_WithFailure_ReturnsTrueAndError()
     {
         // Arrange (Given)
         var testError = new Failure("Test error");
         var result    = Result.Failure(testError);
 
         // Act (When)
-        var hasError = result.TryGetError(out var error);
+        var hasError = result.TryGetFailure(out var error);
 
         // Assert (Then)
         Assert.True(hasError);

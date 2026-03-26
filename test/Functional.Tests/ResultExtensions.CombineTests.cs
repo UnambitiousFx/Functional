@@ -37,7 +37,7 @@ public sealed partial class ResultExtensions
         // Assert (Then)
         combined.ShouldBe()
                 .Failure();
-        Assert.True(combined.TryGetError(out var error));
+        Assert.True(combined.TryGetFailure(out var error));
         Assert.IsType<AggregateFailure>(error);
     }
 

@@ -16,7 +16,7 @@ public static partial class ResultExtensions
         /// <returns>A successful result with the fallback values if the original result failed; otherwise, the original result.</returns>
         public Result<TValue> Recover(Func<Failure, TValue> recoverFunc)
         {
-            if (!result.TryGetError(out var error)) {
+            if (!result.TryGetFailure(out var error)) {
                 return result;
             }
 

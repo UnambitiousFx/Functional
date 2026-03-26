@@ -131,7 +131,7 @@ public class TimeoutFailureTests
 
         // Assert (Then)
         Assert.True(result.IsFailure);
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<TimeoutFailure>(error);
         var typedError = (TimeoutFailure)error;
         Assert.Equal(configuredTimeout, typedError.ConfiguredTimeout);

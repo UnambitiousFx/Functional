@@ -22,7 +22,7 @@ public static partial class ResultExtensions
             return Maybe<TError>.None();
         }
 
-        if (!result.TryGetError(out var error)) {
+        if (!result.TryGetFailure(out var error)) {
             return Maybe<TError>.None();
         }
 

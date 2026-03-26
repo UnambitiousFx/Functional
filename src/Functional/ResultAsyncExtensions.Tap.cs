@@ -40,7 +40,7 @@ public static partial class ResultAsyncExtensions
                                                     Func<Failure, ValueTask> tap)
     {
         var result = await resultTask;
-        if (result.TryGetError(out var error))
+        if (result.TryGetFailure(out var error))
         {
             await tap(error);
         }
@@ -150,7 +150,7 @@ public static partial class ResultAsyncExtensions
         where TIn : notnull
     {
         var result = await resultTask;
-        if (result.TryGetError(out var error))
+        if (result.TryGetFailure(out var error))
         {
             await tap(error);
         }

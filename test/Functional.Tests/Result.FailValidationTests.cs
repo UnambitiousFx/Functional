@@ -52,7 +52,7 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation("Invalid input");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<ValidationFailure>(error);
         var validationError = (ValidationFailure)error;
         Assert.Single(validationError.Failures);
@@ -135,7 +135,7 @@ public sealed class ResultFailValidationTests
         var result = Result.FailValidation<string>("Invalid input");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<ValidationFailure>(error);
         var validationError = (ValidationFailure)error;
         Assert.Single(validationError.Failures);

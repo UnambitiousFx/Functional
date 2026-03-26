@@ -64,7 +64,7 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated("Invalid credentials");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<UnauthenticatedFailure>(error);
     }
 
@@ -138,7 +138,7 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated<string>("Invalid credentials");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<UnauthenticatedFailure>(error);
     }
 

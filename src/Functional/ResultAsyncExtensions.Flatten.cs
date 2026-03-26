@@ -21,7 +21,7 @@ public static partial class ResultAsyncExtensions
         var result = await resultTask;
         if (!result.TryGetValue(out var innerTask))
         {
-            result.TryGetError(out var error);
+            result.TryGetFailure(out var error);
             return Result.Failure<TValue>(error!);
         }
 
@@ -61,7 +61,7 @@ public static partial class ResultAsyncExtensions
             var result = await resultTask;
             if (!result.TryGetValue(out var innerTask))
             {
-                result.TryGetError(out var error);
+                result.TryGetFailure(out var error);
                 return Result.Failure<TValue>(error!);
             }
 

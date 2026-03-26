@@ -54,7 +54,7 @@ public static partial class ResultExtensions
             }
 
             var thenResult = then(value);
-            if (!thenResult.TryGetError(out var error)) {
+            if (!thenResult.TryGetFailure(out var error)) {
                 return result;
             }
 

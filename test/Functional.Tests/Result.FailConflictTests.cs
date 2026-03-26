@@ -52,7 +52,7 @@ public sealed class ResultFailConflictTests
         var result = Result.FailConflict("Duplicate key");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<ConflictFailure>(error);
     }
 
@@ -132,7 +132,7 @@ public sealed class ResultFailConflictTests
         var result = Result.FailConflict<string>("Duplicate key");
 
         // Assert (Then)
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<ConflictFailure>(error);
     }
 

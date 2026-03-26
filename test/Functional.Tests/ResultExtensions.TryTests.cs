@@ -36,7 +36,7 @@ public sealed partial class ResultExtensions
         // Assert (Then)
         transformed.ShouldBe()
                    .Failure();
-        transformed.TryGetError(out var error);
+        transformed.TryGetFailure(out var error);
         var exceptionalError = Assert.IsType<ExceptionalFailure>(error);
         Assert.IsType<InvalidOperationException>(exceptionalError.Exception);
     }
@@ -68,7 +68,7 @@ public sealed partial class ResultExtensions
         // Assert (Then)
         transformed.ShouldBe()
                    .Failure();
-        transformed.TryGetError(out var error);
+        transformed.TryGetFailure(out var error);
         var exceptionalError = Assert.IsType<ExceptionalFailure>(error);
         Assert.IsType<DivideByZeroException>(exceptionalError.Exception);
     }

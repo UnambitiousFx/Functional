@@ -38,7 +38,7 @@ public static partial class ResultAsyncExtensions
             return;
         }
 
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         await onFailure(error!);
     }
 

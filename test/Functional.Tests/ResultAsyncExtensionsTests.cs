@@ -533,7 +533,7 @@ public sealed class ResultAsyncExtensionsTests
         // Assert (Then)
         result.ShouldBe()
               .Failure();
-        Assert.True(result.TryGetError(out var error));
+        Assert.True(result.TryGetFailure(out var error));
         Assert.IsType<AggregateFailure>(error);
     }
 

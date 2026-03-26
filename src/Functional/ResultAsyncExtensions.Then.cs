@@ -68,7 +68,7 @@ public static partial class ResultAsyncExtensions
         }
 
         var thenResult = await then(value);
-        if (!thenResult.TryGetError(out var error))
+        if (!thenResult.TryGetFailure(out var error))
         {
             return result;
         }

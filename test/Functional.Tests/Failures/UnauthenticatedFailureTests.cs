@@ -119,7 +119,7 @@ public class UnauthenticatedFailureTests
 
         // Assert (Then)
         Assert.True(result.IsFailure);
-        result.TryGetError(out var error);
+        result.TryGetFailure(out var error);
         Assert.IsType<UnauthenticatedFailure>(error);
         var typedError = (UnauthenticatedFailure)error;
         Assert.Equal((string?)"Missing authentication header", (string?)typedError.Message);
