@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace UnambitiousFx.Functional;
 
+[ExcludeFromCodeCoverage]
 internal sealed class MaybeDebugView<TValue>
     where TValue : notnull
 {

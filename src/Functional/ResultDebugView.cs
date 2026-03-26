@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional;
 
+[ExcludeFromCodeCoverage]
 internal sealed class ResultDebugView<TValue>
     where TValue : notnull
 {
