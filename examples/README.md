@@ -12,7 +12,7 @@ A console application demonstrating the core features of the library:
 - Pattern matching with `Match()`
 - `Maybe<T>` for optional values
 - Chaining operations with `Bind()`
-- Different error types (NotFound, Validation, Unauthorized)
+- Different failure types (NotFound, Validation, Unauthorized)
 - Metadata support
 - Side effects with `IfSuccess()` and `IfFailure()`
 
@@ -29,10 +29,10 @@ A minimal API demonstrating integration with ASP.NET Core:
 
 - Converting `Result<T>` to `IResult` with `ToHttpResult()`
 - Converting `Maybe<T>` directly to `IResult` with `ToHttpResult()`
-- Automatic HTTP status code mapping for different error types
+- Automatic HTTP status code mapping for different failure types
 - Policy-based defaults for non-generic `Result` and `Maybe.None`
-- Validation error handling
-- Authorization error handling
+- Validation failure handling
+- Authorization failure handling
 - RESTful API endpoints
 
 **Run the example:**
@@ -50,7 +50,7 @@ Then test the API endpoints using curl or your browser.
 # Success case - divide numbers
 curl https://localhost:5001/api/divide/10/2
 
-# Error case - divide by zero
+# Failure case - divide by zero
 curl https://localhost:5001/api/divide/10/0
 
 # Success case - get user
@@ -70,12 +70,12 @@ curl -X POST https://localhost:5001/api/users \
   -H "Content-Type: application/json" \
   -d '{"name":"Jane Doe","email":"jane@example.com"}'
 
-# Validation error - invalid email
+# Validation failure - invalid email
 curl -X POST https://localhost:5001/api/users \
   -H "Content-Type: application/json" \
   -d '{"name":"Jane Doe","email":"invalid-email"}'
 
-# Unauthorized error - admin endpoint
+# Unauthorized failure - admin endpoint
 curl https://localhost:5001/api/admin/users/123
 ```
 
@@ -89,7 +89,7 @@ Railway-oriented programming with `Result<T>` allows you to handle success and f
 var result = Divide(10, 2);
 result.Match(
     onSuccess: value => Console.WriteLine($"Result: {value}"),
-    onFailure: error => Console.WriteLine($"Error: {error.Message}")
+  onFailure: failure => Console.WriteLine($"Failure: {failure.Message}")
 );
 ```
 
@@ -115,9 +115,9 @@ var result = Result.Success("42")
     .Bind(ValidatePositive);
 ```
 
-### Error Types
+### Failure Types
 
-Use specific error types for different failure scenarios:
+Use specific failure types for different failure scenarios:
 
 ```csharp
 // Not found

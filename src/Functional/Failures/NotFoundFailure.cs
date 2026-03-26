@@ -19,7 +19,7 @@ public sealed record NotFoundFailure : Failure
                            string                                identifier,
                            string?                               messageOverride = null,
                            IReadOnlyDictionary<string, object?>? Extra           = null)
-        : base(ErrorCodes.NotFound, messageOverride ?? $"Resource '{resource}' with id '{identifier}' was not found.",
+        : base(FailureCodes.NotFound, messageOverride ?? $"Resource '{resource}' with id '{identifier}' was not found.",
                Merge(Extra,
                [
                    new KeyValuePair<string, object?>("resource",   resource),

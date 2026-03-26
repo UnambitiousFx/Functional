@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
 
-A lightweight, modern functional programming library for .NET that makes error handling and optional values elegant and
+A lightweight, modern functional programming library for .NET that makes failure handling and optional values elegant and
 type-safe.
 
 ## 🔧 Compatibility & support
@@ -18,10 +18,10 @@ type-safe.
 
 ## 🎯 Features
 
-- **`Result<T>`** - Railway-oriented programming for error handling without exceptions
+- **`Result<T>`** - Railway-oriented programming for failure handling without exceptions
 - **`Maybe<T>`** - Type-safe optional values, no more null reference exceptions
 - **`OneOf<T1..T10>`** - Discriminated unions via source generators
-- **Rich Error Types** - `ValidationFailure`, `NotFoundFailure`, `ConflictFailure`, `UnauthorizedFailure`, and more
+- **Rich Failure Types** - `ValidationFailure`, `NotFoundFailure`, `ConflictFailure`, `UnauthorizedFailure`, and more
 - **Comprehensive Extensions** - Bind, Map, Match, Tap, Ensure, Recover, and dozens more
 - **Async First** - Full support for `Task<T>` and `ValueTask<T>`
 - **ASP.NET Core Integration** - Convert results to HTTP responses effortlessly
@@ -50,7 +50,7 @@ dotnet add package UnambitiousFx.Functional.xunit
 
 ## 🚀 Quick Start
 
-### Result<T> - Error Handling Made Simple
+### Result<T> - Failure Handling Made Simple
 
 Instead of throwing exceptions:
 
@@ -83,7 +83,7 @@ var result = GetUser(42);
 
 result.Match(
     success: user => Console.WriteLine($"Found: {user.Name}"),
-    failure: error => Console.WriteLine($"Error: {error.Message}")
+    failure: failure => Console.WriteLine($"Failure: {failure.Message}")
 );
 ```
 
@@ -168,16 +168,12 @@ Result<Result<int>> nested = Result.Success(Result.Success(42));
 Result<int> flat = nested.Flatten(); // Success(42)
 ```
 
-#### Error Handling
+#### Failure Handling
 
 ```csharp
-// Recover - Provide fallback on error
+// Recover - Provide fallback on failure
 Result<User> result = GetUser(id)
-    .Recover(error => GetDefaultUser());
-
-// MapError - Transform error
-Result<User> result = GetUser(id)
-    .MapError(error => new CustomError(error.Message));
+    .Recover(failure => GetDefaultUser());
 
 // Ensure - Add validation
 Result<User> result = GetUser(id)
@@ -193,13 +189,13 @@ Result<Order> result = CreateOrder(request)
 
 // TapFailure - Execute side effect on failure
 Result<Order> result = CreateOrder(request)
-    .TapFailure(error => _logger.LogError($"Failed: {error.Message}"));
+    .TapFailure(failure => _logger.LogError($"Failed: {failure.Message}"));
 
 // TapBoth - Execute side effect regardless of result
 Result<Order> result = CreateOrder(request)
     .TapBoth(
         success: order => _metrics.RecordSuccess(),
-        failure: error => _metrics.RecordFailure()
+        failure: failure => _metrics.RecordFailure()
     );
 ```
 
@@ -207,13 +203,13 @@ Result<Order> result = CreateOrder(request)
 
 ```csharp
 // TryGet - Safe value extraction
-if (result.TryGet(out var value, out var error))
+if (result.TryGet(out var value, out var failure))
 {
     Console.WriteLine($"Success: {value}");
 }
 else
 {
-    Console.WriteLine($"Error: {error.Message}");
+    Console.WriteLine($"Failure: {failure.Message}");
 }
 
 // ValueOr - Provide default value
@@ -223,29 +219,29 @@ var user = result.ValueOr(GetDefaultUser());
 var user = result.ValueOrThrow(); // Throws if failed
 ```
 
-### Error Types
+### Failure Types
 
 ```csharp
-// Basic error
-var error = new Error("Something went wrong");
+// Basic failure
+var failure = new Failure("Something went wrong");
 
-// Validation error with field details
-var validationError = new ValidationFailure("Invalid input", new Dictionary<string, object?>
+// Validation failure with field details
+var validationFailure = new ValidationFailure("Invalid input", new Dictionary<string, object?>
 {
     ["Email"] = "Invalid email format",
     ["Age"] = "Must be at least 18"
 });
 
-// Not found error
-var notFoundError = new NotFoundFailure("User not found");
+// Not found failure
+var notFoundFailure = new NotFoundFailure("User not found");
 
-// Conflict error
-var conflictError = new ConflictFailure("Email already exists");
+// Conflict failure
+var conflictFailure = new ConflictFailure("Email already exists");
 
-// Unauthorized error
-var unauthorizedError = new UnauthorizedFailure("Access denied");
+// Unauthorized failure
+var unauthorizedFailure = new UnauthorizedFailure("Access denied");
 
-// Exceptional error (wrap exceptions)
+// Exceptional failure (wrap exceptions)
 try
 {
     // risky operation
@@ -255,13 +251,13 @@ catch (Exception ex)
     return Result.Failure(new ExceptionalFailure(ex));
 }
 
-// Aggregate error (multiple errors)
-var errors = new List<Error>
+// Aggregate failure (multiple failures)
+var failures = new List<Failure>
 {
     new ValidationFailure("Invalid name"),
     new ValidationFailure("Invalid email")
 };
-var aggregateError = new AggregateError(errors);
+var aggregateFailure = new AggregateFailure(failures);
 ```
 
 ### Metadata
@@ -339,15 +335,15 @@ public class UsersController : ControllerBase
 }
 ```
 
-Configure error mapping:
+Configure failure mapping:
 
 ```csharp
 services.AddResultHttp(options =>
 {
-    options.MapError<ValidationFailure>(StatusCodes.Status400BadRequest);
-    options.MapError<NotFoundFailure>(StatusCodes.Status404NotFound);
-    options.MapError<ConflictFailure>(StatusCodes.Status409Conflict);
-    options.MapError<UnauthorizedFailure>(StatusCodes.Status401Unauthorized);
+    options.AddMapper<ValidationFailure>(StatusCodes.Status400BadRequest);
+    options.AddMapper<NotFoundFailure>(StatusCodes.Status404NotFound);
+    options.AddMapper<ConflictFailure>(StatusCodes.Status409Conflict);
+    options.AddMapper<UnauthorizedFailure>(StatusCodes.Status401Unauthorized);
 });
 ```
 
@@ -382,7 +378,7 @@ public void CreateUser_WithInvalidEmail_ReturnsValidationFailure()
     // Assert
     result.Should().BeFailure()
         .WithError<ValidationFailure>()
-        .Which(error => error.Message.Should().Contain("email"));
+        .Which(failure => failure.Message.Should().Contain("email"));
 }
 
 [Fact]
@@ -401,10 +397,10 @@ public void FindUser_WhenNotExists_ReturnsNone()
 This library embraces:
 
 - **Railway-Oriented Programming** - Operations form a "railway track" where success continues down the happy path and
-  errors short-circuit to the failure path
-- **Explicit Error Handling** - Errors are values, not exceptions. They're part of your type signatures
+    failures short-circuit to the failure path
+- **Explicit Failure Handling** - Failures are values, not exceptions. They're part of your type signatures
 - **Composition Over Conditionals** - Chain operations naturally using Bind, Map, and other combinators
-- **Type Safety** - Compiler enforces error handling, reducing runtime surprises
+- **Type Safety** - Compiler enforces failure handling, reducing runtime surprises
 - **Functional Core, Imperative Shell** - Pure functional core with pragmatic integration for .NET ecosystem
 
 ## 📊 Performance
@@ -419,7 +415,7 @@ Key highlights:
 
 - Zero allocations for success paths in many scenarios
 - `readonly struct` value types minimize heap pressure
-- Lazy error aggregation
+- Lazy failure aggregation
 - Optimized async state machines
 
 ## 🤝 Contributing
@@ -456,7 +452,7 @@ Inspired by:
 ## 📚 Further Reading
 
 - [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/)
-- [Functional Error Handling](https://fsharpforfunandprofit.com/posts/recipe-part2/)
+- [Functional Failure Handling](https://fsharpforfunandprofit.com/posts/recipe-part2/)
 - [The Power of Composition](https://fsharpforfunandprofit.com/composition/)
 
 ---

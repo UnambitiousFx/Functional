@@ -30,7 +30,7 @@ public sealed class ResultFailValidationTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class ResultFailValidationTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public sealed class ResultFailValidationTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     #endregion

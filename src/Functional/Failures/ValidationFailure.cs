@@ -12,7 +12,7 @@ public sealed record ValidationFailure : Failure
     /// <param name="extra">Optional additional metadata about the validation failures.</param>
     public ValidationFailure(IReadOnlyList<string>                 failures,
                              IReadOnlyDictionary<string, object?>? extra = null)
-        : base(ErrorCodes.Validation, failures.Count == 0
+        : base(FailureCodes.Validation, failures.Count == 0
                                           ? "Validation failed."
                                           : string.Join("; ", failures),
                Merge(extra, [new KeyValuePair<string, object?>("failures", failures)]))

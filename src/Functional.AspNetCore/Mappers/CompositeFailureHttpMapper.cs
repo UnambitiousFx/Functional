@@ -6,15 +6,15 @@ namespace UnambitiousFx.Functional.AspNetCore.Mappers;
 ///     Composite mapper that chains multiple error mappers using chain-of-responsibility pattern.
 ///     Tries each mapper in order until one returns a non-null result.
 /// </summary>
-public sealed class CompositeErrorHttpMapper : IErrorHttpMapper
+public sealed class CompositeFailureHttpMapper : IFailureHttpMapper
 {
-    private readonly IReadOnlyList<IErrorHttpMapper> _mappers;
+    private readonly IReadOnlyList<IFailureHttpMapper> _mappers;
 
     /// <summary>
     ///     Creates a composite mapper with the specified mappers.
     /// </summary>
     /// <param name="mappers">Ordered list of mappers to try.</param>
-    public CompositeErrorHttpMapper(IReadOnlyList<IErrorHttpMapper> mappers)
+    public CompositeFailureHttpMapper(IReadOnlyList<IFailureHttpMapper> mappers)
     {
         ArgumentNullException.ThrowIfNull(mappers);
         _mappers = mappers;
@@ -24,17 +24,17 @@ public sealed class CompositeErrorHttpMapper : IErrorHttpMapper
     ///     Creates a composite mapper with the specified mappers.
     /// </summary>
     /// <param name="mappers">Mappers to try in order.</param>
-    public CompositeErrorHttpMapper(params IErrorHttpMapper[] mappers)
+    public CompositeFailureHttpMapper(params IFailureHttpMapper[] mappers)
     {
         ArgumentNullException.ThrowIfNull(mappers);
         _mappers = mappers;
     }
 
     /// <inheritdoc />
-    public ErrorHttpResponse? GetErrorResponse(IFailure failure)
+    public FailureHttpResponse? GetFailureResponse(IFailure failure)
     {
         foreach (var mapper in _mappers) {
-            var mappedResponse = mapper.GetErrorResponse(failure);
+            var mappedResponse = mapper.GetFailureResponse(failure);
             if (mappedResponse is not null) {
                 return mappedResponse;
             }

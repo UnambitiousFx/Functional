@@ -54,7 +54,7 @@ public static class ResultHttpExtensions
         };
     }
 
-    private static IHttpResult ErrorHttpResponseToHttpResult(ErrorHttpResponse response)
+    private static IHttpResult FailureHttpResponseToHttpResult(FailureHttpResponse response)
     {
         var result = ResponseToHttpResult(response.StatusCode, response.Body);
 
@@ -70,10 +70,10 @@ public static class ResultHttpExtensions
     }
 
     private static IHttpResult MapErrorToHttpResult(Failure           failure,
-                                                    IErrorHttpMapper? customMapper)
+                                                    IFailureHttpMapper? customMapper)
     {
         var response = FailureHttpResponseResolver.Resolve(failure, customMapper);
-        return ErrorHttpResponseToHttpResult(response);
+        return FailureHttpResponseToHttpResult(response);
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public static class ResultHttpExtensions
     /// </returns>
     public static async ValueTask<IHttpResult> ToHttpResult(this ValueTask<Result>   resultTask,
                                                             Func<IHttpResult>?       successHttpMapper = null,
-                                                            IErrorHttpMapper?        errorHttpMapper   = null,
+                                                            IFailureHttpMapper?        errorHttpMapper   = null,
                                                             ResultHttpAdapterPolicy? policy            = null)
     {
         successHttpMapper ??= BuildDefaultSuccessMapper(policy);
@@ -110,7 +110,7 @@ public static class ResultHttpExtensions
     /// </summary>
     public static ValueTask<IHttpResult> ToHttpResult(this Task<Result>        resultTask,
                                                       Func<IHttpResult>?       successHttpMapper = null,
-                                                      IErrorHttpMapper?        errorHttpMapper   = null,
+                                                      IFailureHttpMapper?        errorHttpMapper   = null,
                                                       ResultHttpAdapterPolicy? policy            = null)
     {
         return new ValueTask<Result>(resultTask).ToHttpResult(successHttpMapper, errorHttpMapper, policy);
@@ -122,7 +122,7 @@ public static class ResultHttpExtensions
     /// </summary>
     public static ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(this ValueTask<Result<TValue>> resultTask,
                                                                      Func<TValue, string>           locationFactory,
-                                                                     IErrorHttpMapper?              mapper = null)
+                                                                     IFailureHttpMapper?              mapper = null)
         where TValue : notnull
     {
         return resultTask.ToHttpResult(v => HttpResults.Created(locationFactory(v), v), mapper);
@@ -134,12 +134,12 @@ public static class ResultHttpExtensions
     /// </summary>
     public static async ValueTask<IHttpResult> ToHttpResult<TValue>(this ValueTask<Result<TValue>> resultTask,
                                                                     Func<TValue, IHttpResult>?     successHttpMapper = null,
-                                                                    IErrorHttpMapper?              errorMapper       = null)
+                                                                    IFailureHttpMapper?              failureMapper       = null)
         where TValue : notnull
     {
         successHttpMapper ??= HttpResults.Ok;
         var result = await resultTask;
-        return result.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorMapper));
+        return result.Match(successHttpMapper, error => MapErrorToHttpResult(error, failureMapper));
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ public static class ResultHttpExtensions
     /// </summary>
     public static ValueTask<IHttpResult> ToCreatedHttpResult<TValue>(this Task<Result<TValue>> resultTask,
                                                                      Func<TValue, string>      locationFactory,
-                                                                     IErrorHttpMapper?         mapper = null)
+                                                                     IFailureHttpMapper?         mapper = null)
         where TValue : notnull
     {
         return new ValueTask<Result<TValue>>(resultTask).ToCreatedHttpResult(locationFactory, mapper);
@@ -158,10 +158,10 @@ public static class ResultHttpExtensions
     /// </summary>
     public static ValueTask<IHttpResult> ToHttpResult<TValue>(this Task<Result<TValue>>  resultTask,
                                                               Func<TValue, IHttpResult>? successHttpMapper = null,
-                                                              IErrorHttpMapper?          errorMapper       = null)
+                                                              IFailureHttpMapper?          failureMapper       = null)
         where TValue : notnull
     {
-        return new ValueTask<Result<TValue>>(resultTask).ToHttpResult(successHttpMapper, errorMapper);
+        return new ValueTask<Result<TValue>>(resultTask).ToHttpResult(successHttpMapper, failureMapper);
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public static class ResultHttpExtensions
         /// </param>
         /// <returns>An IResult representing either a successful or failed result mapped to an appropriate HTTP response.</returns>
         public IHttpResult ToHttpResult(Func<IHttpResult>?       successHttpMapper = null,
-                                        IErrorHttpMapper?        errorHttpMapper   = null,
+                                        IFailureHttpMapper?        errorHttpMapper   = null,
                                         ResultHttpAdapterPolicy? policy            = null)
         {
             successHttpMapper ??= BuildDefaultSuccessMapper(policy);
@@ -230,7 +230,7 @@ public static class ResultHttpExtensions
         /// <param name="errorHttpMapper">Optional custom error mapper. Uses default if not provided.</param>
         /// <returns>An IResult representing the result.</returns>
         public IHttpResult ToCreatedHttpResult(Func<TValue, string> locationFactory,
-                                               IErrorHttpMapper?    errorHttpMapper = null)
+                                               IFailureHttpMapper?    errorHttpMapper = null)
         {
             return result.ToHttpResult(v => HttpResults.Created(locationFactory(v), v), errorHttpMapper);
         }
@@ -249,7 +249,7 @@ public static class ResultHttpExtensions
         /// </param>
         /// <returns>An <see cref="IHttpResult" /> representing the HTTP response for the result.</returns>
         public IHttpResult ToHttpResult(Func<TValue, IHttpResult>? successHttpMapper = null,
-                                        IErrorHttpMapper?          errorHttpMapper   = null)
+                                        IFailureHttpMapper?          errorHttpMapper   = null)
         {
             successHttpMapper ??= HttpResults.Ok;
             return result.Match(successHttpMapper, error => MapErrorToHttpResult(error, errorHttpMapper));

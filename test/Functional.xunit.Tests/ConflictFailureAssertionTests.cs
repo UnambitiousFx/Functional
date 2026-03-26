@@ -3,14 +3,14 @@ using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
-public class ConflictErrorAssertionTests
+public class ConflictFailureAssertionTests
 {
     [Fact(DisplayName = "And executes custom assertion and returns self for chaining")]
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
         var error     = new ConflictFailure("Resource already exists");
-        var assertion = new ConflictErrorAssertion(error);
+        var assertion = new ConflictFailureAssertion(error);
 
         // Act (When)
         var result = assertion.And(e => Assert.NotNull(e));
@@ -24,7 +24,7 @@ public class ConflictErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ConflictFailure("Resource already exists");
-        var assertion = new ConflictErrorAssertion(error);
+        var assertion = new ConflictFailureAssertion(error);
 
         // Act (When)
         var result = assertion.AndMessage("Resource already exists");
@@ -38,7 +38,7 @@ public class ConflictErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ConflictFailure("Resource already exists");
-        var assertion = new ConflictErrorAssertion(error);
+        var assertion = new ConflictFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
@@ -49,7 +49,7 @@ public class ConflictErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ConflictFailure("Resource already exists");
-        var assertion = new ConflictErrorAssertion(error);
+        var assertion = new ConflictFailureAssertion(error);
 
         // Act (When)
         var result = assertion.AndCode("CONFLICT");
@@ -63,7 +63,7 @@ public class ConflictErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ConflictFailure("Resource already exists");
-        var assertion = new ConflictErrorAssertion(error);
+        var assertion = new ConflictFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
@@ -74,7 +74,7 @@ public class ConflictErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ConflictFailure("Resource already exists");
-        var assertion = new ConflictErrorAssertion(error);
+        var assertion = new ConflictFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         assertion
@@ -87,7 +87,7 @@ public class ConflictErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ConflictFailure("Resource already exists");
-        var assertion = new ConflictErrorAssertion(error);
+        var assertion = new ConflictFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         assertion.And(e =>

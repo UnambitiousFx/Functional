@@ -7,7 +7,7 @@ namespace UnambitiousFx.Functional.Tests.Failures;
 /// <summary>
 ///     Tests for Error debug view types.
 /// </summary>
-public class ErrorDebugViewTests
+public class FailureDebugViewTests
 {
     #region AggregateErrorDebugView
 
@@ -27,7 +27,7 @@ public class ErrorDebugViewTests
     }
 
     [Fact]
-    public void AggregateErrorDebugView_Errors_ReturnsErrorArray()
+    public void AggregateErrorDebugView_Failures_ReturnsErrorArray()
     {
         // Arrange (Given)
         var error1         = new Failure("Error 1");
@@ -36,7 +36,7 @@ public class ErrorDebugViewTests
         var debugView      = CreateAggregateErrorDebugView(aggregateError);
 
         // Act (When)
-        var errors = GetDebugViewProperty<Failure[]>(debugView, "Errors");
+        var errors = GetDebugViewProperty<Failure[]>(debugView, "Failures");
 
         // Assert (Then)
         Assert.NotNull(errors);
@@ -57,7 +57,7 @@ public class ErrorDebugViewTests
         var code = GetDebugViewProperty<string>(debugView, "Code");
 
         // Assert (Then)
-        Assert.Equal((string?)ErrorCodes.AggregateError, code);
+        Assert.Equal((string?)FailureCodes.AggregateFailure, code);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class ErrorDebugViewTests
     }
 
     [Fact]
-    public void AggregateErrorDebugView_ErrorCount_ReturnsCorrectCount()
+    public void AggregateErrorDebugView_FailureCount_ReturnsCorrectCount()
     {
         // Arrange (Given)
         var error1         = new Failure("Error 1");
@@ -101,20 +101,20 @@ public class ErrorDebugViewTests
         var debugView      = CreateAggregateErrorDebugView(aggregateError);
 
         // Act (When)
-        var errorCount = GetDebugViewProperty<int>(debugView, "ErrorCount");
+        var errorCount = GetDebugViewProperty<int>(debugView, "FailureCount");
 
         // Assert (Then)
         Assert.Equal(3, errorCount);
     }
 
     [Fact]
-    public void AggregateErrorDebugView_Errors_HasDebuggerBrowsableAttribute()
+    public void AggregateErrorDebugView_Failures_HasDebuggerBrowsableAttribute()
     {
         // Arrange (Given)
         var debugViewType = GetDebugViewType("AggregateFailureDebugView");
 
         // Act (When)
-        var errorsProperty = debugViewType.GetProperty("Errors");
+        var errorsProperty = debugViewType.GetProperty("Failures");
         var attribute      = errorsProperty?.GetCustomAttribute<DebuggerBrowsableAttribute>();
 
         // Assert (Then)
@@ -197,7 +197,7 @@ public class ErrorDebugViewTests
         var code = GetDebugViewProperty<string>(debugView, "Code");
 
         // Assert (Then)
-        Assert.Equal((string?)ErrorCodes.Exception, code);
+        Assert.Equal((string?)FailureCodes.Exception, code);
     }
 
     [Fact]

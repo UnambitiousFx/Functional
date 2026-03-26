@@ -9,12 +9,12 @@ namespace UnambitiousFx.Functional.xunit;
 ///     on conflict-specific properties.
 /// </summary>
 [DebuggerStepThrough]
-public readonly struct ConflictErrorAssertion
+public readonly struct ConflictFailureAssertion
 {
     /// <summary>
     ///     Represents a fluent assertion mechanism for handling ConflictError cases in test results.
     /// </summary>
-    internal ConflictErrorAssertion(ConflictFailure failure)
+    internal ConflictFailureAssertion(ConflictFailure failure)
     {
         Failure = failure;
     }
@@ -29,8 +29,8 @@ public readonly struct ConflictErrorAssertion
     ///     instance to allow method chaining.
     /// </summary>
     /// <param name="assert">The action to be applied to the ConflictError.</param>
-    /// <returns>The current <see cref="ConflictErrorAssertion" /> instance to allow method chaining.</returns>
-    public ConflictErrorAssertion And(Action<ConflictFailure> assert)
+    /// <returns>The current <see cref="ConflictFailureAssertion" /> instance to allow method chaining.</returns>
+    public ConflictFailureAssertion And(Action<ConflictFailure> assert)
     {
         assert(Failure);
         return this;
@@ -40,8 +40,8 @@ public readonly struct ConflictErrorAssertion
     ///     Asserts that the ConflictError message matches the expected value.
     /// </summary>
     /// <param name="expected">The expected error message to assert against.</param>
-    /// <returns>The current instance of <see cref="ConflictErrorAssertion" /> for further chaining.</returns>
-    public ConflictErrorAssertion AndMessage(string expected)
+    /// <returns>The current instance of <see cref="ConflictFailureAssertion" /> for further chaining.</returns>
+    public ConflictFailureAssertion AndMessage(string expected)
     {
         Assert.Equal(expected, Failure.Message);
         return this;
@@ -51,8 +51,8 @@ public readonly struct ConflictErrorAssertion
     ///     Asserts that the code of the ConflictError matches the expected value.
     /// </summary>
     /// <param name="expected">The expected error code to assert against.</param>
-    /// <returns>The current instance of <see cref="ConflictErrorAssertion" /> for further chaining.</returns>
-    public ConflictErrorAssertion AndCode(string expected)
+    /// <returns>The current instance of <see cref="ConflictFailureAssertion" /> for further chaining.</returns>
+    public ConflictFailureAssertion AndCode(string expected)
     {
         Assert.Equal(expected, Failure.Code);
         return this;

@@ -1,12 +1,12 @@
 namespace UnambitiousFx.Functional.AspNetCore.Mappers;
 
 /// <summary>
-///     Represents a complete HTTP error response including status code, body, headers, and content type.
+///     Represents a complete HTTP failure response including status code, body, headers, and content type.
 /// </summary>
-public sealed record ErrorHttpResponse
+public sealed record FailureHttpResponse
 {
     /// <summary>
-    ///     The HTTP status code for the error response.
+    ///     The HTTP status code for the failure response.
     /// </summary>
     public required int StatusCode { get; init; }
 

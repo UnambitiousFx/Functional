@@ -3,14 +3,14 @@ using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
-public class ValidationErrorAssertionTests
+public class ValidationFailureAssertionTests
 {
     [Fact(DisplayName = "And executes custom assertion and returns self for chaining")]
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When)
         var result = assertion.And(e => Assert.NotNull(e));
@@ -24,7 +24,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required", "Email is invalid"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When)
         var result = assertion.WithFailure("Field is required");
@@ -38,7 +38,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<ContainsException>(() => assertion.WithFailure("Email is invalid"));
@@ -49,7 +49,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When)
         var result = assertion.WithFailureContaining("required");
@@ -63,7 +63,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<ContainsException>(() => assertion.WithFailureContaining("invalid"));
@@ -74,7 +74,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required", "Email is invalid"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When)
         var result = assertion.WithFailureCount(2);
@@ -88,7 +88,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.WithFailureCount(2));
@@ -99,7 +99,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When)
         var result = assertion.AndMessage("Field is required");
@@ -113,7 +113,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
@@ -124,7 +124,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When)
         var result = assertion.AndCode("VALIDATION");
@@ -138,7 +138,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
@@ -149,7 +149,7 @@ public class ValidationErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new ValidationFailure(["Field is required", "Email is invalid"]);
-        var assertion = new ValidationErrorAssertion(error);
+        var assertion = new ValidationFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         assertion

@@ -18,7 +18,7 @@ public sealed record ExceptionalFailure : Failure
     public ExceptionalFailure(Exception                             exception,
                               string?                               messageOverride = null,
                               IReadOnlyDictionary<string, object?>? extra           = null)
-        : base(ErrorCodes.Exception,
+        : base(FailureCodes.Exception,
                messageOverride ?? exception.Message,
                Merge(extra, [
                    new KeyValuePair<string, object?>("exceptionType", exception.GetType()

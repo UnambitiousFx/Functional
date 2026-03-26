@@ -65,8 +65,8 @@ public readonly partial record struct Result : IResult
             reasons = error is IAggregateFailure aggregate
                           ? aggregate.Errors.Count()
                           : 1;
-            if (error.Code != ErrorCodes.Error &&
-                error.Code != ErrorCodes.Exception) {
+            if (error.Code != FailureCodes.Failure &&
+                error.Code != FailureCodes.Exception) {
                 code = $" code={error.Code}";
             }
         }
@@ -500,8 +500,8 @@ public readonly partial record struct Result<TValue> : IResult
             reasons = error is IAggregateFailure aggregate
                           ? aggregate.Errors.Count()
                           : 1;
-            if (error.Code != ErrorCodes.Error &&
-                error.Code != ErrorCodes.Exception) {
+            if (error.Code != FailureCodes.Failure &&
+                error.Code != FailureCodes.Exception) {
                 code = $" code={error.Code}";
             }
         }

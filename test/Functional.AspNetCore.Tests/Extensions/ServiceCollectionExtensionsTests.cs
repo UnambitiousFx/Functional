@@ -7,7 +7,7 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions;
 
 public class ServiceCollectionExtensionsTests
 {
-    [Fact(DisplayName = "AddResultHttp registers IErrorHttpMapper as singleton")]
+    [Fact(DisplayName = "AddResultHttp registers IFailureHttpMapper as singleton")]
     public void AddResultHttp_RegistersErrorHttpMapperAsSingleton()
     {
         // Arrange (Given)
@@ -18,7 +18,7 @@ public class ServiceCollectionExtensionsTests
         var provider = services.BuildServiceProvider();
 
         // Assert (Then)
-        var mapper = provider.GetService<IErrorHttpMapper>();
+        var mapper = provider.GetService<IFailureHttpMapper>();
         Assert.NotNull(mapper);
     }
 
@@ -54,10 +54,10 @@ public class ServiceCollectionExtensionsTests
         // Act (When)
         services.AddResultHttp();
         var provider = services.BuildServiceProvider();
-        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IFailureHttpMapper>();
 
         // Assert (Then)
-        Assert.IsType<DefaultErrorHttpMapper>(mapper);
+        Assert.IsType<DefaultFailureHttpMapper>(mapper);
     }
 
     [Fact(DisplayName = "AddResultHttp with custom mapper registers composite mapper")]
@@ -65,15 +65,15 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange (Given)
         var services     = new ServiceCollection();
-        var customMapper = Substitute.For<IErrorHttpMapper>();
+        var customMapper = Substitute.For<IFailureHttpMapper>();
 
         // Act (When)
         services.AddResultHttp(options => { options.AddMapper(customMapper); });
         var provider = services.BuildServiceProvider();
-        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IFailureHttpMapper>();
 
         // Assert (Then)
-        Assert.IsType<CompositeErrorHttpMapper>(mapper);
+        Assert.IsType<CompositeFailureHttpMapper>(mapper);
     }
 
     [Fact(DisplayName = "AddResultHttp with multiple custom mappers registers composite mapper")]
@@ -81,8 +81,8 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange (Given)
         var services      = new ServiceCollection();
-        var customMapper1 = Substitute.For<IErrorHttpMapper>();
-        var customMapper2 = Substitute.For<IErrorHttpMapper>();
+        var customMapper1 = Substitute.For<IFailureHttpMapper>();
+        var customMapper2 = Substitute.For<IFailureHttpMapper>();
 
         // Act (When)
         services.AddResultHttp(options =>
@@ -91,10 +91,10 @@ public class ServiceCollectionExtensionsTests
             options.AddMapper(customMapper2);
         });
         var provider = services.BuildServiceProvider();
-        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IFailureHttpMapper>();
 
         // Assert (Then)
-        Assert.IsType<CompositeErrorHttpMapper>(mapper);
+        Assert.IsType<CompositeFailureHttpMapper>(mapper);
     }
 
     [Fact(DisplayName = "AddResultHttp registers mapper as singleton across multiple resolves")]
@@ -106,8 +106,8 @@ public class ServiceCollectionExtensionsTests
         var provider = services.BuildServiceProvider();
 
         // Act (When)
-        var mapper1 = provider.GetRequiredService<IErrorHttpMapper>();
-        var mapper2 = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper1 = provider.GetRequiredService<IFailureHttpMapper>();
+        var mapper2 = provider.GetRequiredService<IFailureHttpMapper>();
 
         // Assert (Then)
         Assert.Same(mapper1, mapper2);
@@ -120,11 +120,11 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         services.AddResultHttp(options => { options.IncludeExceptionDetails = true; });
         var provider = services.BuildServiceProvider();
-        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IFailureHttpMapper>();
 
         // Act (When)
         var error    = new ExceptionalFailure(new Exception("Test exception"));
-        var response = mapper.GetErrorResponse(error);
+        var response = mapper.GetFailureResponse(error);
 
         // Assert (Then)
         Assert.NotNull(response);
@@ -142,7 +142,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert (Then)
         var provider = services.BuildServiceProvider();
-        var mappers = provider.GetServices<IErrorHttpMapper>()
+        var mappers = provider.GetServices<IFailureHttpMapper>()
                               .ToList();
         Assert.Equal(2, mappers.Count);
     }
@@ -156,10 +156,10 @@ public class ServiceCollectionExtensionsTests
         // Act (When)
         services.AddResultHttp();
         var provider = services.BuildServiceProvider();
-        var mapper   = provider.GetRequiredService<IErrorHttpMapper>();
+        var mapper   = provider.GetRequiredService<IFailureHttpMapper>();
 
         // Assert (Then)
-        Assert.IsType<DefaultErrorHttpMapper>(mapper);
+        Assert.IsType<DefaultFailureHttpMapper>(mapper);
     }
 
     [Fact(DisplayName = "AddResultHttp registers configurable ResultHttpAdapterPolicy as singleton")]

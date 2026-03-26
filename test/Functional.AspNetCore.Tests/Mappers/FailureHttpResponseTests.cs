@@ -4,11 +4,11 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Mappers;
 
 public class ErrorHttpResponseTests
 {
-    [Fact(DisplayName = "ErrorHttpResponse can be created with required properties")]
+    [Fact(DisplayName = "FailureHttpResponse can be created with required properties")]
     public void ErrorHttpResponse_WithRequiredProperties_CreatesSuccessfully()
     {
         // Arrange (Given) & Act (When)
-        var response = new ErrorHttpResponse
+        var response = new FailureHttpResponse
         {
             StatusCode = 404,
             Body       = new { error = "Not found" }
@@ -21,7 +21,7 @@ public class ErrorHttpResponseTests
         Assert.Null(response.ContentType);
     }
 
-    [Fact(DisplayName = "ErrorHttpResponse can include headers")]
+    [Fact(DisplayName = "FailureHttpResponse can include headers")]
     public void ErrorHttpResponse_WithHeaders_IncludesHeaders()
     {
         // Arrange (Given)
@@ -32,7 +32,7 @@ public class ErrorHttpResponseTests
         };
 
         // Act (When)
-        var response = new ErrorHttpResponse
+        var response = new FailureHttpResponse
         {
             StatusCode = 401,
             Body       = new { error = "Unauthorized" },
@@ -47,11 +47,11 @@ public class ErrorHttpResponseTests
         Assert.Equal("custom-value",             response.Headers["X-Custom-Header"]);
     }
 
-    [Fact(DisplayName = "ErrorHttpResponse can include content type")]
+    [Fact(DisplayName = "FailureHttpResponse can include content type")]
     public void ErrorHttpResponse_WithContentType_IncludesContentType()
     {
         // Arrange (Given) & Act (When)
-        var response = new ErrorHttpResponse
+        var response = new FailureHttpResponse
         {
             StatusCode  = 400,
             Body        = "<error>Bad Request</error>",
@@ -63,11 +63,11 @@ public class ErrorHttpResponseTests
         Assert.Equal("application/xml", response.ContentType);
     }
 
-    [Fact(DisplayName = "ErrorHttpResponse with null body creates successfully")]
+    [Fact(DisplayName = "FailureHttpResponse with null body creates successfully")]
     public void ErrorHttpResponse_WithNullBody_CreatesSuccessfully()
     {
         // Arrange (Given) & Act (When)
-        var response = new ErrorHttpResponse
+        var response = new FailureHttpResponse
         {
             StatusCode = 204
         };
@@ -77,7 +77,7 @@ public class ErrorHttpResponseTests
         Assert.Null(response.Body);
     }
 
-    [Fact(DisplayName = "ErrorHttpResponse with all properties creates successfully")]
+    [Fact(DisplayName = "FailureHttpResponse with all properties creates successfully")]
     public void ErrorHttpResponse_WithAllProperties_CreatesSuccessfully()
     {
         // Arrange (Given)
@@ -87,7 +87,7 @@ public class ErrorHttpResponseTests
         };
 
         // Act (When)
-        var response = new ErrorHttpResponse
+        var response = new FailureHttpResponse
         {
             StatusCode  = 429,
             Body        = new { error = "Too many requests" },

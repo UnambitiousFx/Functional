@@ -183,7 +183,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act
         var debugView = GetDebugView(result);
         var errorProp = debugView?.GetType()
-                                  .GetProperty("Error")
+                                  .GetProperty("Failure")
                                  ?.GetValue(debugView) as FailureBase;
 
         // Assert
@@ -206,7 +206,7 @@ public sealed class ResultTests_DebuggerDisplay
                                          .GetProperty("IsFaulted")
                                         ?.GetValue(debugView);
         var errorProp = debugView?.GetType()
-                                  .GetProperty("Error")
+                                  .GetProperty("Failure")
                                  ?.GetValue(debugView) as FailureBase;
 
         // Assert
@@ -245,7 +245,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act
         var debugView = GetDebugView(result);
         var errorProp = debugView?.GetType()
-                                  .GetProperty("Error")
+                                  .GetProperty("Failure")
                                  ?.GetValue(debugView) as FailureBase;
 
         // Assert
@@ -265,7 +265,7 @@ public sealed class ResultTests_DebuggerDisplay
                                          .GetProperty("IsSuccess")
                                         ?.GetValue(debugView);
         var errorProp = debugView?.GetType()
-                                  .GetProperty("Error")
+                                  .GetProperty("Failure")
                                  ?.GetValue(debugView) as FailureBase;
 
         // Assert
@@ -283,7 +283,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)
@@ -299,7 +299,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)
@@ -321,7 +321,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)
@@ -329,7 +329,7 @@ public sealed class ResultTests_DebuggerDisplay
         var type = errorDetails?.GetType()
                                 .GetProperty("Type")
                                ?.GetValue(errorDetails) as string;
-        Assert.Equal("AggregateError", type);
+        Assert.Equal("AggregateFailure", type);
     }
 
     [Fact]
@@ -342,7 +342,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)
@@ -350,7 +350,7 @@ public sealed class ResultTests_DebuggerDisplay
         var type = errorDetails?.GetType()
                                 .GetProperty("Type")
                                ?.GetValue(errorDetails) as string;
-        Assert.Equal("ExceptionalError", type);
+        Assert.Equal("ExceptionalFailure", type);
     }
 
     [Fact]
@@ -363,7 +363,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)
@@ -392,7 +392,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)
@@ -400,7 +400,7 @@ public sealed class ResultTests_DebuggerDisplay
         var type = errorDetails?.GetType()
                                 .GetProperty("Type")
                                ?.GetValue(errorDetails) as string;
-        Assert.Equal("AggregateError", type);
+        Assert.Equal("AggregateFailure", type);
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)
@@ -421,7 +421,7 @@ public sealed class ResultTests_DebuggerDisplay
         var type = errorDetails?.GetType()
                                 .GetProperty("Type")
                                ?.GetValue(errorDetails) as string;
-        Assert.Equal("ExceptionalError", type);
+        Assert.Equal("ExceptionalFailure", type);
     }
 
     [Fact]
@@ -434,7 +434,7 @@ public sealed class ResultTests_DebuggerDisplay
         // Act (When)
         var debugView     = GetDebugView(result);
         var errorDetails = debugView?.GetType()
-                                     .GetProperty("ErrorDetails")
+                                     .GetProperty("FailureDetails")
                                     ?.GetValue(debugView);
 
         // Assert (Then)

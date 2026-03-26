@@ -170,8 +170,8 @@ Example:
 /// <typeparam name="TIn">The input value type.</typeparam>
 /// <typeparam name="TOut">The output value type.</typeparam>
 /// <param name="result">The result to transform.</param>
+/// <returns>A result with the transformed value, or the original failure.</returns>
 /// <param name="map">The transformation function.</param>
-/// <returns>A result with the transformed value, or the original error.</returns>
 public static Result<TOut> Map<TIn, TOut>(
     this Result<TIn> result,
     Func<TIn, TOut> map)
@@ -180,19 +180,14 @@ public static Result<TOut> Map<TIn, TOut>(
 {
     return result.Match(
         value => Result.Success(map(value)),
-        error => Result.Failure<TOut>(error)
+        failure => Result.Failure<TOut>(failure)
     );
 }
 ```
-
-### Testing
-
 - **Write tests** for all new functionality
 - **Use descriptive test names**: `MethodName_Scenario_ExpectedBehavior`
 - **Follow AAA pattern**: Arrange, Act, Assert
 - **Test edge cases**: null values, empty collections, boundary conditions
-- **Use theory tests** with `[Theory]` and `[InlineData]` for multiple scenarios
-- **Aim for high coverage**: Minimum 80% line coverage
 
 Example:
 
@@ -212,18 +207,18 @@ public void Map_WithSuccessResult_TransformsValue()
 }
 
 [Fact]
-public void Map_WithFailureResult_PropagatesError()
+public void Map_WithFailureResult_PropagatesFailure()
 {
     // Arrange
-    var error = new Error("Test error");
-    var result = Result.Failure<int>(error);
+    var failure = new Failure("Test failure");
+    var result = Result.Failure<int>(failure);
 
     // Act
     var mapped = result.Map(x => x * 2);
 
     // Assert
-    mapped.TryGet(out _, out var actualError).Should().BeFalse();
-    actualError.Should().Be(error);
+    mapped.TryGet(out _, out var actualFailure).Should().BeFalse();
+    actualFailure.Should().Be(failure);
 }
 ```
 

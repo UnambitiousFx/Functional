@@ -462,12 +462,12 @@ public class ResultHttpExtensionsTests
 
     #region Helper classes for testing
 
-    private class CustomProblemDetailsMapper : IErrorHttpMapper
+    private class CustomProblemDetailsMapper : IFailureHttpMapper
     {
-        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
+        public FailureHttpResponse? GetFailureResponse(IFailure failure)
         {
             if (failure is ValidationFailure) {
-                return new ErrorHttpResponse
+                return new FailureHttpResponse
                 {
                     StatusCode = 400,
                     Body = new ProblemDetails
@@ -483,9 +483,9 @@ public class ResultHttpExtensionsTests
         }
     }
 
-    private class NullReturningMapper : IErrorHttpMapper
+    private class NullReturningMapper : IFailureHttpMapper
     {
-        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
+        public FailureHttpResponse? GetFailureResponse(IFailure failure)
         {
             return null;
         }
@@ -494,15 +494,15 @@ public class ResultHttpExtensionsTests
     private record CustomFailure(int    StatusCode,
                                  string Message) : Failure(Message);
 
-    private class CustomStatusCodeMapper : IErrorHttpMapper
+    private class CustomStatusCodeMapper : IFailureHttpMapper
     {
-        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
+        public FailureHttpResponse? GetFailureResponse(IFailure failure)
         {
             var body = string.IsNullOrWhiteSpace(failure.Message)
                            ? null
                            : new { failure.Message };
             if (failure is CustomFailure customError) {
-                return new ErrorHttpResponse
+                return new FailureHttpResponse
                 {
                     StatusCode = customError.StatusCode,
                     Body       = body

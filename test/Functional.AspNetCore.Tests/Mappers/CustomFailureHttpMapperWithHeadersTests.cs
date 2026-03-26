@@ -13,7 +13,7 @@ public class CustomErrorHttpMapperWithHeadersTests
         var failure = new UnauthorizedFailure("Invalid token");
 
         // Act (When)
-        var response = mapper.GetErrorResponse(failure);
+        var response = mapper.GetFailureResponse(failure);
 
         // Assert (Then)
         Assert.NotNull(response);
@@ -31,7 +31,7 @@ public class CustomErrorHttpMapperWithHeadersTests
         var failure = new Failure("RATE_LIMIT", "Too many requests");
 
         // Act (When)
-        var response = mapper.GetErrorResponse(failure);
+        var response = mapper.GetFailureResponse(failure);
 
         // Assert (Then)
         Assert.NotNull(response);
@@ -51,23 +51,23 @@ public class CustomErrorHttpMapperWithHeadersTests
         var failure = new ValidationFailure(["Field is required"]);
 
         // Act (When)
-        var response = mapper.GetErrorResponse(failure);
+        var response = mapper.GetFailureResponse(failure);
 
         // Assert (Then)
         Assert.Null(response);
     }
 
-    [Fact(DisplayName = "CompositeErrorHttpMapper preserves headers from custom mapper")]
+    [Fact(DisplayName = "CompositeFailureHttpMapper preserves headers from custom mapper")]
     public void CompositeMapper_WithCustomMapperReturningHeaders_PreservesHeaders()
     {
         // Arrange (Given)
         var customMapper    = new UnauthorizedWithWwwAuthenticateMapper();
-        var defaultMapper   = new DefaultErrorHttpMapper();
-        var compositeMapper = new CompositeErrorHttpMapper(customMapper, defaultMapper);
+        var defaultMapper   = new DefaultFailureHttpMapper();
+        var compositeMapper = new CompositeFailureHttpMapper(customMapper, defaultMapper);
         var failure         = new UnauthorizedFailure("Invalid token");
 
         // Act (When)
-        var response = compositeMapper.GetErrorResponse(failure);
+        var response = compositeMapper.GetFailureResponse(failure);
 
         // Assert (Then)
         Assert.NotNull(response);
@@ -77,12 +77,12 @@ public class CustomErrorHttpMapperWithHeadersTests
         Assert.Equal("Bearer realm=\"api\"", response.Headers["WWW-Authenticate"]);
     }
 
-    private class UnauthorizedWithWwwAuthenticateMapper : IErrorHttpMapper
+    private class UnauthorizedWithWwwAuthenticateMapper : IFailureHttpMapper
     {
-        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
+        public FailureHttpResponse? GetFailureResponse(IFailure failure)
         {
             if (failure is UnauthorizedFailure unauthorized) {
-                return new ErrorHttpResponse
+                return new FailureHttpResponse
                 {
                     StatusCode = 401,
                     Body       = new { error = unauthorized.Message },
@@ -97,12 +97,12 @@ public class CustomErrorHttpMapperWithHeadersTests
         }
     }
 
-    private class TooManyRequestsMapper : IErrorHttpMapper
+    private class TooManyRequestsMapper : IFailureHttpMapper
     {
-        public ErrorHttpResponse? GetErrorResponse(IFailure failure)
+        public FailureHttpResponse? GetFailureResponse(IFailure failure)
         {
             if (failure.Code == "RATE_LIMIT") {
-                return new ErrorHttpResponse
+                return new FailureHttpResponse
                 {
                     StatusCode = 429,
                     Body       = new { error = failure.Message },

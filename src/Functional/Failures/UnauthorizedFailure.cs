@@ -12,7 +12,7 @@ public sealed record UnauthorizedFailure : Failure
     /// <param name="extra">Optional additional metadata about the error.</param>
     public UnauthorizedFailure(string?                               reason = null,
                                IReadOnlyDictionary<string, object?>? extra  = null)
-        : base(ErrorCodes.Unauthorized, !string.IsNullOrWhiteSpace(reason)
+        : base(FailureCodes.Unauthorized, !string.IsNullOrWhiteSpace(reason)
                                             ? reason
                                             : "Unauthorized", Merge(extra, []))
     {

@@ -10,31 +10,31 @@ namespace UnambitiousFx.Functional.xunit;
 /// </summary>
 /// <typeparam name="TError">The specific error type that implements IError.</typeparam>
 [DebuggerStepThrough]
-public readonly struct TypedErrorAssertion<TError>
+public readonly struct TypedFailureAssertion<TError>
     where TError : IFailure
 {
     /// <summary>
     ///     Represents a fluent assertion mechanism for handling strongly-typed error cases in test results.
     /// </summary>
-    internal TypedErrorAssertion(TError error)
+    internal TypedFailureAssertion(TError failure)
     {
-        Error = error;
+        Failure = failure;
     }
 
     /// <summary>
     ///     Gets the strongly-typed error associated with this assertion.
     /// </summary>
-    public TError Error { get; }
+    public TError Failure { get; }
 
     /// <summary>
     ///     Applies the specified assertion action to the strongly-typed error and returns the current assertion
     ///     instance to allow method chaining.
     /// </summary>
     /// <param name="assert">The action to be applied to the strongly-typed error.</param>
-    /// <returns>The current <see cref="TypedErrorAssertion{TError}" /> instance to allow method chaining.</returns>
-    public TypedErrorAssertion<TError> And(Action<TError> assert)
+    /// <returns>The current <see cref="TypedFailureAssertion{TError}" /> instance to allow method chaining.</returns>
+    public TypedFailureAssertion<TError> And(Action<TError> assert)
     {
-        assert(Error);
+        assert(Failure);
         return this;
     }
 
@@ -43,14 +43,14 @@ public readonly struct TypedErrorAssertion<TError>
     /// </summary>
     /// <param name="predicate">The predicate to test the error against.</param>
     /// <param name="because">An optional reason to include if the assertion fails.</param>
-    /// <returns>The current <see cref="TypedErrorAssertion{TError}" /> instance to allow method chaining.</returns>
-    public TypedErrorAssertion<TError> Where(Func<TError, bool> predicate,
+    /// <returns>The current <see cref="TypedFailureAssertion{TError}" /> instance to allow method chaining.</returns>
+    public TypedFailureAssertion<TError> Where(Func<TError, bool> predicate,
                                              string?            because = null)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        if (!predicate(Error)) {
-            var errorMessage = Error.Message;
-            Assert.Fail(because ?? $"Error does not satisfy predicate. Error: '{errorMessage}'");
+        if (!predicate(Failure)) {
+            var failureMessage = Failure.Message;
+            Assert.Fail(because ?? $"Failure does not satisfy predicate. Failure: '{failureMessage}'");
         }
 
         return this;
@@ -60,10 +60,10 @@ public readonly struct TypedErrorAssertion<TError>
     ///     Asserts that the error message matches the expected value.
     /// </summary>
     /// <param name="expected">The expected error message to assert against.</param>
-    /// <returns>The current instance of <see cref="TypedErrorAssertion{TError}" /> for further chaining.</returns>
-    public TypedErrorAssertion<TError> AndMessage(string expected)
+    /// <returns>The current instance of <see cref="TypedFailureAssertion{TError}" /> for further chaining.</returns>
+    public TypedFailureAssertion<TError> AndMessage(string expected)
     {
-        Assert.Equal(expected, Error.Message);
+        Assert.Equal(expected, Failure.Message);
         return this;
     }
 
@@ -71,10 +71,10 @@ public readonly struct TypedErrorAssertion<TError>
     ///     Asserts that the code of the error matches the expected value.
     /// </summary>
     /// <param name="expected">The expected error code to assert against.</param>
-    /// <returns>The current instance of <see cref="TypedErrorAssertion{TError}" /> for further chaining.</returns>
-    public TypedErrorAssertion<TError> AndCode(string expected)
+    /// <returns>The current instance of <see cref="TypedFailureAssertion{TError}" /> for further chaining.</returns>
+    public TypedFailureAssertion<TError> AndCode(string expected)
     {
-        Assert.Equal(expected, Error.Code);
+        Assert.Equal(expected, Failure.Code);
         return this;
     }
 }

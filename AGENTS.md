@@ -74,7 +74,7 @@ public void Map_WithSuccessResult_TransformsValue()
     - Use `maybe.ShouldBe().Some()` or `maybe.ShouldBe().None()` for `Maybe`.
     - Use `oneOf.ShouldBe().First()`, `.Second()`, etc., for `OneOf`.
     - Chain with `.And(v => ...)` or `.Where(v => ...)` for further validation.
-    - For errors, use `.AndMessage("expected message")` or `.AndCode("expected code")`.
+    - For failures, use `.AndMessage("expected message")` or `.AndCode("expected code")`.
 5. **Avoid Implementation Details**: Test the public API and its behavior, not the internal state or private methods.
 6. **Mocking**: Use `NSubstitute` when you need to mock external dependencies, but prefer using real instances of core
    functional types.

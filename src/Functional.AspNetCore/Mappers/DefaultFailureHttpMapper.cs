@@ -7,16 +7,16 @@ namespace UnambitiousFx.Functional.AspNetCore.Mappers;
 /// <summary>
 ///     Default error-to-HTTP mapper with built-in mappings for standard error types.
 /// </summary>
-public class DefaultErrorHttpMapper : IErrorHttpMapper
+public class DefaultFailureHttpMapper : IFailureHttpMapper
 {
     /// <summary>
-    ///     Provides a singleton instance of the <see cref="DefaultErrorHttpMapper" /> class,
+    ///     Provides a singleton instance of the <see cref="DefaultFailureHttpMapper" /> class,
     ///     which implements default mappings for error reasons to HTTP status codes and response bodies.
     /// </summary>
-    internal static IErrorHttpMapper Instance { get; } = new DefaultErrorHttpMapper();
+    internal static IFailureHttpMapper Instance { get; } = new DefaultFailureHttpMapper();
 
     /// <inheritdoc />
-    public virtual ErrorHttpResponse GetErrorResponse(IFailure failure)
+    public virtual FailureHttpResponse GetFailureResponse(IFailure failure)
     {
         var problem = failure switch
         {
@@ -29,7 +29,7 @@ public class DefaultErrorHttpMapper : IErrorHttpMapper
             _                                      => FromError(failure)
         };
 
-        return new ErrorHttpResponse
+        return new FailureHttpResponse
         {
             StatusCode = problem.Status ?? 500,
             Body       = problem

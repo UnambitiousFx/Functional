@@ -70,7 +70,7 @@ public static class ResultHttpExtensions
         };
     }
 
-    private static IActionResult ErrorHttpResponseToActionResult(ErrorHttpResponse response)
+    private static IActionResult FailureHttpResponseToActionResult(FailureHttpResponse response)
     {
         var result = ResponseToActionResult(response.StatusCode, response.Body);
 
@@ -84,10 +84,10 @@ public static class ResultHttpExtensions
     }
 
     private static IActionResult MapErrorToActionResult(Failure           failure,
-                                                        IErrorHttpMapper? customMapper)
+                                                        IFailureHttpMapper? customMapper)
     {
         var response = FailureHttpResponseResolver.Resolve(failure, customMapper);
-        return ErrorHttpResponseToActionResult(response);
+        return FailureHttpResponseToActionResult(response);
     }
 
     /// <summary>
@@ -96,12 +96,12 @@ public static class ResultHttpExtensions
     /// </summary>
     public static async ValueTask<IActionResult> ToActionResult(this ValueTask<Result>   resultTask,
                                                                 Func<IActionResult>?     successHttpMapper = null,
-                                                                IErrorHttpMapper?        errorMapper       = null,
+                                                                IFailureHttpMapper?        failureMapper       = null,
                                                                 ResultHttpAdapterPolicy? policy            = null)
     {
         successHttpMapper ??= BuildDefaultSuccessMapper(policy);
         var result = await resultTask;
-        return result.Match(successHttpMapper, error => MapErrorToActionResult(error, errorMapper));
+        return result.Match(successHttpMapper, error => MapErrorToActionResult(error, failureMapper));
     }
 
     /// <summary>
@@ -109,10 +109,10 @@ public static class ResultHttpExtensions
     /// </summary>
     public static ValueTask<IActionResult> ToActionResult(this Task<Result>        resultTask,
                                                           Func<IActionResult>?     successHttpMapper = null,
-                                                          IErrorHttpMapper?        errorMapper       = null,
+                                                          IFailureHttpMapper?        failureMapper       = null,
                                                           ResultHttpAdapterPolicy? policy            = null)
     {
-        return new ValueTask<Result>(resultTask).ToActionResult(successHttpMapper, errorMapper, policy);
+        return new ValueTask<Result>(resultTask).ToActionResult(successHttpMapper, failureMapper, policy);
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public static class ResultHttpExtensions
     /// </summary>
     public static async ValueTask<IActionResult> ToActionResult<TValue>(this ValueTask<Result<TValue>> resultTask,
                                                                         Func<TValue, IActionResult>?   successHttpMapper = null,
-                                                                        IErrorHttpMapper?              errorHttpMapper   = null)
+                                                                        IFailureHttpMapper?              errorHttpMapper   = null)
         where TValue : notnull
     {
         successHttpMapper ??= v => new OkObjectResult(v);
@@ -135,7 +135,7 @@ public static class ResultHttpExtensions
     /// </summary>
     public static ValueTask<IActionResult> ToActionResult<TValue>(this Task<Result<TValue>>    resultTask,
                                                                   Func<TValue, IActionResult>? successHttpMapper = null,
-                                                                  IErrorHttpMapper?            errorHttpMapper   = null)
+                                                                  IFailureHttpMapper?            errorHttpMapper   = null)
         where TValue : notnull
     {
         return new ValueTask<Result<TValue>>(resultTask).ToActionResult(successHttpMapper,
@@ -181,8 +181,8 @@ public static class ResultHttpExtensions
         ///     An optional function mapping a successful Result to an IActionResult. If null, a default
         ///     response (e.g., NoContentResult) will be used for success cases.
         /// </param>
-        /// <param name="errorMapper">
-        ///     Optional custom implementation of IErrorHttpMapper for handling failures. If not provided,
+        /// <param name="failureMapper">
+        ///     Optional custom implementation of IFailureHttpMapper for handling failures. If not provided,
         ///     a default mapper will be used to generate the error response.
         /// </param>
         /// <param name="policy">
@@ -190,11 +190,11 @@ public static class ResultHttpExtensions
         /// </param>
         /// <returns>An IActionResult representing the outcome of a Result, based on either success or failure.</returns>
         public IActionResult ToActionResult(Func<IActionResult>?     successHttpMapper = null,
-                                            IErrorHttpMapper?        errorMapper       = null,
+                                            IFailureHttpMapper?        failureMapper       = null,
                                             ResultHttpAdapterPolicy? policy            = null)
         {
             successHttpMapper ??= BuildDefaultSuccessMapper(policy);
-            return result.Match(successHttpMapper, error => MapErrorToActionResult(error, errorMapper));
+            return result.Match(successHttpMapper, error => MapErrorToActionResult(error, failureMapper));
         }
     }
 
@@ -213,12 +213,12 @@ public static class ResultHttpExtensions
         ///     If not provided, a default implementation that maps to an <see cref="OkObjectResult" /> will be used.
         /// </param>
         /// <param name="errorHttpMapper">
-        ///     An optional implementation of <see cref="IErrorHttpMapper" /> to handle error result mapping
+        ///     An optional implementation of <see cref="IFailureHttpMapper" /> to handle error result mapping
         ///     into an HTTP response. If not provided, a default error mapper will be used.
         /// </param>
         /// <returns>An <see cref="IActionResult" /> representing the HTTP response for the given result.</returns>
         public IActionResult ToActionResult(Func<TValue, IActionResult>? successHttpMapper = null,
-                                            IErrorHttpMapper?            errorHttpMapper   = null)
+                                            IFailureHttpMapper?            errorHttpMapper   = null)
         {
             successHttpMapper ??= v => new OkObjectResult(v);
             return result.Match(

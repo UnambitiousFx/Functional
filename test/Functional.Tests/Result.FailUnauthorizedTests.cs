@@ -30,7 +30,7 @@ public sealed class ResultFailUnauthorizedTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Unauthorized);
+              .AndCode(FailureCodes.Unauthorized);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class ResultFailUnauthorizedTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Unauthorized);
+              .AndCode(FailureCodes.Unauthorized);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public sealed class ResultFailUnauthorizedTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Unauthorized);
+              .AndCode(FailureCodes.Unauthorized);
     }
 
     [Fact]
@@ -225,10 +225,10 @@ public sealed class ResultFailUnauthorizedTests
         // Assert (Then)
         unauthorizedResult.ShouldBe()
                           .Failure()
-                          .AndCode(ErrorCodes.Unauthorized);
+                          .AndCode(FailureCodes.Unauthorized);
         unauthenticatedResult.ShouldBe()
                              .Failure()
-                             .AndCode(ErrorCodes.Unauthenticated);
+                             .AndCode(FailureCodes.Unauthenticated);
     }
 
     #endregion

@@ -34,7 +34,7 @@ public sealed record UnauthenticatedFailure : Failure
     /// </param>
     public UnauthenticatedFailure(string?                               reason = null,
                                   IReadOnlyDictionary<string, object?>? extra  = null)
-        : base(ErrorCodes.Unauthenticated,
+        : base(FailureCodes.Unauthenticated,
                !string.IsNullOrWhiteSpace(reason)
                    ? reason
                    : "Unauthenticated", Merge(extra, []))

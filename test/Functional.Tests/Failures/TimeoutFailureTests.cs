@@ -50,7 +50,7 @@ public class TimeoutFailureTests
         var error = new TimeoutFailure(configuredTimeout, elapsed);
 
         // Assert (Then)
-        Assert.Equal((string?)ErrorCodes.Timeout, (string?)error.Code);
+        Assert.Equal((string?)FailureCodes.Timeout, (string?)error.Code);
     }
 
     [Fact]

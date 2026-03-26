@@ -3,14 +3,14 @@ using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
-public class NotFoundErrorAssertionTests
+public class NotFoundFailureAssertionTests
 {
     [Fact(DisplayName = "And executes custom assertion and returns self for chaining")]
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When)
         var result = assertion.And(e => Assert.NotNull(e));
@@ -24,7 +24,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When)
         var result = assertion.WithResource("User");
@@ -38,7 +38,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.WithResource("Product"));
@@ -49,7 +49,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When)
         var result = assertion.WithIdentifier("123");
@@ -63,7 +63,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.WithIdentifier("456"));
@@ -74,7 +74,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When)
         var result = assertion.AndMessage("Resource 'User' with id '123' was not found.");
@@ -88,7 +88,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
@@ -99,7 +99,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When)
         var result = assertion.AndCode("NOT_FOUND");
@@ -113,7 +113,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
@@ -124,7 +124,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         assertion
@@ -139,7 +139,7 @@ public class NotFoundErrorAssertionTests
     {
         // Arrange (Given)
         var error     = new NotFoundFailure("User", "123");
-        var assertion = new NotFoundErrorAssertion(error);
+        var assertion = new NotFoundFailureAssertion(error);
 
         // Act (When) & Assert (Then)
         assertion.And(e =>

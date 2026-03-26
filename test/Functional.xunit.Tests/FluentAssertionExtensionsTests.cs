@@ -5,8 +5,8 @@ namespace UnambitiousFx.Functional.xunit.Tests;
 
 public class FluentAssertionExtensionsTests
 {
-    [Fact(DisplayName = "WhichIsValidationError returns ValidationErrorAssertion when error is ValidationError")]
-    public void WhichIsValidationError_WhenValidationError_ReturnsValidationErrorAssertion()
+    [Fact(DisplayName = "WhichIsValidationError returns ValidationFailureAssertion when error is ValidationError")]
+    public void WhichIsValidationError_WhenValidationError_ReturnsValidationFailureAssertion()
     {
         // Arrange (Given)
         var result = Result.Failure(new ValidationFailure(["Field is required"]));
@@ -34,8 +34,8 @@ public class FluentAssertionExtensionsTests
         Assert.Contains("Expected ValidationError but was NotFoundFailure", exception.Message);
     }
 
-    [Fact(DisplayName = "WhichIsNotFoundError returns NotFoundErrorAssertion when error is NotFoundError")]
-    public void WhichIsNotFoundError_WhenNotFoundError_ReturnsNotFoundErrorAssertion()
+    [Fact(DisplayName = "WhichIsNotFoundError returns NotFoundFailureAssertion when error is NotFoundError")]
+    public void WhichIsNotFoundError_WhenNotFoundError_ReturnsNotFoundFailureAssertion()
     {
         // Arrange (Given)
         var result = Result.Failure(new NotFoundFailure("User", "123"));
@@ -63,8 +63,8 @@ public class FluentAssertionExtensionsTests
         Assert.Contains("Expected NotFoundError but was ValidationFailure", exception.Message);
     }
 
-    [Fact(DisplayName = "WhichIsConflictError returns ConflictErrorAssertion when error is ConflictError")]
-    public void WhichIsConflictError_WhenConflictError_ReturnsConflictErrorAssertion()
+    [Fact(DisplayName = "WhichIsConflictError returns ConflictFailureAssertion when error is ConflictError")]
+    public void WhichIsConflictError_WhenConflictError_ReturnsConflictFailureAssertion()
     {
         // Arrange (Given)
         var result = Result.Failure(new ConflictFailure("Resource already exists"));
@@ -92,8 +92,8 @@ public class FluentAssertionExtensionsTests
         Assert.Contains("Expected ConflictError but was ValidationFailure", exception.Message);
     }
 
-    [Fact(DisplayName = "WhichIs<TError> returns TypedErrorAssertion when error matches type")]
-    public void WhichIs_WhenErrorMatchesType_ReturnsTypedErrorAssertion()
+    [Fact(DisplayName = "WhichIs<TError> returns TypedFailureAssertion when error matches type")]
+    public void WhichIs_WhenErrorMatchesType_ReturnsTypedFailureAssertion()
     {
         // Arrange (Given)
         var result = Result.Failure(new UnauthorizedFailure());
@@ -104,8 +104,8 @@ public class FluentAssertionExtensionsTests
         var typedAssertion = failureAssertion.WhichIs<UnauthorizedFailure>();
 
         // Assert (Then)
-        Assert.NotNull(typedAssertion.Error);
-        Assert.IsType<UnauthorizedFailure>(typedAssertion.Error);
+        Assert.NotNull(typedAssertion.Failure);
+        Assert.IsType<UnauthorizedFailure>(typedAssertion.Failure);
     }
 
     [Fact(DisplayName = "WhichIs<TError> throws when error does not match type")]
@@ -134,7 +134,7 @@ public class FluentAssertionExtensionsTests
         var typedAssertion = failureAssertion.WhichIs<Failure>();
 
         // Assert (Then)
-        Assert.NotNull(typedAssertion.Error);
-        Assert.Equal("CUSTOM", typedAssertion.Error.Code);
+        Assert.NotNull(typedAssertion.Failure);
+        Assert.Equal("CUSTOM", typedAssertion.Failure.Code);
     }
 }

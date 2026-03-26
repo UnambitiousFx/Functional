@@ -40,7 +40,7 @@ public sealed class MaybeAsyncExtensionsTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     // Filter Tests
@@ -393,7 +393,7 @@ public sealed class MaybeAsyncExtensionsTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     [Fact]
@@ -427,7 +427,7 @@ public sealed class MaybeAsyncExtensionsTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     [Fact]
@@ -461,7 +461,7 @@ public sealed class MaybeAsyncExtensionsTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     [Fact]
@@ -513,7 +513,7 @@ public sealed class MaybeAsyncExtensionsTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation);
+              .AndCode(FailureCodes.Validation);
     }
 
     [Fact]

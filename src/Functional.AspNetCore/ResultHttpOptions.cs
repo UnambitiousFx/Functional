@@ -9,7 +9,7 @@ namespace UnambitiousFx.Functional.AspNetCore;
 /// </summary>
 public sealed class ResultHttpOptions
 {
-    private readonly List<IErrorHttpMapper> _customMappers = [];
+    private readonly List<IFailureHttpMapper> _customMappers = [];
 
     /// <summary>
     ///     Whether to include exception details (stack traces) in error responses.
@@ -27,7 +27,7 @@ public sealed class ResultHttpOptions
     ///     Gets the collection of custom error mappers.
     ///     Custom mappers are evaluated before the default mapper.
     /// </summary>
-    public IReadOnlyList<IErrorHttpMapper> CustomMappers => _customMappers.AsReadOnly();
+    public IReadOnlyList<IFailureHttpMapper> CustomMappers => _customMappers.AsReadOnly();
 
     /// <summary>
     ///     Adds a custom error mapper.
@@ -35,7 +35,7 @@ public sealed class ResultHttpOptions
     /// </summary>
     /// <param name="mapper">The custom mapper to add.</param>
     /// <returns>This options instance for fluent configuration.</returns>
-    public ResultHttpOptions AddMapper(IErrorHttpMapper mapper)
+    public ResultHttpOptions AddMapper(IFailureHttpMapper mapper)
     {
         ArgumentNullException.ThrowIfNull(mapper);
         _customMappers.Add(mapper);
@@ -53,7 +53,7 @@ public sealed class ResultHttpOptions
     public ResultHttpOptions AddMapper<TFailure>(int statusCode)
         where TFailure : IFailure
     {
-        return AddMapper(new TypedErrorHttpMapper<TFailure>(f => new ErrorHttpResponse
+        return AddMapper(new TypedFailureHttpMapper<TFailure>(f => new FailureHttpResponse
         {
             StatusCode = statusCode,
             Body = new ProblemDetails
@@ -70,27 +70,27 @@ public sealed class ResultHttpOptions
     ///     Custom mappers are tried before the default mapper, in the order they are added.
     /// </summary>
     /// <typeparam name="TFailure">The failure type to handle.</typeparam>
-    /// <param name="factory">The factory that produces an <see cref="ErrorHttpResponse" /> for the failure.</param>
+    /// <param name="factory">The factory that produces an <see cref="FailureHttpResponse" /> for the failure.</param>
     /// <returns>This options instance for fluent configuration.</returns>
-    public ResultHttpOptions AddMapper<TFailure>(Func<TFailure, ErrorHttpResponse> factory)
+    public ResultHttpOptions AddMapper<TFailure>(Func<TFailure, FailureHttpResponse> factory)
         where TFailure : IFailure
     {
         ArgumentNullException.ThrowIfNull(factory);
-        return AddMapper(new TypedErrorHttpMapper<TFailure>(factory));
+        return AddMapper(new TypedFailureHttpMapper<TFailure>(factory));
     }
 
     /// <summary>
     ///     Builds the final error mapper based on the configured options.
     /// </summary>
     /// <returns>The configured error mapper.</returns>
-    internal IErrorHttpMapper BuildMapper()
+    internal IFailureHttpMapper BuildMapper()
     {
-        var mappers = new List<IErrorHttpMapper>();
+        var mappers = new List<IFailureHttpMapper>();
 
         // Add custom mappers first (they have priority)
         mappers.AddRange(_customMappers);
 
-        mappers.Add(new DefaultErrorHttpMapper());
+        mappers.Add(new DefaultFailureHttpMapper());
 
         // If we only have one mapper, return it directly
         if (mappers.Count == 1) {
@@ -98,6 +98,6 @@ public sealed class ResultHttpOptions
         }
 
         // Otherwise, wrap in a composite mapper
-        return new CompositeErrorHttpMapper(mappers);
+        return new CompositeFailureHttpMapper(mappers);
     }
 }

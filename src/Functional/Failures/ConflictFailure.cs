@@ -7,4 +7,4 @@ namespace UnambitiousFx.Functional.Failures;
 /// <param name="Extra">Optional additional metadata about the conflict.</param>
 public sealed record ConflictFailure(string                                Message,
                                      IReadOnlyDictionary<string, object?>? Extra = null)
-    : Failure(ErrorCodes.Conflict, Message, Merge(Extra, []));
+    : Failure(FailureCodes.Conflict, Message, Merge(Extra, []));

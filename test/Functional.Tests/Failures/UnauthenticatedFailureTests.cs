@@ -16,7 +16,7 @@ public class UnauthenticatedFailureTests
 
         // Assert (Then)
         Assert.Equal((string?)"Unauthenticated",          (string?)error.Message);
-        Assert.Equal((string?)ErrorCodes.Unauthenticated, (string?)error.Code);
+        Assert.Equal((string?)FailureCodes.Unauthenticated, (string?)error.Code);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class UnauthenticatedFailureTests
 
         // Assert (Then)
         Assert.Equal((string?)"Invalid authentication token", (string?)error.Message);
-        Assert.Equal((string?)ErrorCodes.Unauthenticated,     (string?)error.Code);
+        Assert.Equal((string?)FailureCodes.Unauthenticated,     (string?)error.Code);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class UnauthenticatedFailureTests
         var error = new UnauthenticatedFailure();
 
         // Assert (Then)
-        Assert.Equal((string?)ErrorCodes.Unauthenticated, (string?)error.Code);
+        Assert.Equal((string?)FailureCodes.Unauthenticated, (string?)error.Code);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class UnauthenticatedFailureTests
         Assert.IsType<UnauthenticatedFailure>(error);
         var typedError = (UnauthenticatedFailure)error;
         Assert.Equal((string?)"Missing authentication header", (string?)typedError.Message);
-        Assert.Equal((string?)ErrorCodes.Unauthenticated,      (string?)typedError.Code);
+        Assert.Equal((string?)FailureCodes.Unauthenticated,      (string?)typedError.Code);
     }
 
     [Fact]

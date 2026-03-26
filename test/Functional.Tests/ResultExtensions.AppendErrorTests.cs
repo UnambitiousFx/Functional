@@ -19,7 +19,7 @@ public sealed partial class ResultExtensions
         // Act
         var debugView = GetDebugView(result);
         var details = debugView?.GetType()
-                                .GetProperty("ErrorDetails")
+                                .GetProperty("FailureDetails")
                                ?.GetValue(debugView);
 
         // Assert
@@ -28,13 +28,13 @@ public sealed partial class ResultExtensions
                            .GetProperty("Type")
                           ?.GetValue(details) as string;
         var count = (int?)details?.GetType()
-                                  .GetProperty("ErrorCount")
+                                  .GetProperty("FailureCount")
                                  ?.GetValue(details);
         var arr = details?.GetType()
-                          .GetProperty("Errors")
+                          .GetProperty("Failures")
                          ?.GetValue(details) as Failure[];
 
-        Assert.Equal("AggregateError", type);
+        Assert.Equal("AggregateFailure", type);
         Assert.Equal(2,                count);
         Assert.NotNull(arr);
         Assert.Equal(2,    arr.Length);
@@ -52,7 +52,7 @@ public sealed partial class ResultExtensions
         // Act
         var debugView = GetDebugView(result);
         var details = debugView?.GetType()
-                                .GetProperty("ErrorDetails")
+                                .GetProperty("FailureDetails")
                                ?.GetValue(debugView);
 
         // Assert
@@ -67,7 +67,7 @@ public sealed partial class ResultExtensions
                                     .GetProperty("ExceptionType")
                                    ?.GetValue(details) as string;
 
-        Assert.Equal("ExceptionalError", type);
+        Assert.Equal("ExceptionalFailure", type);
         Assert.Equal(ex,                 exception);
         Assert.Equal(ex.GetType()
                        .Name, exceptionType);
@@ -83,7 +83,7 @@ public sealed partial class ResultExtensions
         // Act
         var debugView = GetDebugView(result);
         var details = debugView?.GetType()
-                                .GetProperty("ErrorDetails")
+                                .GetProperty("FailureDetails")
                                ?.GetValue(debugView);
 
         // Assert
@@ -115,7 +115,7 @@ public sealed partial class ResultExtensions
         // Act
         var debugView = GetDebugView(result);
         var details = debugView?.GetType()
-                                .GetProperty("ErrorDetails")
+                                .GetProperty("FailureDetails")
                                ?.GetValue(debugView);
 
         // Assert
@@ -124,13 +124,13 @@ public sealed partial class ResultExtensions
                            .GetProperty("Type")
                           ?.GetValue(details) as string;
         var count = (int?)details?.GetType()
-                                  .GetProperty("ErrorCount")
+                                  .GetProperty("FailureCount")
                                  ?.GetValue(details);
         var arr = details?.GetType()
-                          .GetProperty("Errors")
+                          .GetProperty("Failures")
                          ?.GetValue(details) as Failure[];
 
-        Assert.Equal("AggregateError", type);
+        Assert.Equal("AggregateFailure", type);
         Assert.Equal(2,                count);
         Assert.NotNull(arr);
         Assert.Equal(2,    arr.Length);
@@ -148,7 +148,7 @@ public sealed partial class ResultExtensions
         // Act
         var debugView = GetDebugView(result);
         var details = debugView?.GetType()
-                                .GetProperty("ErrorDetails")
+                                .GetProperty("FailureDetails")
                                ?.GetValue(debugView);
 
         // Assert
@@ -163,7 +163,7 @@ public sealed partial class ResultExtensions
                                     .GetProperty("ExceptionType")
                                    ?.GetValue(details) as string;
 
-        Assert.Equal("ExceptionalError", type);
+        Assert.Equal("ExceptionalFailure", type);
         Assert.Equal(ex,                 exception);
         Assert.Equal(ex.GetType()
                        .Name, exceptionType);
@@ -179,7 +179,7 @@ public sealed partial class ResultExtensions
         // Act
         var debugView = GetDebugView(result);
         var details = debugView?.GetType()
-                                .GetProperty("ErrorDetails")
+                                .GetProperty("FailureDetails")
                                ?.GetValue(debugView);
 
         // Assert

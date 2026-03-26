@@ -30,7 +30,7 @@ public sealed class ResultFailUnauthenticatedTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Unauthenticated);
+              .AndCode(FailureCodes.Unauthenticated);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class ResultFailUnauthenticatedTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Unauthenticated);
+              .AndCode(FailureCodes.Unauthenticated);
     }
 
     [Fact]

@@ -9,7 +9,7 @@ public record Failure : FailureBase
     ///     Creates an error with default code and provided message.
     /// </summary>
     public Failure(string message)
-        : base(ErrorCodes.Error, message)
+        : base(FailureCodes.Failure, message)
     {
     }
 

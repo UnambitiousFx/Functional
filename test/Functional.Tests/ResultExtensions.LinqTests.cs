@@ -64,7 +64,7 @@ public sealed partial class ResultExtensions
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Validation)
+              .AndCode(FailureCodes.Validation)
               .AndMessage("Result.Where predicate returned false.");
     }
 

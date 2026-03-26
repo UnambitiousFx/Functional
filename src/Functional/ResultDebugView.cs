@@ -21,33 +21,33 @@ internal sealed class ResultDebugView<TValue>
                                 ? value
                                 : default;
 
-    public Failure? Error => _result.TryGet(out _, out var error)
+    public Failure? Failure => _result.TryGet(out _, out var failure)
                                  ? null
-                                 : error;
+                                 : failure;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
-    public object? ErrorDetails
+    public object? FailureDetails
     {
         get
         {
-            if (!_result.TryGet(out _, out var error)) {
-                return error switch
+            if (!_result.TryGet(out _, out var failure)) {
+                return failure switch
                 {
                     AggregateFailure agg => new
                     {
-                        Type = "AggregateError", ErrorCount = agg.Errors.Count(), Errors = agg.Errors.ToArray()
+                        Type = "AggregateFailure", FailureCount = agg.Errors.Count(), Failures = agg.Errors.ToArray()
                     },
                     ExceptionalFailure exc => new
                     {
-                        Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType()
+                        Type = "ExceptionalFailure", exc.Exception, ExceptionType = exc.Exception.GetType()
                                                                                      .Name
                     },
                     _ => new
                     {
-                        Type = error.GetType()
+                        Type = failure.GetType()
                                     .Name,
-                        error.Code, error.Message
+                        failure.Code, failure.Message
                     }
                 };
             }
@@ -69,36 +69,36 @@ internal sealed class ResultDebugView
     public bool IsSuccess => _result.IsSuccess;
     public bool IsFaulted => _result.IsFailure;
 
-    public Failure? Error => !_result.TryGetFailure(out var error)
+    public Failure? Failure => !_result.TryGetFailure(out var failure)
                                  ? null
-                                 : error;
+                                 : failure;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
-    public object? ErrorDetails
+    public object? FailureDetails
     {
         get
         {
-            if (!_result.TryGetFailure(out var error)) {
+            if (!_result.TryGetFailure(out var failure)) {
                 return null;
             }
 
-            return error switch
+            return failure switch
             {
                 AggregateFailure agg => new
                 {
-                    Type = "AggregateError", ErrorCount = agg.Errors.Count(), Errors = agg.Errors.ToArray()
+                    Type = "AggregateFailure", FailureCount = agg.Errors.Count(), Failures = agg.Errors.ToArray()
                 },
                 ExceptionalFailure exc => new
                 {
-                    Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType()
+                    Type = "ExceptionalFailure", exc.Exception, ExceptionType = exc.Exception.GetType()
                                                                                  .Name
                 },
                 _ => new
                 {
-                    Type = error.GetType()
+                    Type = failure.GetType()
                                 .Name,
-                    error.Code, error.Message
+                    failure.Code, failure.Message
                 }
             };
         }

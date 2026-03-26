@@ -69,7 +69,7 @@ public class FunctionalExceptionTests
         var exception = new FunctionalException(validationError);
 
         // Assert (Then)
-        Assert.Equal(ErrorCodes.Validation, exception.Code);
+        Assert.Equal(FailureCodes.Validation, exception.Code);
         Assert.Contains("Field1 is required", exception.Message);
         Assert.Contains("Field2 is invalid", exception.Message);
     }
@@ -84,7 +84,7 @@ public class FunctionalExceptionTests
         var exception = new FunctionalException(notFoundError);
 
         // Assert (Then)
-        Assert.Equal(ErrorCodes.NotFound, exception.Code);
+        Assert.Equal(FailureCodes.NotFound, exception.Code);
         Assert.Contains("User", exception.Message);
         Assert.Contains("123", exception.Message);
     }

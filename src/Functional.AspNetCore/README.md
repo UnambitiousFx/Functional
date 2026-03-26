@@ -180,7 +180,7 @@ builder.Services.AddResultHttp(options =>
     options.AddMapper<PaymentRequiredFailure>(402);
 
     // Full control: custom factory
-    options.AddMapper<RateLimitFailure>(f => new ErrorHttpResponse
+    options.AddMapper<RateLimitFailure>(f => new FailureHttpResponse
     {
         StatusCode = 429,
         Body = new { message = f.Message, retryAfter = f.RetryAfterSeconds },
@@ -194,23 +194,23 @@ builder.Services.AddResultHttp(options =>
 
 Typed mappers participate in the same first-match-wins chain and fall through to the default mapper for unhandled types.
 
-#### Full `IErrorHttpMapper` implementation
+#### Full `IFailureHttpMapper` implementation
 
 Use this when one mapper needs to handle several related failure types:
 
 ```csharp
-public sealed class DomainErrorMapper : IErrorHttpMapper
+public sealed class DomainErrorMapper : IFailureHttpMapper
 {
-    public ErrorHttpResponse? GetErrorResponse(IFailure failure) =>
+    public FailureHttpResponse? GetFailureResponse(IFailure failure) =>
         failure switch
         {
-            RateLimitFailure f => new ErrorHttpResponse
+            RateLimitFailure f => new FailureHttpResponse
             {
                 StatusCode = 429,
                 Body       = new { message = f.Message },
                 Headers    = new Dictionary<string, string> { ["Retry-After"] = "60" }
             },
-            PaymentRequiredFailure f => new ErrorHttpResponse
+            PaymentRequiredFailure f => new FailureHttpResponse
             {
                 StatusCode = 402,
                 Body       = new { message = f.Message, subscriptionRequired = true }
@@ -235,7 +235,7 @@ Custom mappers registered via `AddMapper` are tried in the order they are added,
 
 | Method                                                | Success                                     | Failure      |
 |-------------------------------------------------------|---------------------------------------------|--------------|
-| `ToHttpResult(successMapper?, errorMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
+| `ToHttpResult(successMapper?, failureMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
 
 Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
 
@@ -243,8 +243,8 @@ Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
 
 | Method                                               | Success                                   | Failure      |
 |------------------------------------------------------|-------------------------------------------|--------------|
-| `ToHttpResult(successMapper?, errorMapper?)`         | `successMapper(value)` or `200 OK(value)` | Mapped error |
-| `ToCreatedHttpResult(locationFactory, errorMapper?)` | `201 Created(location, value)`            | Mapped error |
+| `ToHttpResult(successMapper?, failureMapper?)`         | `successMapper(value)` or `200 OK(value)` | Mapped error |
+| `ToCreatedHttpResult(locationFactory, failureMapper?)` | `201 Created(location, value)`            | Mapped error |
 
 Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
 
@@ -265,7 +265,7 @@ Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 
 | Method                                                  | Success                                     | Failure      |
 |---------------------------------------------------------|---------------------------------------------|--------------|
-| `ToActionResult(successMapper?, errorMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
+| `ToActionResult(successMapper?, failureMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
 
 Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
 
@@ -273,7 +273,7 @@ Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
 
 | Method                                         | Success                                           | Failure      |
 |------------------------------------------------|---------------------------------------------------|--------------|
-| `ToActionResult(successMapper?, errorMapper?)` | `successMapper(value)` or `OkObjectResult(value)` | Mapped error |
+| `ToActionResult(successMapper?, failureMapper?)` | `successMapper(value)` or `OkObjectResult(value)` | Mapped error |
 
 Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
 
@@ -293,25 +293,25 @@ Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 |----------------------------------------------------------|---------------------------|-----------|-------------------------------------------------|
 | `Policy`                                                 | `ResultHttpAdapterPolicy` | `Default` | Global success/none behavior defaults           |
 | `IncludeExceptionDetails`                                | `bool`                    | `false`   | Include stack traces in error bodies            |
-| `AddMapper(IErrorHttpMapper)`                            | —                         | —         | Register a custom mapper instance               |
+| `AddMapper(IFailureHttpMapper)`                            | —                         | —         | Register a custom mapper instance               |
 | `AddMapper<TFailure>(int statusCode)`                    | —                         | —         | Register a typed mapper returning a status code |
-| `AddMapper<TFailure>(Func<TFailure, ErrorHttpResponse>)` | —                         | —         | Register a typed mapper with a custom factory   |
+| `AddMapper<TFailure>(Func<TFailure, FailureHttpResponse>)` | —                         | —         | Register a typed mapper with a custom factory   |
 
 ---
 
-### `IErrorHttpMapper` contract
+### `IFailureHttpMapper` contract
 
 ```csharp
-public interface IErrorHttpMapper
+public interface IFailureHttpMapper
 {
     /// <summary>
     /// Returns a response for the given failure, or null to pass to the next mapper.
     /// </summary>
-    ErrorHttpResponse? GetErrorResponse(IFailure failure);
+    FailureHttpResponse? GetFailureResponse(IFailure failure);
 }
 ```
 
-`ErrorHttpResponse` properties: `StatusCode` (required), `Body`, `Headers`, `ContentType`.
+`FailureHttpResponse` properties: `StatusCode` (required), `Body`, `Headers`, `ContentType`.
 
 ## Migration from v1
 
@@ -321,7 +321,7 @@ public interface IErrorHttpMapper
 | `result.ToCreatedHttpResult(loc, v => dto)`                   | `result.ToCreatedHttpResult(loc)` — value returned directly                     |
 | `result.ToCreatedActionResult("Get", ctrl, routes)`           | `result.ToActionResult(v => new CreatedAtActionResult("Get", ctrl, routes, v))` |
 | `options.UseProblemDetails = true`                            | Removed — Problem Details is always on                                          |
-| Implicit `IErrorHttpMapper.GetStatusCode` / `GetResponseBody` | Implement `GetErrorResponse(IFailure)` → `ErrorHttpResponse?`                   |
+| Implicit `IFailureHttpMapper.GetStatusCode` / `GetResponseBody` | Implement `GetFailureResponse(IFailure)` → `FailureHttpResponse?`                   |
 
 ## Thread Safety
 

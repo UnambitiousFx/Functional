@@ -30,7 +30,7 @@ public sealed class ResultFailConflictTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Conflict);
+              .AndCode(FailureCodes.Conflict);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public sealed class ResultFailConflictTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Conflict);
+              .AndCode(FailureCodes.Conflict);
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public sealed class ResultFailConflictTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.Conflict);
+              .AndCode(FailureCodes.Conflict);
     }
 
     [Fact]

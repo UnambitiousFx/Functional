@@ -30,7 +30,7 @@ public sealed class ResultFailNotFoundTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.NotFound);
+              .AndCode(FailureCodes.NotFound);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class ResultFailNotFoundTests
         // Assert (Then)
         result.ShouldBe()
               .Failure()
-              .AndCode(ErrorCodes.NotFound);
+              .AndCode(FailureCodes.NotFound);
     }
 
     [Fact]

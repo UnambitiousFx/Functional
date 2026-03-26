@@ -15,7 +15,7 @@ public sealed record AggregateFailure : Failure, IAggregateFailure
     /// </summary>
     /// <param name="errors">The collection of errors to aggregate.</param>
     public AggregateFailure(params IEnumerable<Failure> errors)
-        : base(ErrorCodes.AggregateError, "Multiple errors occurred")
+        : base(FailureCodes.AggregateFailure, "Multiple errors occurred")
     {
         Errors = errors.ToArray();
     }
