@@ -4,7 +4,7 @@ using UnambitiousFx.Functional.xunit;
 namespace UnambitiousFx.Functional.Tests;
 
 /// <summary>
-///     Tests for Result Tap, TapError, and TapBoth extension methods.
+///     Tests for Result Tap, TapFailure, and TapBoth extension methods.
 /// </summary>
 public sealed partial class ResultExtensions
 {

@@ -29,14 +29,14 @@ public static partial class ResultAsyncExtensions
         return result;
     }
 
-    public static async ValueTask<Result> TapError(this ValueTask<Result> resultTask,
+    public static async ValueTask<Result> TapFailure(this ValueTask<Result> resultTask,
                                                     Action<Failure>        tap)
     {
         var result = await resultTask;
-        return result.TapError(tap);
+        return result.TapFailure(tap);
     }
 
-    public static async ValueTask<Result> TapError(this ValueTask<Result>   resultTask,
+    public static async ValueTask<Result> TapFailure(this ValueTask<Result>   resultTask,
                                                     Func<Failure, ValueTask> tap)
     {
         var result = await resultTask;
@@ -137,15 +137,15 @@ public static partial class ResultAsyncExtensions
         return result;
     }
 
-    public static async ValueTask<Result<TIn>> TapError<TIn>(this ValueTask<Result<TIn>> resultTask,
+    public static async ValueTask<Result<TIn>> TapFailure<TIn>(this ValueTask<Result<TIn>> resultTask,
                                                              Action<Failure>            tap)
         where TIn : notnull
     {
         var result = await resultTask;
-        return result.TapError(tap);
+        return result.TapFailure(tap);
     }
 
-    public static async ValueTask<Result<TIn>> TapError<TIn>(this ValueTask<Result<TIn>>  resultTask,
+    public static async ValueTask<Result<TIn>> TapFailure<TIn>(this ValueTask<Result<TIn>>  resultTask,
                                                              Func<Failure, ValueTask>     tap)
         where TIn : notnull
     {
@@ -183,27 +183,27 @@ public static partial class ResultAsyncExtensions
         }
     }
 
-    public static ValueTask<Result> TapError(this Task<Result>   resultTask,
+    public static ValueTask<Result> TapFailure(this Task<Result>   resultTask,
                                              Action<Failure>    tap)
     {
-        return new ValueTask<Result>(TapErrorCore(resultTask, tap));
+        return new ValueTask<Result>(TapFailureCore(resultTask, tap));
 
-        static async Task<Result> TapErrorCore(Task<Result>    resultTask,
+        static async Task<Result> TapFailureCore(Task<Result>    resultTask,
                                                Action<Failure> tap)
         {
-            return (await resultTask).TapError(tap);
+            return (await resultTask).TapFailure(tap);
         }
     }
 
-    public static ValueTask<Result> TapError(this Task<Result>            resultTask,
+    public static ValueTask<Result> TapFailure(this Task<Result>            resultTask,
                                              Func<Failure, ValueTask>    tap)
     {
-        return new ValueTask<Result>(TapErrorCore(resultTask, tap));
+        return new ValueTask<Result>(TapFailureCore(resultTask, tap));
 
-        static async Task<Result> TapErrorCore(Task<Result>                resultTask,
+        static async Task<Result> TapFailureCore(Task<Result>                resultTask,
                                                Func<Failure, ValueTask>    tap)
         {
-            return await new ValueTask<Result>(resultTask).TapError(tap);
+            return await new ValueTask<Result>(resultTask).TapFailure(tap);
         }
     }
 
@@ -320,29 +320,29 @@ public static partial class ResultAsyncExtensions
         }
     }
 
-    public static ValueTask<Result<TIn>> TapError<TIn>(this Task<Result<TIn>> resultTask,
+    public static ValueTask<Result<TIn>> TapFailure<TIn>(this Task<Result<TIn>> resultTask,
                                                        Action<Failure>        tap)
         where TIn : notnull
     {
-        return new ValueTask<Result<TIn>>(TapErrorCore(resultTask, tap));
+        return new ValueTask<Result<TIn>>(TapFailureCore(resultTask, tap));
 
-        static async Task<Result<TIn>> TapErrorCore(Task<Result<TIn>> resultTask,
+        static async Task<Result<TIn>> TapFailureCore(Task<Result<TIn>> resultTask,
                                                     Action<Failure>   tap)
         {
-            return (await resultTask).TapError(tap);
+            return (await resultTask).TapFailure(tap);
         }
     }
 
-    public static ValueTask<Result<TIn>> TapError<TIn>(this Task<Result<TIn>>       resultTask,
+    public static ValueTask<Result<TIn>> TapFailure<TIn>(this Task<Result<TIn>>       resultTask,
                                                        Func<Failure, ValueTask>     tap)
         where TIn : notnull
     {
-        return new ValueTask<Result<TIn>>(TapErrorCore(resultTask, tap));
+        return new ValueTask<Result<TIn>>(TapFailureCore(resultTask, tap));
 
-        static async Task<Result<TIn>> TapErrorCore(Task<Result<TIn>>           resultTask,
+        static async Task<Result<TIn>> TapFailureCore(Task<Result<TIn>>           resultTask,
                                                     Func<Failure, ValueTask>    tap)
         {
-            return await new ValueTask<Result<TIn>>(resultTask).TapError(tap);
+            return await new ValueTask<Result<TIn>>(resultTask).TapFailure(tap);
         }
     }
 }

@@ -41,7 +41,7 @@ public static partial class ResultExtensions
         /// </summary>
         /// <param name="tap">Action to execute on failure.</param>
         /// <returns>The original result unchanged.</returns>
-        public Result TapError(Action<Failure> tap)
+        public Result TapFailure(Action<Failure> tap)
         {
             result.IfFailure(tap);
             return result;
@@ -118,7 +118,7 @@ public static partial class ResultExtensions
         /// </summary>
         /// <param name="tap">Action to execute on failure.</param>
         /// <returns>The original result unchanged.</returns>
-        public Result<TValue> TapError(Action<Failure> tap)
+        public Result<TValue> TapFailure(Action<Failure> tap)
         {
             result.IfFailure(tap);
             return result;

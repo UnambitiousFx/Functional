@@ -191,9 +191,9 @@ Result<User> result = GetUser(id)
 Result<Order> result = CreateOrder(request)
     .Tap(order => _logger.LogInformation($"Order {order.Id} created"));
 
-// TapError - Execute side effect on failure
+// TapFailure - Execute side effect on failure
 Result<Order> result = CreateOrder(request)
-    .TapError(error => _logger.LogError($"Failed: {error.Message}"));
+    .TapFailure(error => _logger.LogError($"Failed: {error.Message}"));
 
 // TapBoth - Execute side effect regardless of result
 Result<Order> result = CreateOrder(request)
