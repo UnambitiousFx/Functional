@@ -4,514 +4,183 @@ using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Http;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Failures;
-using ConflictFailure = UnambitiousFx.Functional.Failures.ConflictFailure;
-using NotFoundFailure = UnambitiousFx.Functional.Failures.NotFoundFailure;
-using UnauthenticatedFailure = UnambitiousFx.Functional.Failures.UnauthenticatedFailure;
-using ValidationFailure = UnambitiousFx.Functional.Failures.ValidationFailure;
+using IHttpResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Http;
 
 public class ResultHttpExtensionsTests
 {
-    [Fact(DisplayName = "ToHttpResult returns NoContent for success Result")]
-    public void ToHttpResult_SuccessResult_ReturnsNoContent()
+    [Fact]
+    public async Task AsHttpBuilder_WithSuccessResult_ReturnsNoContentStatusCode()
     {
-        // Given
+        // Arrange (Given)
         var result = Result.Success();
 
-        // When
-        var httpResult = result.ToHttpResult();
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder();
 
-        // Then
-        Assert.IsType<NoContent>(httpResult);
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status204NoContent, GetStatusCode(httpResult));
     }
 
-    [Fact(DisplayName = "ToHttpResult returns ProblemDetails for ValidationError")]
-    public void ToHttpResult_FailureResult_ReturnsProblemDetails()
+    [Fact]
+    public async Task AsHttpBuilder_WithSuccessResultAndStatusCode200_ReturnsStatusCode200()
     {
-        // Given
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithStatusCode(StatusCodes.Status200OK);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status200OK, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithFailureResult_ReturnsMappedStatusCode400()
+    {
+        // Arrange (Given)
         var result = Result.Failure(new ValidationFailure(["Invalid input"]));
 
-        // When
-        var httpResult = result.ToHttpResult();
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder();
 
-        // Then
-        Assert.IsType<ProblemHttpResult>(httpResult);
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status400BadRequest, GetStatusCode(httpResult));
     }
 
-    [Fact(DisplayName = "ToHttpResult<T> returns 200 OK with value for success")]
-    public void ToHttpResult_Generic_Success_Returns200WithValue()
+    [Fact]
+    public async Task AsHttpBuilder_WithGenericSuccessResult_ReturnsOkWithOriginalValue()
     {
-        // Given
+        // Arrange (Given)
         var result = Result.Success(42);
 
-        // When
-        var httpResult = result.ToHttpResult(v => Results.Ok(v));
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder();
 
-        // Then
-        var okResult = Assert.IsType<Ok<int>>(httpResult);
-        Assert.Equal(42, okResult.Value);
+        // Assert (Then)
+        var ok = Assert.IsType<Ok<int>>(UnwrapWrappedResult(httpResult));
+        Assert.Equal(42, ok.Value);
     }
 
-    [Fact(DisplayName = "ToHttpResult<T> with no mapper defaults to 200 OK with value")]
-    public void ToHttpResult_Generic_Success_WithDefaultMapper_ReturnsOk()
+    [Fact]
+    public async Task AsHttpBuilder_WithFormatter_FormatsResponseBodyValue()
     {
-        // Given
+        // Arrange (Given)
         var result = Result.Success(42);
 
-        // When
-        var httpResult = result.ToHttpResult();
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithResponseFormatter(v => new ResponseDto(v.ToString()));
 
-        // Then
-        var okResult = Assert.IsType<Ok<int>>(httpResult);
-        Assert.Equal(42, okResult.Value);
+        // Assert (Then)
+        var ok = Assert.IsType<Ok<ResponseDto>>(UnwrapWrappedResult(httpResult));
+        Assert.NotNull(ok.Value);
+        Assert.Equal("42", ok.Value!.Value);
     }
 
-    [Fact(DisplayName = "ToHttpResult<T> returns ProblemDetails for NotFoundError")]
-    public void ToHttpResult_Generic_NotFoundError_ReturnsProblemDetails()
+    [Fact]
+    public async Task AsHttpBuilder_AsCreated_WithGenericSuccessResult_ReturnsCreatedWithLocationAndValue()
     {
-        // Given
-        var result = Result.Failure<int>(new NotFoundFailure("Item", "123"));
-
-        // When
-        var httpResult = result.ToHttpResult(v => Results.Ok(v));
-
-        // Then
-        Assert.IsType<ProblemHttpResult>(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom success mapper transforms value")]
-    public void ToHttpResult_WithCustomSuccessMapper_TransformsValue()
-    {
-        // Given
+        // Arrange (Given)
         var result = Result.Success(42);
 
-        // When
-        var httpResult = result.ToHttpResult(x => Results.Ok(new { Value = x.ToString() }));
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .AsCreated(v => $"/items/{v}");
 
-        // Then
-        Assert.NotNull(httpResult);
-        // The result is Ok<T> where T is the anonymous type, not Ok<object>
-        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
+        // Assert (Then)
+        var created = Assert.IsType<Created<int>>(UnwrapWrappedResult(httpResult));
+        Assert.Equal("/items/42", created.Location);
+        Assert.Equal(42, created.Value);
     }
 
-    [Fact(DisplayName = "ToCreatedHttpResult returns 201 Created with location")]
-    public void ToCreatedHttpResult_Success_Returns201WithLocation()
+    [Fact]
+    public async Task AsHttpBuilder_WithCustomMapper_AppliesMappedStatusCode()
     {
-        // Given
-        var result = Result.Success(42);
+        // Arrange (Given)
+        var result = Result.Failure<int>(new CustomFailure(418, "Teapot"));
 
-        // When
-        var httpResult = result.ToCreatedHttpResult(id => $"/items/{id}");
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder(new CustomStatusCodeMapper());
 
-        // Then
-        Assert.NotNull(httpResult);
-        Assert.IsType<Created<int>>(httpResult);
+        // Assert (Then)
+        Assert.Equal(418, GetStatusCode(httpResult));
     }
 
-    [Fact(DisplayName = "ToHttpResult with non-generic Result and custom success mapper returns custom result")]
-    public void ToHttpResult_NonGenericWithCustomSuccessMapper_ReturnsCustomResult()
+    [Fact]
+    public async Task AsHttpBuilder_WithHeader_StoresHeaderMetadata()
     {
-        // Given
+        // Arrange (Given)
         var result = Result.Success();
 
-        // When
-        var httpResult = result.ToHttpResult(() => Results.Ok(new { Message = "Success" }));
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithHeader("X-Trace-Id", "abc");
+        var headers = GetWrappedHeaders(httpResult);
 
-        // Then
-        Assert.NotNull(httpResult);
-        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("abc", headers!["X-Trace-Id"]);
     }
 
-    [Fact(DisplayName = "ToCreatedHttpResult with failure returns ProblemDetails")]
-    public void ToCreatedHttpResult_Failure_ReturnsProblemDetails()
+    [Fact]
+    public async Task ValueTaskResult_AsHttpBuilder_WithGenericSuccessResult_ReturnsOkWithOriginalValue()
     {
-        // Given
-        var result = Result.Failure<int>(new ValidationFailure(["Invalid input"]));
-
-        // When
-        var httpResult = result.ToCreatedHttpResult(id => $"/items/{id}");
-
-        // Then
-        Assert.NotNull(httpResult);
-        Assert.IsType<ProblemHttpResult>(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper for UnauthenticatedError returns 401")]
-    public void ToHttpResult_WithUnauthenticatedError_Returns401()
-    {
-        // Given
-        var result = Result.Failure(new UnauthenticatedFailure("User not authenticated"));
-
-        // When
-        var httpResult = result.ToHttpResult();
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper for ConflictError returns 409")]
-    public void ToHttpResult_WithConflictError_Returns409()
-    {
-        // Given
-        var result = Result.Failure(new ConflictFailure("Conflict detected"));
-
-        // When
-        var httpResult = result.ToHttpResult();
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with ProblemDetails in custom mapper")]
-    public void ToHttpResult_WithProblemDetailsMapper_ReturnsProblemDetails()
-    {
-        // Given
-        var result       = Result.Failure(new ValidationFailure(["Invalid input"]));
-        var customMapper = new CustomProblemDetailsMapper();
-
-        // When
-        var httpResult = result.ToHttpResult(null, customMapper);
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper returning null falls back to default")]
-    public void ToHttpResult_WithCustomMapperReturningNull_FallsBackToDefault()
-    {
-        // Given
-        var result       = Result.Failure(new ValidationFailure(["Invalid input"]));
-        var customMapper = new NullReturningMapper();
-
-        // When
-        var httpResult = result.ToHttpResult(null, customMapper);
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with unsupported error status code returns 500")]
-    public void ToHttpResult_WithUnsupportedErrorStatusCode_Returns500()
-    {
-        // Given
-        var result       = Result.Failure(new CustomFailure(418, "I'm a teapot"));
-        var customMapper = new CustomStatusCodeMapper();
-
-        // When
-        var httpResult = result.ToHttpResult(null, customMapper);
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with 500 error and body returns proper result")]
-    public void ToHttpResult_WithError500AndBody_ReturnsProblem()
-    {
-        // Given
-        var result       = Result.Failure(new CustomFailure(500, "Internal server error"));
-        var customMapper = new CustomStatusCodeMapper();
-
-        // When
-        var httpResult = result.ToHttpResult(null, customMapper);
-
-        // Then
-        Assert.NotNull(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 400 returns BadRequestObjectResult")]
-    public void ToHttpResult_WithCustomErrorMapper400_ReturnsBadRequestObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(400, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
-
-        // Then
-        var objectResult = Assert.IsType<BadRequest<object>>(actionResult);
-        Assert.Equal(400, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 401 returns UnauthorizedObjectResult")]
-    public void ToHttpResult_WithCustomErrorMapper401_ReturnsUnauthorizedObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(401, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
-
-        // Then
-        var objectResult = Assert.IsType<UnauthorizedHttpResult>(actionResult);
-        Assert.Equal(401, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 403 returns ForbidResult")]
-    public void ToHttpResult_WithCustomErrorMapper402_ReturnsForbidResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(403, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
-
-        // Then
-        Assert.IsType<ForbidHttpResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 404 returns NotFoundObjectResult")]
-    public void ToHttpResult_WithCustomErrorMapper404_ReturnsNotFoundObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(404, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
-
-        // Then
-        Assert.IsType<NotFound<object>>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 409 returns ConflictObjectResult")]
-    public void ToHttpResult_WithCustomErrorMapper409_ReturnsConflictObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(409, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
-
-        // Then
-        Assert.IsType<Conflict<object>>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 500 returns ObjectResult")]
-    public void ToHttpResult_WithCustomErrorMapper500_ReturnsObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(500, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
-
-        // Then
-        Assert.IsType<ProblemHttpResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with custom mapper with status code 500 and null body returns StatusCodeResult")]
-    public void ToHttpResult_WithCustomErrorMapperNullBody_ReturnsStatusCodeResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(500, string.Empty));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToHttpResult(v => Results.Ok(v), mapper);
-
-        // Then
-        Assert.IsType<StatusCodeHttpResult>(actionResult);
-    }
-
-    #region Async (ValueTask<Result>) Tests
-
-    [Fact(DisplayName = "ValueTask<Result> ToHttpResult returns NoContent for success")]
-    public async Task ValueTaskResult_ToHttpResult_Success_ReturnsNoContent()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success());
-
-        // When
-        var httpResult = await resultTask.ToHttpResult();
-
-        // Then
-        Assert.IsType<NoContent>(httpResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result> ToHttpResult with custom success mapper returns custom result")]
-    public async Task ValueTaskResult_ToHttpResult_WithCustomSuccessMapper_ReturnsCustomResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success());
-
-        // When
-        var httpResult = await resultTask.ToHttpResult(() => Results.Ok(new { Message = "Success" }));
-
-        // Then
-        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result> ToHttpResult with failure returns ProblemDetails")]
-    public async Task ValueTaskResult_ToHttpResult_Failure_ReturnsProblemDetails()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
-
-        // When
-        var httpResult = await resultTask.ToHttpResult();
-
-        // Then
-        Assert.IsType<ProblemHttpResult>(httpResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToHttpResult returns 200 OK with value for success")]
-    public async Task ValueTaskResultGeneric_ToHttpResult_Success_Returns200WithValue()
-    {
-        // Given
+        // Arrange (Given)
         var resultTask = ValueTask.FromResult(Result.Success(42));
 
-        // When
-        var httpResult = await resultTask.ToHttpResult();
+        // Act (When)
+        var httpResult = await resultTask.AsHttpBuilder();
 
-        // Then
-        var okResult = Assert.IsType<Ok<int>>(httpResult);
-        Assert.Equal(42, okResult.Value);
+        // Assert (Then)
+        var ok = Assert.IsType<Ok<int>>(UnwrapWrappedResult(httpResult));
+        Assert.Equal(42, ok.Value);
     }
 
-    [Fact(DisplayName = "ValueTask<Result<T>> ToHttpResult with custom success mapper transforms value")]
-    public async Task ValueTaskResultGeneric_ToHttpResult_WithCustomSuccessMapper_TransformsValue()
+    private static int GetStatusCode(IHttpResult result)
     {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success(42));
+        var inner = UnwrapWrappedResult(result);
 
-        // When
-        var httpResult = await resultTask.ToHttpResult(x => Results.Ok(new { Value = x.ToString() }));
-
-        // Then
-        Assert.IsAssignableFrom<Microsoft.AspNetCore.Http.IResult>(httpResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToHttpResult with failure returns ProblemDetails")]
-    public async Task ValueTaskResultGeneric_ToHttpResult_Failure_ReturnsProblemDetails()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
-
-        // When
-        var httpResult = await resultTask.ToHttpResult();
-
-        // Then
-        Assert.IsType<ProblemHttpResult>(httpResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToCreatedHttpResult returns 201 Created with location")]
-    public async Task ValueTaskResultGeneric_ToCreatedHttpResult_Success_Returns201WithLocation()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success(42));
-
-        // When
-        var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
-
-        // Then
-        var createdResult = Assert.IsType<Created<int>>(httpResult);
-        Assert.Equal(42, createdResult.Value);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToCreatedHttpResult with failure returns ProblemDetails")]
-    public async Task ValueTaskResultGeneric_ToCreatedHttpResult_Failure_ReturnsProblemDetails()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid input"])));
-
-        // When
-        var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}");
-
-        // Then
-        Assert.IsType<ProblemHttpResult>(httpResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToCreatedHttpResult with custom error mapper")]
-    public async Task ValueTaskResultGeneric_ToCreatedHttpResult_WithCustomErrorMapper_ReturnsCustomError()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(409, "Conflict")));
-        var mapper     = new CustomStatusCodeMapper();
-
-        // When
-        var httpResult = await resultTask.ToCreatedHttpResult(id => $"/items/{id}", mapper);
-
-        // Then
-        Assert.IsType<Conflict<object>>(httpResult);
-    }
-
-    [Fact(DisplayName = "ToHttpResult with policy ResultSuccess=Ok returns Ok")]
-    public void ToHttpResult_WithPolicyResultSuccessOk_ReturnsOk()
-    {
-        // Given
-        var result = Result.Success();
-        var policy = new ResultHttpAdapterPolicy
+        return inner switch
         {
-            ResultSuccessBehavior = ResultSuccessHttpBehavior.Ok
+            IStatusCodeHttpResult { StatusCode: { } statusCode } => statusCode,
+            ForbidHttpResult _ => StatusCodes.Status403Forbidden,
+            _ => throw new InvalidOperationException($"Unable to resolve status code for {inner.GetType().Name}")
         };
-
-        // When
-        var httpResult = result.ToHttpResult(policy: policy);
-
-        // Then
-        Assert.IsType<Ok>(httpResult);
     }
 
-    #endregion
+    private static IHttpResult UnwrapWrappedResult(IHttpResult result)
+    {
+        var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return innerField?.GetValue(result) as IHttpResult ?? result;
+    }
 
-    #region Helper classes for testing
+    private static IReadOnlyDictionary<string, string>? GetWrappedHeaders(IHttpResult result)
+    {
+        var headersField = result.GetType().GetField("_headers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return headersField?.GetValue(result) as IReadOnlyDictionary<string, string>;
+    }
 
-    private class CustomProblemDetailsMapper : IFailureHttpMapper
+    private sealed record ResponseDto(string Value);
+
+    private sealed record CustomFailure(int StatusCode, string Message) : Failure(Message);
+
+    private sealed class CustomStatusCodeMapper : IFailureHttpMapper
     {
         public FailureHttpResponse? GetFailureResponse(IFailure failure)
         {
-            if (failure is ValidationFailure) {
-                return new FailureHttpResponse
-                {
-                    StatusCode = 400,
-                    Body = new ProblemDetails
-                    {
-                        Title  = "Validation Error",
-                        Status = 400,
-                        Detail = "One or more validation errors occurred."
-                    }
-                };
+            if (failure is not CustomFailure customFailure)
+            {
+                return null;
             }
 
-            return null;
+            return new FailureHttpResponse
+            {
+                StatusCode = customFailure.StatusCode,
+                Body = new ProblemDetails { Status = customFailure.StatusCode, Detail = customFailure.Message }
+            };
         }
     }
-
-    private class NullReturningMapper : IFailureHttpMapper
-    {
-        public FailureHttpResponse? GetFailureResponse(IFailure failure)
-        {
-            return null;
-        }
-    }
-
-    private record CustomFailure(int    StatusCode,
-                                 string Message) : Failure(Message);
-
-    private class CustomStatusCodeMapper : IFailureHttpMapper
-    {
-        public FailureHttpResponse? GetFailureResponse(IFailure failure)
-        {
-            var body = string.IsNullOrWhiteSpace(failure.Message)
-                           ? null
-                           : new { failure.Message };
-            if (failure is CustomFailure customError) {
-                return new FailureHttpResponse
-                {
-                    StatusCode = customError.StatusCode,
-                    Body       = body
-                };
-            }
-
-            return null;
-        }
-    }
-
-    #endregion
 }

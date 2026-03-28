@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.AspNetCore.Mvc;
@@ -7,449 +8,178 @@ namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Mvc;
 
 public class ResultHttpExtensionsTests
 {
-    [Fact(DisplayName = "ToActionResult returns NoContentResult for success")]
-    public void ToActionResult_Success_ReturnsNoContentResult()
+    [Fact]
+    public async Task AsActionResultBuilder_WithSuccessResult_ReturnsNoContentStatusCode()
     {
-        // Given
+        // Arrange (Given)
         var result = Result.Success();
 
-        // When
-        var actionResult = result.ToActionResult();
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder();
 
-        // Then
-        Assert.IsType<NoContentResult>(actionResult);
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status204NoContent, GetStatusCode(actionResult));
     }
 
-    [Fact(DisplayName = "ToActionResult returns ObjectResult with 500 for ExceptionalError")]
-    public void ToActionResult_Failure_ReturnsObjectResultWith500()
+    [Fact]
+    public async Task AsActionResultBuilder_WithSuccessResultAndStatusCode200_ReturnsStatusCode200()
     {
-        // Given
-        var result = Result.Failure("Something went wrong"); // Creates ExceptionalError
+        // Arrange (Given)
+        var result = Result.Success();
 
-        // When
-        var actionResult = result.ToActionResult();
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithStatusCode(StatusCodes.Status200OK);
 
-        // Then
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
-        Assert.Equal(500, objectResult.StatusCode);
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status200OK, GetStatusCode(actionResult));
     }
 
-    [Fact(DisplayName = "ToActionResult<T> returns OkObjectResult with value for success")]
-    public void ToActionResult_Generic_Success_ReturnsOkObjectResult()
+    [Fact]
+    public async Task AsActionResultBuilder_WithFailureResult_ReturnsMappedStatusCode404()
     {
-        // Given
+        // Arrange (Given)
+        var result = Result.Failure(new NotFoundFailure("Item", "42"));
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder();
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status404NotFound, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithGenericSuccessResult_ReturnsOkObjectResultWithValue()
+    {
+        // Arrange (Given)
         var result = Result.Success(42);
 
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v));
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder();
 
-        // Then
-        var okResult = Assert.IsType<OkObjectResult>(actionResult);
-        Assert.Equal(42, okResult.Value);
+        // Assert (Then)
+        var ok = Assert.IsType<OkObjectResult>(UnwrapWrappedResult(actionResult));
+        Assert.Equal(42, ok.Value);
     }
 
-    [Fact(DisplayName = "ToActionResult<T> returns ObjectResult with 404 for NotFoundError")]
-    public void ToActionResult_Generic_NotFoundError_Returns404()
+    [Fact]
+    public async Task AsActionResultBuilder_WithFormatter_FormatsResponseBodyValue()
     {
-        // Given
-        var result = Result.Failure<int>(new NotFoundFailure("Item", "123"));
+        // Arrange (Given)
+        var result = Result.Success(42);
 
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v));
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithResponseFormatter(v => new ResponseDto(v.ToString()));
 
-        // Then
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
-        Assert.Equal(404, objectResult.StatusCode);
+        // Assert (Then)
+        var ok = Assert.IsType<OkObjectResult>(UnwrapWrappedResult(actionResult));
+        var dto = Assert.IsType<ResponseDto>(ok.Value);
+        Assert.Equal("42", dto.Value);
     }
 
-    [Fact(DisplayName = "ToActionResult with policy ResultSuccess=Ok returns OkResult")]
-    public void ToActionResult_WithPolicyResultSuccessOk_ReturnsOkResult()
+    [Fact]
+    public async Task AsActionResultBuilder_AsCreated_WithGenericSuccessResult_ReturnsCreatedResultWithLocationAndValue()
     {
-        // Given
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .AsCreated(v => $"/items/{v}");
+
+        // Assert (Then)
+        var created = Assert.IsType<CreatedResult>(UnwrapWrappedResult(actionResult));
+        Assert.Equal("/items/42", created.Location);
+        Assert.Equal(42, created.Value);
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithCustomMapper_AppliesMappedStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure<int>(new CustomFailure(418, "Teapot"));
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder(new CustomStatusCodeMapper());
+
+        // Assert (Then)
+        Assert.Equal(418, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithHeader_StoresHeaderMetadata()
+    {
+        // Arrange (Given)
         var result = Result.Success();
-        var policy = new ResultHttpAdapterPolicy
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithHeader("X-Trace-Id", "abc");
+        var headers = GetWrappedHeaders(actionResult);
+
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("abc", headers!["X-Trace-Id"]);
+    }
+
+    [Fact]
+    public async Task ValueTaskResult_AsActionResultBuilder_WithGenericSuccessResult_ReturnsOkObjectResultWithValue()
+    {
+        // Arrange (Given)
+        var resultTask = ValueTask.FromResult(Result.Success(42));
+
+        // Act (When)
+        var actionResult = await resultTask.AsActionResultBuilder();
+
+        // Assert (Then)
+        var ok = Assert.IsType<OkObjectResult>(UnwrapWrappedResult(actionResult));
+        Assert.Equal(42, ok.Value);
+    }
+
+    private static int GetStatusCode(IActionResult result)
+    {
+        var inner = UnwrapWrappedResult(result);
+
+        return inner switch
         {
-            ResultSuccessBehavior = ResultSuccessHttpBehavior.Ok
+            ObjectResult { StatusCode: { } statusCode } => statusCode,
+            StatusCodeResult statusCodeResult => statusCodeResult.StatusCode,
+            ForbidResult => StatusCodes.Status403Forbidden,
+            _ => throw new InvalidOperationException($"Unable to resolve status code for {inner.GetType().Name}")
         };
-
-        // When
-        var actionResult = result.ToActionResult(policy: policy);
-
-        // Then
-        Assert.IsType<OkResult>(actionResult);
     }
 
-    [Fact(DisplayName = "ToActionResult with custom success mapper transforms value")]
-    public void ToActionResult_WithCustomSuccessMapper_TransformsValue()
+    private static IActionResult UnwrapWrappedResult(IActionResult result)
     {
-        // Given
-        var result = Result.Success(42);
-
-        // When
-        var actionResult = result.ToActionResult(x => new OkObjectResult(new { Value = x.ToString() }));
-
-        // Then
-        var okResult = Assert.IsType<OkObjectResult>(actionResult);
-        Assert.NotNull(okResult.Value);
+        var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return innerField?.GetValue(result) as IActionResult ?? result;
     }
 
-    [Fact(DisplayName = "ToActionResult with Created mapper returns CreatedAtActionResult")]
-    public void ToActionResult_WithCreatedMapper_ReturnsCreatedAtActionResult()
+    private static IReadOnlyDictionary<string, string>? GetWrappedHeaders(IActionResult result)
     {
-        // Given
-        var result = Result.Success(42);
-
-        // When
-        var actionResult = result.ToActionResult(v => new CreatedAtActionResult("GetItem", null, new { id = v }, v));
-
-        // Then
-        var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
-        Assert.Equal("GetItem", createdResult.ActionName);
-        Assert.Equal(42,        createdResult.Value);
+        var headersField = result.GetType().GetField("_headers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return headersField?.GetValue(result) as IReadOnlyDictionary<string, string>;
     }
 
-    [Fact(DisplayName = "ToActionResult with Created mapper and controller name returns CreatedAtActionResult")]
-    public void ToActionResult_WithCreatedMapperAndControllerName_ReturnsCreatedAtActionResult()
-    {
-        // Given
-        var result = Result.Success(42);
+    private sealed record ResponseDto(string Value);
 
-        // When
-        var actionResult = result.ToActionResult(v => new CreatedAtActionResult("GetItem", "Items", new { id = v }, v));
+    private sealed record CustomFailure(int StatusCode, string Message) : Failure(Message);
 
-        // Then
-        var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
-        Assert.Equal("GetItem", createdResult.ActionName);
-        Assert.Equal("Items",   createdResult.ControllerName);
-        Assert.Equal(42,        createdResult.Value);
-    }
-
-    [Fact(DisplayName = "ToActionResult with Created mapper and custom error mapper returns custom status code")]
-    public void ToActionResult_WithCreatedMapperAndCustomErrorMapper_ReturnsCustomStatusCode()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(418, "I'm a teapot"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new CreatedAtActionResult("GetItem", null, null, v), mapper);
-
-        // Then
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
-        Assert.Equal(418, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ToActionResult with custom mapper with status code 400 returns BadRequestObjectResult")]
-    public void ToActionResult_WithCustomErrorMapper400_ReturnsBadRequestObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(400, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v), mapper);
-
-        // Then
-        var objectResult = Assert.IsType<BadRequestObjectResult>(actionResult);
-        Assert.Equal(400, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ToActionResult with custom mapper with status code 401 returns UnauthorizedObjectResult")]
-    public void ToActionResult_WithCustomErrorMapper401_ReturnsUnauthorizedObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(401, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v), mapper);
-
-        // Then
-        var objectResult = Assert.IsType<UnauthorizedObjectResult>(actionResult);
-        Assert.Equal(401, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ToActionResult with custom mapper with status code 403 returns ForbidResult")]
-    public void ToActionResult_WithCustomErrorMapper402_ReturnsForbidResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(403, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v), mapper);
-
-        // Then
-        Assert.IsType<ForbidResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToActionResult with custom mapper with status code 404 returns NotFoundObjectResult")]
-    public void ToActionResult_WithCustomErrorMapper404_ReturnsNotFoundObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(404, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v), mapper);
-
-        // Then
-        Assert.IsType<NotFoundObjectResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToActionResult with custom mapper with status code 409 returns ConflictObjectResult")]
-    public void ToActionResult_WithCustomErrorMapper409_ReturnsConflictObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(409, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v), mapper);
-
-        // Then
-        Assert.IsType<ConflictObjectResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToActionResult with custom mapper with status code 500 returns ObjectResult")]
-    public void ToActionResult_WithCustomErrorMapper409_ReturnsObjectResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(500, "Invalid input"));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v), mapper);
-
-        // Then
-        Assert.IsType<ObjectResult>(actionResult);
-    }
-
-    [Fact(DisplayName =
-        "ToActionResult with custom mapper with status code 500 and null body returns StatusCodeResult")]
-    public void ToActionResult_WithCustomErrorMapperNullBody_ReturnsStatusCodeResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new CustomFailure(500, string.Empty));
-        var mapper = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = result.ToActionResult(v => new OkObjectResult(v), mapper);
-
-        // Then
-        Assert.IsType<StatusCodeResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ToActionResult with Created mapper returns error result on failure")]
-    public void ToActionResult_WithCreatedMapper_Failure_ReturnsErrorResult()
-    {
-        // Given
-        var result = Result.Failure<int>(new ValidationFailure(["Invalid input"]));
-
-        // When
-        var actionResult = result.ToActionResult(v => new CreatedAtActionResult("GetItem", null, null, v));
-
-        // Then
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
-        Assert.Equal(400, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ToActionResult with non-generic Result and custom success mapper returns custom result")]
-    public void ToActionResult_NonGenericWithCustomSuccessMapper_ReturnsCustomResult()
-    {
-        // Given
-        var result = Result.Success();
-
-        // When
-        var actionResult = result.ToActionResult(() => new OkObjectResult(new { Message = "Success" }));
-
-        // Then
-        var okResult = Assert.IsType<OkObjectResult>(actionResult);
-        Assert.NotNull(okResult.Value);
-    }
-
-    #region Async (ValueTask<Result>) Tests
-
-    [Fact(DisplayName = "ValueTask<Result> ToActionResult returns NoContentResult for success")]
-    public async Task ValueTaskResult_ToActionResult_Success_ReturnsNoContentResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success());
-
-        // When
-        var actionResult = await resultTask.ToActionResult();
-
-        // Then
-        Assert.IsType<NoContentResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result> ToActionResult with custom success mapper returns custom result")]
-    public async Task ValueTaskResult_ToActionResult_WithCustomSuccessMapper_ReturnsCustomResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success());
-
-        // When
-        var actionResult = await resultTask.ToActionResult(() => new OkObjectResult(new { Message = "Success" }));
-
-        // Then
-        Assert.IsType<OkObjectResult>(actionResult);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result> ToActionResult with failure returns error result")]
-    public async Task ValueTaskResult_ToActionResult_Failure_ReturnsErrorResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure(new ValidationFailure(["Invalid input"])));
-
-        // When
-        var actionResult = await resultTask.ToActionResult();
-
-        // Then
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
-        Assert.Equal(400, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToActionResult returns OkObjectResult with value for success")]
-    public async Task ValueTaskResultGeneric_ToActionResult_Success_ReturnsOkObjectResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success(42));
-
-        // When
-        var actionResult = await resultTask.ToActionResult();
-
-        // Then
-        var okResult = Assert.IsType<OkObjectResult>(actionResult);
-        Assert.Equal(42, okResult.Value);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToActionResult with custom success mapper transforms value")]
-    public async Task ValueTaskResultGeneric_ToActionResult_WithCustomSuccessMapper_TransformsValue()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success(42));
-
-        // When
-        var actionResult = await resultTask.ToActionResult(x => new OkObjectResult(new { Value = x.ToString() }));
-
-        // Then
-        var okResult = Assert.IsType<OkObjectResult>(actionResult);
-        Assert.NotNull(okResult.Value);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToActionResult with failure returns error result")]
-    public async Task ValueTaskResultGeneric_ToActionResult_Failure_ReturnsErrorResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure<int>(new NotFoundFailure("Item", "123")));
-
-        // When
-        var actionResult = await resultTask.ToActionResult();
-
-        // Then
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
-        Assert.Equal(404, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToActionResult with Created mapper returns CreatedAtActionResult")]
-    public async Task ValueTaskResultGeneric_ToActionResult_WithCreatedMapper_ReturnsCreatedAtActionResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Success(42));
-
-        // When
-        var actionResult = await resultTask.ToActionResult(v => new CreatedAtActionResult("GetItem", null, new { id = v }, v));
-
-        // Then
-        var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);
-        Assert.Equal("GetItem", createdResult.ActionName);
-        Assert.Equal(42,        createdResult.Value);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToActionResult with Created mapper on failure returns error result")]
-    public async Task ValueTaskResultGeneric_ToActionResult_WithCreatedMapper_Failure_ReturnsErrorResult()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure<int>(new ValidationFailure(["Invalid input"])));
-
-        // When
-        var actionResult = await resultTask.ToActionResult(v => new CreatedAtActionResult("GetItem", null, null, v));
-
-        // Then
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
-        Assert.Equal(400, objectResult.StatusCode);
-    }
-
-    [Fact(DisplayName = "ValueTask<Result<T>> ToActionResult with Created mapper and custom error mapper")]
-    public async Task ValueTaskResultGeneric_ToActionResult_WithCreatedMapperAndCustomError_ReturnsCustomError()
-    {
-        // Given
-        var resultTask = ValueTask.FromResult(Result.Failure<int>(new CustomFailure(409, "Conflict")));
-        var mapper     = new CustomStatusCodeMapper();
-
-        // When
-        var actionResult = await resultTask.ToActionResult(v => new CreatedAtActionResult("GetItem", null, null, v), mapper);
-
-        // Then
-        var objectResult = Assert.IsType<ConflictObjectResult>(actionResult);
-        Assert.Equal(409, objectResult.StatusCode);
-    }
-
-    #endregion
-
-    #region Helper classes for testing
-
-    private class CustomProblemDetailsMapper : IFailureHttpMapper
+    private sealed class CustomStatusCodeMapper : IFailureHttpMapper
     {
         public FailureHttpResponse? GetFailureResponse(IFailure failure)
         {
-            if (failure is ValidationFailure) {
-                return new FailureHttpResponse
-                {
-                    StatusCode = 400,
-                    Body = new ProblemDetails
-                    {
-                        Title  = "Validation Error",
-                        Status = 400,
-                        Detail = "One or more validation errors occurred."
-                    }
-                };
+            if (failure is not CustomFailure customFailure)
+            {
+                return null;
             }
 
-            return null;
+            return new FailureHttpResponse
+            {
+                StatusCode = customFailure.StatusCode,
+                Body = new ProblemDetails { Status = customFailure.StatusCode, Detail = customFailure.Message }
+            };
         }
     }
-
-    private class NullReturningMapper : IFailureHttpMapper
-    {
-        public FailureHttpResponse? GetFailureResponse(IFailure failure)
-        {
-            return null;
-        }
-    }
-
-    private record CustomFailure(int    StatusCode,
-                                 string Message) : Failure(Message);
-
-    private class CustomStatusCodeMapper : IFailureHttpMapper
-    {
-        public FailureHttpResponse? GetFailureResponse(IFailure failure)
-        {
-            var body = string.IsNullOrWhiteSpace(failure.Message)
-                           ? null
-                           : new { failure.Message };
-            if (failure is CustomFailure customError) {
-                return new FailureHttpResponse
-                {
-                    StatusCode = customError.StatusCode,
-                    Body       = body
-                };
-            }
-
-            return null;
-        }
-    }
-
-    #endregion
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Http;
 using UnambitiousFx.Functional.AspNetCore.Mvc;
@@ -22,15 +23,15 @@ public class AdapterAcceptanceTests
 
     [Theory(DisplayName = "Same failure maps to equivalent status code in Minimal API and MVC")]
     [MemberData(nameof(CommonFailures))]
-    public void SameFailure_MinimalAndMvc_MapToEquivalentStatusCode(Failure failure,
-                                                                    int     expectedStatusCode)
+    public async Task SameFailure_MinimalAndMvc_MapToEquivalentStatusCode(Failure failure,
+                                                                          int expectedStatusCode)
     {
         // Arrange (Given)
         var result = Result.Fail(failure);
 
         // Act (When)
-        var minimalStatusCode = GetMinimalStatusCode(result.ToHttpResult());
-        var mvcStatusCode     = GetMvcStatusCode(result.ToActionResult());
+        var minimalStatusCode = GetMinimalStatusCode(await result.AsHttpBuilder());
+        var mvcStatusCode = GetMvcStatusCode(await result.AsActionResultBuilder());
 
         // Assert (Then)
         Assert.Equal(expectedStatusCode, minimalStatusCode);
@@ -38,44 +39,60 @@ public class AdapterAcceptanceTests
     }
 
     [Fact(DisplayName = "Maybe.None handling is available and policy-based in Minimal API and MVC")]
-    public void MaybeNoneHandling_IsPolicyBased_AcrossMinimalAndMvc()
+    public async Task MaybeNoneHandling_IsPolicyBased_AcrossMinimalAndMvc()
     {
         // Arrange (Given)
         var maybe = Maybe.None<int>();
-        var policy = new ResultHttpAdapterPolicy
-        {
-            MaybeNoneBehavior = MaybeNoneHttpBehavior.NoContent
-        };
 
         // Act (When)
-        var minimalDefault   = GetMinimalStatusCode(maybe.ToHttpResult());
-        var mvcDefault       = GetMvcStatusCode(maybe.ToActionResult());
-        var minimalNoContent = GetMinimalStatusCode(maybe.ToHttpResult(policy: policy));
-        var mvcNoContent     = GetMvcStatusCode(maybe.ToActionResult(policy: policy));
+        var minimalDefault = GetMinimalStatusCode(await maybe.AsHttpBuilder());
+        var mvcDefault = GetMvcStatusCode(await maybe.AsActionResultBuilder());
+        var minimalNoContent = GetMinimalStatusCode(await maybe.AsHttpBuilder().AsNone(() => Results.NoContent()));
+        var mvcNoContent = GetMvcStatusCode(await maybe.AsActionResultBuilder().AsNone(() => new NoContentResult()));
 
         // Assert (Then)
-        Assert.Equal(StatusCodes.Status404NotFound,  minimalDefault);
-        Assert.Equal(StatusCodes.Status404NotFound,  mvcDefault);
+        Assert.Equal(StatusCodes.Status404NotFound, minimalDefault);
+        Assert.Equal(StatusCodes.Status404NotFound, mvcDefault);
         Assert.Equal(StatusCodes.Status204NoContent, minimalNoContent);
         Assert.Equal(StatusCodes.Status204NoContent, mvcNoContent);
     }
 
     private static int GetMinimalStatusCode(IHttpResult result)
     {
-        return result is IStatusCodeHttpResult { StatusCode: { } statusCode }
-                   ? statusCode
-                   : throw new InvalidOperationException(
-                         $"Unable to resolve status code from minimal result type: {result.GetType().Name}");
+        var inner = UnwrapMinimalResult(result);
+
+        return inner switch
+        {
+            IStatusCodeHttpResult { StatusCode: { } statusCode } => statusCode,
+            ForbidHttpResult => StatusCodes.Status403Forbidden,
+            _ => throw new InvalidOperationException(
+                     $"Unable to resolve status code from minimal result type: {inner.GetType().Name}")
+        };
     }
 
     private static int GetMvcStatusCode(IActionResult result)
     {
-        return result switch
+        var inner = UnwrapActionResult(result);
+
+        return inner switch
         {
             ObjectResult { StatusCode: { } statusCode } => statusCode,
-            StatusCodeResult statusCodeResult           => statusCodeResult.StatusCode,
+            StatusCodeResult statusCodeResult => statusCodeResult.StatusCode,
+            ForbidResult => StatusCodes.Status403Forbidden,
             _ => throw new InvalidOperationException(
-                     $"Unable to resolve status code from MVC result type: {result.GetType().Name}")
+                     $"Unable to resolve status code from MVC result type: {inner.GetType().Name}")
         };
+    }
+
+    private static IHttpResult UnwrapMinimalResult(IHttpResult result)
+    {
+        var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return innerField?.GetValue(result) as IHttpResult ?? result;
+    }
+
+    private static IActionResult UnwrapActionResult(IActionResult result)
+    {
+        var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return innerField?.GetValue(result) as IActionResult ?? result;
     }
 }
