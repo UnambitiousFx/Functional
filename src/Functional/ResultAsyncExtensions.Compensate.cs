@@ -5,19 +5,15 @@ namespace UnambitiousFx.Functional;
 /// <summary>
 ///     Provides extension methods for working with asynchronous Result operations.
 /// </summary>
-public static partial class ResultAsyncExtensions
-{
-    // ValueTask extensions
+public static partial class ResultAsyncExtensions {
     /// <summary>
     ///     Attempts to compensate for a failure by executing an asynchronous rollback function.
     /// </summary>
-    public static async ValueTask<Result<TValue>> Compensate<TValue>(this ValueTask<Result<TValue>>  resultTask,
+    public static async ValueTask<Result<TValue>> Compensate<TValue>(this ValueTask<Result<TValue>>   resultTask,
                                                                      Func<Failure, ValueTask<Result>> rollback)
-        where TValue : notnull
-    {
+        where TValue : notnull {
         var result = await resultTask;
-        if (result.IsSuccess)
-        {
+        if (result.IsSuccess) {
             return result;
         }
 
@@ -33,43 +29,9 @@ public static partial class ResultAsyncExtensions
     ///     Attempts to compensate for a failure by executing a rollback function.
     /// </summary>
     public static async ValueTask<Result<TValue>> Compensate<TValue>(this ValueTask<Result<TValue>> resultTask,
-                                                                     Func<Failure, Result>           rollback)
-        where TValue : notnull
-    {
+                                                                     Func<Failure, Result>          rollback)
+        where TValue : notnull {
         var result = await resultTask;
         return result.Compensate(rollback);
-    }
-
-    // Task extensions
-    /// <summary>
-    ///     Attempts to compensate for a failure by executing an asynchronous rollback function.
-    /// </summary>
-    public static ValueTask<Result<TValue>> Compensate<TValue>(this Task<Result<TValue>>       resultTask,
-                                                               Func<Failure, ValueTask<Result>> rollback)
-        where TValue : notnull
-    {
-        return new ValueTask<Result<TValue>>(CompensateCore(resultTask, rollback));
-
-        static async Task<Result<TValue>> CompensateCore(Task<Result<TValue>>          resultTask,
-                                                         Func<Failure, ValueTask<Result>> rollback)
-        {
-            return await new ValueTask<Result<TValue>>(resultTask).Compensate(rollback);
-        }
-    }
-
-    /// <summary>
-    ///     Attempts to compensate for a failure by executing a rollback function.
-    /// </summary>
-    public static ValueTask<Result<TValue>> Compensate<TValue>(this Task<Result<TValue>> resultTask,
-                                                               Func<Failure, Result>     rollback)
-        where TValue : notnull
-    {
-        return new ValueTask<Result<TValue>>(CompensateCore(resultTask, rollback));
-
-        static async Task<Result<TValue>> CompensateCore(Task<Result<TValue>>  resultTask,
-                                                         Func<Failure, Result> rollback)
-        {
-            return (await resultTask).Compensate(rollback);
-        }
     }
 }

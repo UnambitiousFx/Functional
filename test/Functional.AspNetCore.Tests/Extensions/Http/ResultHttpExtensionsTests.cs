@@ -139,6 +139,176 @@ public class ResultHttpExtensionsTests
         Assert.Equal(42, ok.Value);
     }
 
+    [Fact]
+    public async Task ValueTaskResult_AsHttpBuilder_WithSuccessResult_ReturnsNoContentStatusCode()
+    {
+        // Arrange (Given)
+        var resultTask = ValueTask.FromResult(Result.Success());
+
+        // Act (When)
+        var httpResult = await resultTask.AsHttpBuilder();
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status204NoContent, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithHeader_CopiesExistingHeadersWhenChaining()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithHeader("X-First", "one")
+                                     .WithHeader("X-Second", "two");
+        var headers = GetWrappedHeaders(httpResult);
+
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("one",  headers!["X-First"]);
+        Assert.Equal("two",  headers["X-Second"]);
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithFailure_ReturnsUnauthorizedStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("unauthorized"));
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder(new FixedBodyStatusMapper(401));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status401Unauthorized, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithFailure_ReturnsForbiddenStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("forbidden"));
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder(new FixedBodyStatusMapper(403));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status403Forbidden, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithFailure_ReturnsConflictStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("conflict"));
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder(new FixedBodyStatusMapper(409));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status409Conflict, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithFailure_ReturnsInternalServerErrorStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("server error"));
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder(new FixedBodyStatusMapper(500));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status500InternalServerError, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithFailure_ReturnsDefaultCustomStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("teapot"));
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder(new FixedBodyStatusMapper(418));
+
+        // Assert (Then)
+        Assert.Equal(418, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_GenericResult_WithCreatedStatusCodeAndNoLocationFactory_ReturnsCreatedStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithStatusCode(StatusCodes.Status201Created);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status201Created, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_GenericResult_WithAcceptedStatusCode_ReturnsAcceptedStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithStatusCode(StatusCodes.Status202Accepted);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status202Accepted, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_GenericResult_WithDefaultCustomStatusCode_ReturnsCustomStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithStatusCode(418);
+
+        // Assert (Then)
+        Assert.Equal(418, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_GenericResult_WithHeader_CopiesExistingHeadersWhenChaining()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithHeader("X-First", "one")
+                                     .WithHeader("X-Second", "two");
+        var headers = GetWrappedHeaders(httpResult);
+
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("one", headers!["X-First"]);
+        Assert.Equal("two", headers["X-Second"]);
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_GenericResult_WithStatusCode_OverridesDefaultSuccessCode()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var httpResult = await result.AsHttpBuilder()
+                                     .WithStatusCode(StatusCodes.Status204NoContent);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status204NoContent, GetStatusCode(httpResult));
+    }
+
     private static int GetStatusCode(IHttpResult result)
     {
         var inner = UnwrapWrappedResult(result);
@@ -180,6 +350,18 @@ public class ResultHttpExtensionsTests
             {
                 StatusCode = customFailure.StatusCode,
                 Body = new ProblemDetails { Status = customFailure.StatusCode, Detail = customFailure.Message }
+            };
+        }
+    }
+
+    private sealed class FixedBodyStatusMapper(int statusCode) : IFailureHttpMapper
+    {
+        public FailureHttpResponse? GetFailureResponse(IFailure failure)
+        {
+            return new FailureHttpResponse
+            {
+                StatusCode = statusCode,
+                Body       = new { Error = "error" }
             };
         }
     }

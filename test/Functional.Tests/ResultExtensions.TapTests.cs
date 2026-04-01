@@ -138,4 +138,179 @@ public sealed partial class ResultExtensions
     }
 
     #endregion
+
+    #region TapIf Tests
+
+    [Fact]
+    public void TapIf_NonGeneric_WithSuccess_AndPredicateTrue_ExecutesAction()
+    {
+        // Arrange (Given)
+        var result      = Result.Success();
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.TapIf(() => true, () => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Success();
+        Assert.True(tapExecuted);
+    }
+
+    [Fact]
+    public void TapIf_NonGeneric_WithSuccess_AndPredicateFalse_DoesNotExecuteAction()
+    {
+        // Arrange (Given)
+        var result      = Result.Success();
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.TapIf(() => false, () => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Success();
+        Assert.False(tapExecuted);
+    }
+
+    [Fact]
+    public void TapIf_NonGeneric_WithFailure_DoesNotExecuteAction()
+    {
+        // Arrange (Given)
+        var error       = new Failure("Test error");
+        var result      = Result.Failure(error);
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.TapIf(() => true, () => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Failure()
+              .AndMessage("Test error");
+        Assert.False(tapExecuted);
+    }
+
+    [Fact]
+    public void TapIf_Generic_WithSuccess_AndPredicateTrue_ExecutesValueAction()
+    {
+        // Arrange (Given)
+        var result      = Result.Success(42);
+        var capturedVal = 0;
+
+        // Act (When)
+        var tapped = result.TapIf(v => v > 0, v => capturedVal = v);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
+        Assert.Equal(42, capturedVal);
+    }
+
+    [Fact]
+    public void TapIf_Generic_WithSuccess_AndPredicateFalse_DoesNotExecuteAction()
+    {
+        // Arrange (Given)
+        var result      = Result.Success(42);
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.TapIf(v => v < 0, _ => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
+        Assert.False(tapExecuted);
+    }
+
+    [Fact]
+    public void TapIf_Generic_WithFailure_DoesNotExecuteAction()
+    {
+        // Arrange (Given)
+        var error       = new Failure("Test error");
+        var result      = Result.Failure<int>(error);
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.TapIf(v => v > 0, _ => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Failure()
+              .AndMessage("Test error");
+        Assert.False(tapExecuted);
+    }
+
+    [Fact]
+    public void TapIf_Generic_WithNoArgAction_AndPredicateTrue_ExecutesAction()
+    {
+        // Arrange (Given)
+        var result      = Result.Success(42);
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.TapIf(v => v > 0, () => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
+        Assert.True(tapExecuted);
+    }
+
+    [Fact]
+    public void TapIf_Generic_WithNoArgAction_AndPredicateFalse_DoesNotExecuteAction()
+    {
+        // Arrange (Given)
+        var result      = Result.Success(42);
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.TapIf(v => v < 0, () => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
+        Assert.False(tapExecuted);
+    }
+
+    [Fact]
+    public void Tap_Generic_WithNoArgAction_OnSuccess_ExecutesAction()
+    {
+        // Arrange (Given)
+        var result      = Result.Success(42);
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.Tap(() => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
+        Assert.True(tapExecuted);
+    }
+
+    [Fact]
+    public void Tap_Generic_WithNoArgAction_OnFailure_DoesNotExecuteAction()
+    {
+        // Arrange (Given)
+        var error       = new Failure("Test error");
+        var result      = Result.Failure<int>(error);
+        var tapExecuted = false;
+
+        // Act (When)
+        var tapped = result.Tap(() => tapExecuted = true);
+
+        // Assert (Then)
+        tapped.ShouldBe()
+              .Failure()
+              .AndMessage("Test error");
+        Assert.False(tapExecuted);
+    }
+
+    #endregion
 }

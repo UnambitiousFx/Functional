@@ -4,119 +4,42 @@ using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Mappers;
 
-public class DefaultErrorHttpMapperTests
+public class DefaultFailureHttpMapperTests
 {
     private readonly DefaultFailureHttpMapper _sut = new();
 
-    [Fact(DisplayName = "GetFailureResponse returns 400 for ValidationError")]
-    public void GetErrorResponse_ValidationError_Returns400()
+    [Theory]
+    [InlineData(typeof(ValidationFailure),      400)]
+    [InlineData(typeof(NotFoundFailure),         404)]
+    [InlineData(typeof(UnauthorizedFailure),     401)]
+    [InlineData(typeof(UnauthenticatedFailure),  403)]
+    [InlineData(typeof(ConflictFailure),         409)]
+    [InlineData(typeof(ExceptionalFailure),      500)]
+    [InlineData(typeof(Failure),                 500)]
+    public void GetFailureResponse_WithFailureType_ReturnsExpectedStatusCode(Type failureType, int expectedStatusCode)
     {
-        // Given
-        var error = new ValidationFailure(["Field is required"]);
+        // Arrange (Given)
+        var error = CreateFailure(failureType);
 
-        // When
+        // Act (When)
         var response = _sut.GetFailureResponse(error);
 
-        // Then
+        // Assert (Then)
         Assert.NotNull(response);
-        Assert.Equal(400, response.StatusCode);
+        Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 
-    [Fact(DisplayName = "GetFailureResponse returns 404 for NotFoundError")]
-    public void GetErrorResponse_NotFoundError_Returns404()
+    [Fact]
+    public void GetFailureResponse_ValidationError_ReturnsValidationProblemDetails()
     {
-        // Given
-        var error = new NotFoundFailure("User", "123");
-
-        // When
-        var response = _sut.GetFailureResponse(error);
-
-        // Then
-        Assert.NotNull(response);
-        Assert.Equal(404, response.StatusCode);
-    }
-
-    [Fact(DisplayName = "GetFailureResponse returns 401 for UnauthorizedError")]
-    public void GetErrorResponse_UnauthorizedError_Returns401()
-    {
-        // Given
-        var error = new UnauthorizedFailure();
-
-        // When
-        var response = _sut.GetFailureResponse(error);
-
-        // Then
-        Assert.NotNull(response);
-        Assert.Equal(401, response.StatusCode);
-    }
-
-    [Fact(DisplayName = "GetFailureResponse returns 403 for UnauthenticatedError")]
-    public void GetErrorResponse_UnauthenticatedError_Returns401()
-    {
-        // Given
-        var error = new UnauthenticatedFailure();
-
-        // When
-        var response = _sut.GetFailureResponse(error);
-
-        // Then
-        Assert.NotNull(response);
-        Assert.Equal(403, response.StatusCode);
-    }
-
-    [Fact(DisplayName = "GetFailureResponse returns 409 for ConflictError")]
-    public void GetErrorResponse_ConflictError_Returns409()
-    {
-        // Given
-        var error = new ConflictFailure("Resource already exists");
-
-        // When
-        var response = _sut.GetFailureResponse(error);
-
-        // Then
-        Assert.NotNull(response);
-        Assert.Equal(409, response.StatusCode);
-    }
-
-    [Fact(DisplayName = "GetFailureResponse returns 500 for ExceptionalError")]
-    public void GetErrorResponse_ExceptionalError_Returns500()
-    {
-        // Given
-        var error = new ExceptionalFailure(new Exception("Internal error"));
-
-        // When
-        var response = _sut.GetFailureResponse(error);
-
-        // Then
-        Assert.NotNull(response);
-        Assert.Equal(500, response.StatusCode);
-    }
-
-    [Fact(DisplayName = "GetFailureResponse returns 500 for custom Error")]
-    public void GetErrorResponse_CustomError_Returns500()
-    {
-        // Given
-        var error = new Failure("CUSTOM", "Custom error message");
-
-        // When
-        var response = _sut.GetFailureResponse(error);
-
-        // Then
-        Assert.NotNull(response);
-        Assert.Equal(500, response.StatusCode);
-    }
-
-    [Fact(DisplayName = "GetFailureResponse returns validation failures for ValidationError")]
-    public void GetErrorResponse_ValidationError_ReturnsFailures()
-    {
-        // Given
+        // Arrange (Given)
         var failures = new[] { "Field is required", "Email is invalid" };
         var error    = new ValidationFailure(failures);
 
-        // When
+        // Act (When)
         var response = _sut.GetFailureResponse(error);
 
-        // Then
+        // Assert (Then)
         Assert.NotNull(response);
         Assert.NotNull(response.Body);
         var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
@@ -125,22 +48,50 @@ public class DefaultErrorHttpMapperTests
         Assert.Contains("code", problemDetail.Extensions);
     }
 
-    [Fact(DisplayName = "GetFailureResponse returns resource and identifier for NotFoundError")]
-    public void GetErrorResponse_NotFoundError_ReturnsResourceAndIdentifier()
+    [Fact]
+    public void GetFailureResponse_NotFoundError_ReturnsResourceAndIdentifier()
     {
-        // Given
+        // Arrange (Given)
         var error = new NotFoundFailure("User", "123");
 
-        // When
+        // Act (When)
         var response = _sut.GetFailureResponse(error);
 
-
-        // Then
+        // Assert (Then)
         Assert.NotNull(response);
         Assert.NotNull(response.Body);
         var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
         Assert.Equal("Not Found", problemDetail.Title);
         Assert.Equal(404,         problemDetail.Status);
         Assert.Equal("123",       problemDetail.Extensions["identifier"]);
+    }
+
+    private static IFailure CreateFailure(Type failureType)
+    {
+        if (failureType == typeof(ValidationFailure)) {
+            return new ValidationFailure(["Field is required"]);
+        }
+
+        if (failureType == typeof(NotFoundFailure)) {
+            return new NotFoundFailure("User", "123");
+        }
+
+        if (failureType == typeof(UnauthorizedFailure)) {
+            return new UnauthorizedFailure();
+        }
+
+        if (failureType == typeof(UnauthenticatedFailure)) {
+            return new UnauthenticatedFailure();
+        }
+
+        if (failureType == typeof(ConflictFailure)) {
+            return new ConflictFailure("Resource already exists");
+        }
+
+        if (failureType == typeof(ExceptionalFailure)) {
+            return new ExceptionalFailure(new Exception("Internal error"));
+        }
+
+        return new Failure("CUSTOM", "Custom error message");
     }
 }

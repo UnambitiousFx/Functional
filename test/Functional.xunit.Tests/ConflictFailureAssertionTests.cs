@@ -5,7 +5,7 @@ namespace UnambitiousFx.Functional.xunit.Tests;
 
 public class ConflictFailureAssertionTests
 {
-    [Fact(DisplayName = "And executes custom assertion and returns self for chaining")]
+    [Fact]
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
@@ -19,7 +19,7 @@ public class ConflictFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndMessage succeeds when message matches")]
+    [Fact]
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
@@ -33,7 +33,7 @@ public class ConflictFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndMessage throws when message does not match")]
+    [Fact]
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -44,7 +44,7 @@ public class ConflictFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
     }
 
-    [Fact(DisplayName = "AndCode succeeds when code matches")]
+    [Fact]
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
@@ -58,7 +58,7 @@ public class ConflictFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndCode throws when code does not match")]
+    [Fact]
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -69,7 +69,7 @@ public class ConflictFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
     }
 
-    [Fact(DisplayName = "Fluent chaining works with multiple assertions")]
+    [Fact]
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
@@ -82,7 +82,7 @@ public class ConflictFailureAssertionTests
            .AndMessage("Resource already exists");
     }
 
-    [Fact(DisplayName = "And allows custom assertions on error properties")]
+    [Fact]
     public void And_AllowsCustomAssertions_OnErrorProperties()
     {
         // Arrange (Given)

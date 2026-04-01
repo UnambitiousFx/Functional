@@ -5,7 +5,7 @@ namespace UnambitiousFx.Functional.xunit.Tests;
 
 public class ValidationFailureAssertionTests
 {
-    [Fact(DisplayName = "And executes custom assertion and returns self for chaining")]
+    [Fact]
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
@@ -19,7 +19,7 @@ public class ValidationFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "WithFailure succeeds when failure exists")]
+    [Fact]
     public void WithFailure_WhenFailureExists_Succeeds()
     {
         // Arrange (Given)
@@ -33,7 +33,7 @@ public class ValidationFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "WithFailure throws when failure does not exist")]
+    [Fact]
     public void WithFailure_WhenFailureDoesNotExist_Throws()
     {
         // Arrange (Given)
@@ -44,7 +44,7 @@ public class ValidationFailureAssertionTests
         Assert.Throws<ContainsException>(() => assertion.WithFailure("Email is invalid"));
     }
 
-    [Fact(DisplayName = "WithFailureContaining succeeds when text is contained in a failure")]
+    [Fact]
     public void WithFailureContaining_WhenTextContained_Succeeds()
     {
         // Arrange (Given)
@@ -58,7 +58,7 @@ public class ValidationFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "WithFailureContaining throws when text is not contained in any failure")]
+    [Fact]
     public void WithFailureContaining_WhenTextNotContained_Throws()
     {
         // Arrange (Given)
@@ -69,7 +69,7 @@ public class ValidationFailureAssertionTests
         Assert.Throws<ContainsException>(() => assertion.WithFailureContaining("invalid"));
     }
 
-    [Fact(DisplayName = "WithFailureCount succeeds when count matches")]
+    [Fact]
     public void WithFailureCount_WhenCountMatches_Succeeds()
     {
         // Arrange (Given)
@@ -83,7 +83,7 @@ public class ValidationFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "WithFailureCount throws when count does not match")]
+    [Fact]
     public void WithFailureCount_WhenCountDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -94,7 +94,7 @@ public class ValidationFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.WithFailureCount(2));
     }
 
-    [Fact(DisplayName = "AndMessage succeeds when message matches")]
+    [Fact]
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
@@ -108,7 +108,7 @@ public class ValidationFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndMessage throws when message does not match")]
+    [Fact]
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -119,7 +119,7 @@ public class ValidationFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
     }
 
-    [Fact(DisplayName = "AndCode succeeds when code matches")]
+    [Fact]
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
@@ -133,7 +133,7 @@ public class ValidationFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndCode throws when code does not match")]
+    [Fact]
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -144,7 +144,7 @@ public class ValidationFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
     }
 
-    [Fact(DisplayName = "Fluent chaining works with multiple assertions")]
+    [Fact]
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)

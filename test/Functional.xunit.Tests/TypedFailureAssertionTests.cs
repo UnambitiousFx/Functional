@@ -5,7 +5,7 @@ namespace UnambitiousFx.Functional.xunit.Tests;
 
 public class TypedFailureAssertionTests
 {
-    [Fact(DisplayName = "And executes custom assertion and returns self for chaining")]
+    [Fact]
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
@@ -19,7 +19,7 @@ public class TypedFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "Where succeeds when predicate is satisfied")]
+    [Fact]
     public void Where_WhenPredicateSatisfied_Succeeds()
     {
         // Arrange (Given)
@@ -33,7 +33,7 @@ public class TypedFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "Where throws when predicate is not satisfied")]
+    [Fact]
     public void Where_WhenPredicateNotSatisfied_Throws()
     {
         // Arrange (Given)
@@ -45,7 +45,7 @@ public class TypedFailureAssertionTests
         Assert.Contains("Failure does not satisfy predicate", exception.Message);
     }
 
-    [Fact(DisplayName = "Where includes custom because message in failure")]
+    [Fact]
     public void Where_WithBecauseMessage_IncludesInFailure()
     {
         // Arrange (Given)
@@ -58,7 +58,7 @@ public class TypedFailureAssertionTests
         Assert.Contains("Custom reason", exception.Message);
     }
 
-    [Fact(DisplayName = "Where throws ArgumentNullException when predicate is null")]
+    [Fact]
     public void Where_WhenPredicateNull_ThrowsArgumentNullException()
     {
         // Arrange (Given)
@@ -69,7 +69,7 @@ public class TypedFailureAssertionTests
         Assert.Throws<ArgumentNullException>(() => assertion.Where(null!));
     }
 
-    [Fact(DisplayName = "AndMessage succeeds when message matches")]
+    [Fact]
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
@@ -83,7 +83,7 @@ public class TypedFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndMessage throws when message does not match")]
+    [Fact]
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -94,7 +94,7 @@ public class TypedFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
     }
 
-    [Fact(DisplayName = "AndCode succeeds when code matches")]
+    [Fact]
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
@@ -108,7 +108,7 @@ public class TypedFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndCode throws when code does not match")]
+    [Fact]
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -119,7 +119,7 @@ public class TypedFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
     }
 
-    [Fact(DisplayName = "Fluent chaining works with multiple assertions")]
+    [Fact]
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
@@ -133,7 +133,7 @@ public class TypedFailureAssertionTests
            .AndMessage("Unauthorized");
     }
 
-    [Fact(DisplayName = "Works with custom error types")]
+    [Fact]
     public void WorksWithCustomErrorTypes_Correctly()
     {
         // Arrange (Given)
@@ -147,7 +147,7 @@ public class TypedFailureAssertionTests
            .Where(e => e.Code.StartsWith("CUST"));
     }
 
-    [Fact(DisplayName = "And allows complex custom assertions")]
+    [Fact]
     public void And_AllowsComplexCustomAssertions()
     {
         // Arrange (Given)

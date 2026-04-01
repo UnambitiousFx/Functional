@@ -1,6 +1,5 @@
 namespace UnambitiousFx.Functional;
 
-
 /// <summary>
 ///     Provides extension methods for working with asynchronous Maybe operations.
 /// </summary>
@@ -39,51 +38,6 @@ public static partial class MaybeAsyncExtensions {
             }
 
             return await fallbackFactory();
-        }
-    }
-
-    extension<TIn>(Task<Maybe<TIn>> maybeTask)
-        where TIn : notnull {
-        /// <summary>
-        ///     Returns the current Maybe if it is Some; otherwise returns the fallback value.
-        /// </summary>
-        /// <param name="fallback">The fallback Maybe to use when None.</param>
-        /// <returns>The current Maybe if Some; otherwise the fallback.</returns>
-        public ValueTask<Maybe<TIn>> OrElse(Maybe<TIn> fallback) {
-            return new ValueTask<Maybe<TIn>>(OrElseCore(maybeTask, fallback));
-
-            static async Task<Maybe<TIn>> OrElseCore(Task<Maybe<TIn>> maybeTask,
-                                                     Maybe<TIn>       fallback) {
-                return (await maybeTask).OrElse(fallback);
-            }
-        }
-
-        /// <summary>
-        ///     Returns the current Maybe if it is Some; otherwise returns the fallback created by the factory.
-        /// </summary>
-        /// <param name="fallbackFactory">The factory to create a fallback Maybe when None.</param>
-        /// <returns>The current Maybe if Some; otherwise the fallback from the factory.</returns>
-        public ValueTask<Maybe<TIn>> OrElse(Func<Maybe<TIn>> fallbackFactory) {
-            return new ValueTask<Maybe<TIn>>(OrElseCore(maybeTask, fallbackFactory));
-
-            static async Task<Maybe<TIn>> OrElseCore(Task<Maybe<TIn>> maybeTask,
-                                                     Func<Maybe<TIn>> fallbackFactory) {
-                return (await maybeTask).OrElse(fallbackFactory);
-            }
-        }
-
-        /// <summary>
-        ///     Returns the current Maybe if it is Some; otherwise returns the fallback created by the asynchronous factory.
-        /// </summary>
-        /// <param name="fallbackFactory">The asynchronous factory to create a fallback Maybe when None.</param>
-        /// <returns>The current Maybe if Some; otherwise the fallback from the asynchronous factory.</returns>
-        public ValueTask<Maybe<TIn>> OrElse(Func<ValueTask<Maybe<TIn>>> fallbackFactory) {
-            return new ValueTask<Maybe<TIn>>(OrElseCore(maybeTask, fallbackFactory));
-
-            static async Task<Maybe<TIn>> OrElseCore(Task<Maybe<TIn>>             maybeTask,
-                                                     Func<ValueTask<Maybe<TIn>>> fallbackFactory) {
-                return await new ValueTask<Maybe<TIn>>(maybeTask).OrElse(fallbackFactory);
-            }
         }
     }
 }

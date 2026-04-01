@@ -2,10 +2,10 @@ using UnambitiousFx.Functional.AspNetCore.Mappers;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Mappers;
 
-public class ErrorHttpResponseTests
+public class FailureHttpResponseTests
 {
-    [Fact(DisplayName = "FailureHttpResponse can be created with required properties")]
-    public void ErrorHttpResponse_WithRequiredProperties_CreatesSuccessfully()
+    [Fact]
+    public void FailureHttpResponse_WithRequiredProperties_CreatesSuccessfully()
     {
         // Arrange (Given) & Act (When)
         var response = new FailureHttpResponse
@@ -21,8 +21,8 @@ public class ErrorHttpResponseTests
         Assert.Null(response.ContentType);
     }
 
-    [Fact(DisplayName = "FailureHttpResponse can include headers")]
-    public void ErrorHttpResponse_WithHeaders_IncludesHeaders()
+    [Fact]
+    public void FailureHttpResponse_WithHeaders_IncludesHeaders()
     {
         // Arrange (Given)
         var headers = new Dictionary<string, string>
@@ -47,8 +47,8 @@ public class ErrorHttpResponseTests
         Assert.Equal("custom-value",             response.Headers["X-Custom-Header"]);
     }
 
-    [Fact(DisplayName = "FailureHttpResponse can include content type")]
-    public void ErrorHttpResponse_WithContentType_IncludesContentType()
+    [Fact]
+    public void FailureHttpResponse_WithContentType_IncludesContentType()
     {
         // Arrange (Given) & Act (When)
         var response = new FailureHttpResponse
@@ -63,8 +63,8 @@ public class ErrorHttpResponseTests
         Assert.Equal("application/xml", response.ContentType);
     }
 
-    [Fact(DisplayName = "FailureHttpResponse with null body creates successfully")]
-    public void ErrorHttpResponse_WithNullBody_CreatesSuccessfully()
+    [Fact]
+    public void FailureHttpResponse_WithNullBody_CreatesSuccessfully()
     {
         // Arrange (Given) & Act (When)
         var response = new FailureHttpResponse
@@ -77,8 +77,8 @@ public class ErrorHttpResponseTests
         Assert.Null(response.Body);
     }
 
-    [Fact(DisplayName = "FailureHttpResponse with all properties creates successfully")]
-    public void ErrorHttpResponse_WithAllProperties_CreatesSuccessfully()
+    [Fact]
+    public void FailureHttpResponse_WithAllProperties_CreatesSuccessfully()
     {
         // Arrange (Given)
         var headers = new Dictionary<string, string>

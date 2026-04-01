@@ -1,32 +1,51 @@
 using UnambitiousFx.Functional.Failures;
 
-#pragma warning disable CS1591
-
 namespace UnambitiousFx.Functional;
 
 /// <summary>
 ///     Provides extension methods for working with asynchronous Result operations.
 /// </summary>
-public static partial class ResultAsyncExtensions
-{
-    // ValueTask extensions
+public static partial class ResultAsyncExtensions {
+    /// <summary>
+    ///     Ensures that a given asynchronous <see cref="Result{TValue}" /> satisfies the specified predicate.
+    ///     If the predicate is not satisfied, the specified error factory is used to generate a failure.
+    /// </summary>
+    /// <typeparam name="TIn">The type of the value within the result.</typeparam>
+    /// <param name="resultTask">The asynchronous result to validate.</param>
+    /// <param name="predicate">The predicate to evaluate the result value against.</param>
+    /// <param name="errorFactory">
+    ///     A function to generate a failure if the predicate is not satisfied. It takes the invalid value as input.
+    /// </param>
+    /// <returns>
+    ///     A <see cref="ValueTask{TResult}" /> that represents the result of ensuring the predicate.
+    ///     If the predicate is satisfied, the original result is returned; otherwise, a failure result is returned.
+    /// </returns>
     public static async ValueTask<Result<TIn>> Ensure<TIn>(this ValueTask<Result<TIn>> resultTask,
                                                            Func<TIn, bool>             predicate,
                                                            Func<TIn, Failure>          errorFactory)
-        where TIn : notnull
-    {
+        where TIn : notnull {
         var result = await resultTask;
         return result.Ensure(predicate, errorFactory);
     }
 
-    public static async ValueTask<Result<TIn>> Ensure<TIn>(this ValueTask<Result<TIn>>    resultTask,
-                                                           Func<TIn, ValueTask<bool>>     predicate,
-                                                           Func<TIn, Failure>             errorFactory)
-        where TIn : notnull
-    {
+    /// <summary>
+    ///     Ensures that a value within the asynchronous Result meets a specified condition.
+    ///     If the predicate evaluates to false, the provided error factory is used to generate a failure result.
+    /// </summary>
+    /// <typeparam name="TIn">The type of the value contained in the Result.</typeparam>
+    /// <param name="resultTask">The task representing the asynchronous Result to be evaluated.</param>
+    /// <param name="predicate">A function that evaluates the specified condition on the contained value.</param>
+    /// <param name="errorFactory">A function that produces a Failure object if the predicate condition is not met.</param>
+    /// <returns>
+    ///     A ValueTask representing a Result. If the predicate evaluates to true for the contained value,
+    ///     the original Result is returned. Otherwise, a failure Result is returned based on the produced Failure object.
+    /// </returns>
+    public static async ValueTask<Result<TIn>> Ensure<TIn>(this ValueTask<Result<TIn>> resultTask,
+                                                           Func<TIn, ValueTask<bool>>  predicate,
+                                                           Func<TIn, Failure>          errorFactory)
+        where TIn : notnull {
         var result = await resultTask;
-        if (!result.TryGetValue(out var value))
-        {
+        if (!result.TryGetValue(out var value)) {
             return result;
         }
 
@@ -35,14 +54,33 @@ public static partial class ResultAsyncExtensions
                    : Result.Failure<TIn>(errorFactory(value));
     }
 
-    public static async ValueTask<Result<TIn>> Ensure<TIn>(this ValueTask<Result<TIn>>         resultTask,
-                                                           Func<TIn, ValueTask<bool>>          predicate,
-                                                           Func<TIn, ValueTask<Failure>>       errorFactory)
-        where TIn : notnull
-    {
+    /// <summary>
+    ///     Ensures that the result satisfies the given predicate. If the predicate evaluates to false,
+    ///     the specified error is returned as a failure. This method supports asynchronous operations
+    ///     for both the predicate and error factory.
+    /// </summary>
+    /// <typeparam name="TIn">The type of the value contained in the result.</typeparam>
+    /// <param name="resultTask">
+    ///     A <see cref="ValueTask{Result}" /> representing the asynchronous result object to be validated.
+    /// </param>
+    /// <param name="predicate">
+    ///     A function that takes the value of type <typeparamref name="TIn" /> and returns an asynchronous
+    ///     <see cref="ValueTask{Boolean}" /> indicating whether the value passes the condition.
+    /// </param>
+    /// <param name="errorFactory">
+    ///     A function that takes the value of type <typeparamref name="TIn" /> and returns an asynchronous
+    ///     <see cref="ValueTask{Failure}" /> representing the error to use if the predicate is not satisfied.
+    /// </param>
+    /// <returns>
+    ///     A <see cref="ValueTask{Result}" /> containing the original result if the predicate passes, or a failure
+    ///     result generated by the error factory if the predicate fails.
+    /// </returns>
+    public static async ValueTask<Result<TIn>> Ensure<TIn>(this ValueTask<Result<TIn>>   resultTask,
+                                                           Func<TIn, ValueTask<bool>>    predicate,
+                                                           Func<TIn, ValueTask<Failure>> errorFactory)
+        where TIn : notnull {
         var result = await resultTask;
-        if (!result.TryGetValue(out var value))
-        {
+        if (!result.TryGetValue(out var value)) {
             return result;
         }
 
@@ -50,52 +88,4 @@ public static partial class ResultAsyncExtensions
                    ? result
                    : Result.Failure<TIn>(await errorFactory(value));
     }
-
-    // Task extensions
-    public static ValueTask<Result<TIn>> Ensure<TIn>(this Task<Result<TIn>> resultTask,
-                                                     Func<TIn, bool>        predicate,
-                                                     Func<TIn, Failure>     errorFactory)
-        where TIn : notnull
-    {
-        return new ValueTask<Result<TIn>>(EnsureCore(resultTask, predicate, errorFactory));
-
-        static async Task<Result<TIn>> EnsureCore(Task<Result<TIn>>  resultTask,
-                                                  Func<TIn, bool>    predicate,
-                                                  Func<TIn, Failure> errorFactory)
-        {
-            return (await resultTask).Ensure(predicate, errorFactory);
-        }
-    }
-
-    public static ValueTask<Result<TIn>> Ensure<TIn>(this Task<Result<TIn>>        resultTask,
-                                                     Func<TIn, ValueTask<bool>>    predicate,
-                                                     Func<TIn, Failure>            errorFactory)
-        where TIn : notnull
-    {
-        return new ValueTask<Result<TIn>>(EnsureCore(resultTask, predicate, errorFactory));
-
-        static async Task<Result<TIn>> EnsureCore(Task<Result<TIn>>         resultTask,
-                                                  Func<TIn, ValueTask<bool>> predicate,
-                                                  Func<TIn, Failure>         errorFactory)
-        {
-            return await new ValueTask<Result<TIn>>(resultTask).Ensure(predicate, errorFactory);
-        }
-    }
-
-    public static ValueTask<Result<TIn>> Ensure<TIn>(this Task<Result<TIn>>              resultTask,
-                                                     Func<TIn, ValueTask<bool>>          predicate,
-                                                     Func<TIn, ValueTask<Failure>>       errorFactory)
-        where TIn : notnull
-    {
-        return new ValueTask<Result<TIn>>(EnsureCore(resultTask, predicate, errorFactory));
-
-        static async Task<Result<TIn>> EnsureCore(Task<Result<TIn>>                 resultTask,
-                                                  Func<TIn, ValueTask<bool>>        predicate,
-                                                  Func<TIn, ValueTask<Failure>>     errorFactory)
-        {
-            return await new ValueTask<Result<TIn>>(resultTask).Ensure(predicate, errorFactory);
-        }
-    }
 }
-
-#pragma warning restore CS1591

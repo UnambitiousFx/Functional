@@ -137,6 +137,162 @@ public class ResultHttpExtensionsTests
         Assert.Equal(42, ok.Value);
     }
 
+    [Fact]
+    public async Task ValueTaskResult_AsActionResultBuilder_WithSuccessResult_ReturnsNoContentStatusCode()
+    {
+        // Arrange (Given)
+        var resultTask = ValueTask.FromResult(Result.Success());
+
+        // Act (When)
+        var actionResult = await resultTask.AsActionResultBuilder();
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status204NoContent, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithHeader_CopiesExistingHeadersWhenChaining()
+    {
+        // Arrange (Given)
+        var result = Result.Success();
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithHeader("X-First", "one")
+                                       .WithHeader("X-Second", "two");
+        var headers = GetWrappedHeaders(actionResult);
+
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("one", headers!["X-First"]);
+        Assert.Equal("two", headers["X-Second"]);
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithFailure_ReturnsUnauthorizedStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("unauthorized"));
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder(new FixedBodyStatusMapper(401));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status401Unauthorized, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithFailure_ReturnsForbiddenStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("forbidden"));
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder(new FixedBodyStatusMapper(403));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status403Forbidden, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithFailure_ReturnsConflictStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("conflict"));
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder(new FixedBodyStatusMapper(409));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status409Conflict, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithFailure_ReturnsInternalServerErrorStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("server error"));
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder(new FixedBodyStatusMapper(500));
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status500InternalServerError, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithFailure_ReturnsDefaultCustomStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Failure(new Failure("teapot"));
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder(new FixedBodyStatusMapper(418));
+
+        // Assert (Then)
+        Assert.Equal(418, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_GenericResult_WithCreatedStatusCodeAndNoLocationFactory_ReturnsCreatedStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithStatusCode(StatusCodes.Status201Created);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status201Created, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_GenericResult_WithAcceptedStatusCode_ReturnsAcceptedStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithStatusCode(StatusCodes.Status202Accepted);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status202Accepted, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_GenericResult_WithDefaultCustomStatusCode_ReturnsCustomStatusCode()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithStatusCode(418);
+
+        // Assert (Then)
+        Assert.Equal(418, GetStatusCode(actionResult));
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_GenericResult_WithHeader_CopiesExistingHeadersWhenChaining()
+    {
+        // Arrange (Given)
+        var result = Result.Success(42);
+
+        // Act (When)
+        var actionResult = await result.AsActionResultBuilder()
+                                       .WithHeader("X-First", "one")
+                                       .WithHeader("X-Second", "two");
+        var headers = GetWrappedHeaders(actionResult);
+
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("one", headers!["X-First"]);
+        Assert.Equal("two", headers["X-Second"]);
+    }
+
     private static int GetStatusCode(IActionResult result)
     {
         var inner = UnwrapWrappedResult(result);
@@ -179,6 +335,18 @@ public class ResultHttpExtensionsTests
             {
                 StatusCode = customFailure.StatusCode,
                 Body = new ProblemDetails { Status = customFailure.StatusCode, Detail = customFailure.Message }
+            };
+        }
+    }
+
+    private sealed class FixedBodyStatusMapper(int statusCode) : IFailureHttpMapper
+    {
+        public FailureHttpResponse? GetFailureResponse(IFailure failure)
+        {
+            return new FailureHttpResponse
+            {
+                StatusCode = statusCode,
+                Body       = new { Error = "error" }
             };
         }
     }

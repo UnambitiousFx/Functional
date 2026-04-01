@@ -5,7 +5,7 @@ namespace UnambitiousFx.Functional.xunit.Tests;
 
 public class NotFoundFailureAssertionTests
 {
-    [Fact(DisplayName = "And executes custom assertion and returns self for chaining")]
+    [Fact]
     public void And_ExecutesCustomAssertion_ReturnsSelf()
     {
         // Arrange (Given)
@@ -19,7 +19,7 @@ public class NotFoundFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "WithResource succeeds when resource matches")]
+    [Fact]
     public void WithResource_WhenResourceMatches_Succeeds()
     {
         // Arrange (Given)
@@ -33,7 +33,7 @@ public class NotFoundFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "WithResource throws when resource does not match")]
+    [Fact]
     public void WithResource_WhenResourceDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -44,7 +44,7 @@ public class NotFoundFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.WithResource("Product"));
     }
 
-    [Fact(DisplayName = "WithIdentifier succeeds when identifier matches")]
+    [Fact]
     public void WithIdentifier_WhenIdentifierMatches_Succeeds()
     {
         // Arrange (Given)
@@ -58,7 +58,7 @@ public class NotFoundFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "WithIdentifier throws when identifier does not match")]
+    [Fact]
     public void WithIdentifier_WhenIdentifierDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -69,7 +69,7 @@ public class NotFoundFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.WithIdentifier("456"));
     }
 
-    [Fact(DisplayName = "AndMessage succeeds when message matches")]
+    [Fact]
     public void AndMessage_WhenMessageMatches_Succeeds()
     {
         // Arrange (Given)
@@ -83,7 +83,7 @@ public class NotFoundFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndMessage throws when message does not match")]
+    [Fact]
     public void AndMessage_WhenMessageDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -94,7 +94,7 @@ public class NotFoundFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndMessage("Wrong message"));
     }
 
-    [Fact(DisplayName = "AndCode succeeds when code matches")]
+    [Fact]
     public void AndCode_WhenCodeMatches_Succeeds()
     {
         // Arrange (Given)
@@ -108,7 +108,7 @@ public class NotFoundFailureAssertionTests
         Assert.Equal(error, result.Failure);
     }
 
-    [Fact(DisplayName = "AndCode throws when code does not match")]
+    [Fact]
     public void AndCode_WhenCodeDoesNotMatch_Throws()
     {
         // Arrange (Given)
@@ -119,7 +119,7 @@ public class NotFoundFailureAssertionTests
         Assert.Throws<EqualException>(() => assertion.AndCode("WRONG_CODE"));
     }
 
-    [Fact(DisplayName = "Fluent chaining works with multiple assertions")]
+    [Fact]
     public void FluentChaining_WithMultipleAssertions_Works()
     {
         // Arrange (Given)
@@ -134,7 +134,7 @@ public class NotFoundFailureAssertionTests
            .AndMessage("Resource 'User' with id '123' was not found.");
     }
 
-    [Fact(DisplayName = "And allows custom assertions on error properties")]
+    [Fact]
     public void And_AllowsCustomAssertions_OnErrorProperties()
     {
         // Arrange (Given)

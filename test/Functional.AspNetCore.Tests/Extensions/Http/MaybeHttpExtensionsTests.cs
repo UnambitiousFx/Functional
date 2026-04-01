@@ -76,6 +76,97 @@ public class MaybeHttpExtensionsTests
         Assert.IsType<NoContent>(UnwrapWrappedResult(httpResult));
     }
 
+    [Fact]
+    public async Task AsHttpBuilder_WithHeader_CopiesExistingHeadersWhenChaining()
+    {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var httpResult = await maybe.AsHttpBuilder()
+                                    .WithHeader("X-First", "one")
+                                    .WithHeader("X-Second", "two");
+        var headers = GetWrappedHeaders(httpResult);
+
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("one", headers!["X-First"]);
+        Assert.Equal("two", headers["X-Second"]);
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithStatusCode_OverridesDefaultStatusCode()
+    {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var httpResult = await maybe.AsHttpBuilder()
+                                    .WithStatusCode(202);
+
+        // Assert (Then)
+        Assert.Equal(202, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithResponseFormatter_TransformsResponseBody()
+    {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var httpResult = await maybe.AsHttpBuilder()
+                                    .WithResponseFormatter(v => v.ToString());
+
+        // Assert (Then)
+        var ok = Assert.IsType<Ok<string>>(UnwrapWrappedResult(httpResult));
+        Assert.Equal("42", ok.Value);
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithCreatedStatusCodeAndNoLocationFactory_ReturnsCreatedStatusCode()
+    {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var httpResult = await maybe.AsHttpBuilder()
+                                    .WithStatusCode(201);
+
+        // Assert (Then)
+        Assert.Equal(201, GetStatusCode(httpResult));
+    }
+
+    [Fact]
+    public async Task AsHttpBuilder_WithDefaultCustomStatusCode_ReturnsCustomStatusCode()
+    {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var httpResult = await maybe.AsHttpBuilder()
+                                    .WithStatusCode(418);
+
+        // Assert (Then)
+        Assert.Equal(418, GetStatusCode(httpResult));
+    }
+
+    private static int GetStatusCode(Microsoft.AspNetCore.Http.IResult result)
+    {
+        var inner = UnwrapWrappedResult(result);
+        return inner switch
+        {
+            Microsoft.AspNetCore.Http.IStatusCodeHttpResult { StatusCode: { } statusCode } => statusCode,
+            _ => throw new InvalidOperationException($"Cannot get status code from {inner.GetType().Name}")
+        };
+    }
+
+    private static IReadOnlyDictionary<string, string>? GetWrappedHeaders(Microsoft.AspNetCore.Http.IResult result)
+    {
+        var headersField = result.GetType().GetField("_headers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return headersField?.GetValue(result) as IReadOnlyDictionary<string, string>;
+    }
+
     private static Microsoft.AspNetCore.Http.IResult UnwrapWrappedResult(Microsoft.AspNetCore.Http.IResult result)
     {
         var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

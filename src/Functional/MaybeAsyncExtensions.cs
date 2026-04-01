@@ -7,16 +7,20 @@ namespace UnambitiousFx.Functional;
 ///     These extensions enable mapping, binding, tapping, switching, and conversion to <see cref="Result{TValue}" />
 ///     for <see cref="Task" /> and <see cref="ValueTask" /> contexts encapsulating <see cref="Maybe{TValue}" /> values.
 /// </summary>
-///     The type of the value wrapped by the <see cref="Maybe{TValue}" /> instance within the
-///     asynchronous operation.
+/// The type of the value wrapped by the
+/// <see cref="Maybe{TValue}" />
+/// instance within the
+/// asynchronous operation.
 public static partial class MaybeExtensions {
     /// <summary>
     ///     Provides extension methods for handling asynchronous operations on the <see cref="Maybe{TValue}" /> type.
     ///     These methods allow mapping, binding, tapping, converting to a result, and switching actions
     ///     on <see cref="ValueTask{TResult}" /> encapsulating <see cref="Maybe{TValue}" /> values.
     /// </summary>
-    ///     The type of the value contained within the <see cref="Maybe{TValue}" /> in the asynchronous
-    ///     operation.
+    /// The type of the value contained within the
+    /// <see cref="Maybe{TValue}" />
+    /// in the asynchronous
+    /// operation.
     extension<TIn>(ValueTask<Maybe<TIn>> maybeTask)
         where TIn : notnull {
         /// <summary>
@@ -85,91 +89,6 @@ public static partial class MaybeExtensions {
             }
 
             return Result.Failure<TIn>(await errorFactory());
-        }
-    }
-
-    /// <summary>
-    ///     Provides extension methods for asynchronous operations on the <see cref="Maybe{TValue}" /> type.
-    ///     These extensions allow for mapping, binding, tapping, switching, and converting to other functional types
-    ///     like <see cref="Result{TValue}" /> within asynchronous contexts represented by <see cref="Task" /> or
-    ///     <see cref="ValueTask" />.
-    /// </summary>
-    ///     The type of the value encapsulated by the <see cref="Maybe{TValue}" /> in the asynchronous
-    ///     operation.
-    extension<TIn>(Task<Maybe<TIn>> maybeTask)
-        where TIn : notnull {
-        /// <summary>
-        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" />.
-        ///     If the maybe contains a value, the result contains the same value.
-        ///     If the maybe is empty, the result is constructed with the provided failure.
-        /// </summary>
-        /// <param name="failure">The failure to use if the maybe is empty.</param>
-        /// <returns>
-        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
-        ///     The result contains the value from the maybe if present, or the given failure otherwise.
-        /// </returns>
-        public ValueTask<Result<TIn>> ToResult(Failure failure) {
-            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, failure));
-
-            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>> maybeTask,
-                                                        Failure          failure) {
-                return (await maybeTask).ToResult(failure);
-            }
-        }
-
-        /// <summary>
-        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using a failure created by the factory
-        ///     if the maybe is empty.
-        /// </summary>
-        /// <param name="errorFactory">The factory function to create a failure if the maybe is empty.</param>
-        /// <returns>
-        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
-        ///     The result contains the value from the maybe if present, or the failure from the factory otherwise.
-        /// </returns>
-        public ValueTask<Result<TIn>> ToResult(Func<Failure> errorFactory) {
-            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, errorFactory));
-
-            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>> maybeTask,
-                                                        Func<Failure>    errorFactory) {
-                return (await maybeTask).ToResult(errorFactory);
-            }
-        }
-
-        /// <summary>
-        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using the provided error message
-        ///     if the maybe is empty.
-        /// </summary>
-        /// <param name="message">The error message to use if the maybe is empty.</param>
-        /// <returns>
-        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
-        ///     The result contains the value from the maybe if present, or a failure with the message otherwise.
-        /// </returns>
-        public ValueTask<Result<TIn>> ToResult(string message) {
-            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, message));
-
-            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>> maybeTask,
-                                                        string           message) {
-                return (await maybeTask).ToResult(message);
-            }
-        }
-
-        /// <summary>
-        ///     Converts a <see cref="Maybe{TValue}" /> to a <see cref="Result{TValue}" /> using a failure created by the
-        ///     asynchronous factory
-        ///     if the maybe is empty.
-        /// </summary>
-        /// <param name="errorFactory">The asynchronous factory function to create a failure if the maybe is empty.</param>
-        /// <returns>
-        ///     A <see cref="ValueTask{TResult}" /> containing a <see cref="Result{TValue}" />.
-        ///     The result contains the value from the maybe if present, or the failure from the asynchronous factory otherwise.
-        /// </returns>
-        public ValueTask<Result<TIn>> ToResult(Func<ValueTask<Failure>> errorFactory) {
-            return new ValueTask<Result<TIn>>(ToResultCore(maybeTask, errorFactory));
-
-            static async Task<Result<TIn>> ToResultCore(Task<Maybe<TIn>>         maybeTask,
-                                                        Func<ValueTask<Failure>> errorFactory) {
-                return await new ValueTask<Maybe<TIn>>(maybeTask).ToResult(errorFactory);
-            }
         }
     }
 }

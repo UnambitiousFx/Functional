@@ -1,14 +1,12 @@
-using Microsoft.AspNetCore.Http;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Mvc;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Extensions.Mvc;
 
-public class MaybeMvcBuilderTests
-{
+public class MaybeMvcBuilderTests {
     [Fact]
-    public async Task AsActionResultBuilder_WithSomeMaybe_ReturnsOkObjectResultWithValue()
-    {
+    public async Task AsActionResultBuilder_WithSomeMaybe_ReturnsOkObjectResultWithValue() {
         // Arrange (Given)
         var maybe = Maybe.Some(42);
 
@@ -21,8 +19,7 @@ public class MaybeMvcBuilderTests
     }
 
     [Fact]
-    public async Task AsActionResultBuilder_WithNoneMaybe_ReturnsNotFoundStatusCode()
-    {
+    public async Task AsActionResultBuilder_WithNoneMaybe_ReturnsNotFoundStatusCode() {
         // Arrange (Given)
         var maybe = Maybe.None<int>();
 
@@ -34,8 +31,7 @@ public class MaybeMvcBuilderTests
     }
 
     [Fact]
-    public async Task AsActionResultBuilder_WithSomeMaybeAndFormatter_ReturnsFormattedOkObjectResult()
-    {
+    public async Task AsActionResultBuilder_WithSomeMaybeAndFormatter_ReturnsFormattedOkObjectResult() {
         // Arrange (Given)
         var maybe = Maybe.Some(42);
 
@@ -49,8 +45,7 @@ public class MaybeMvcBuilderTests
     }
 
     [Fact]
-    public async Task AsActionResultBuilder_WithSomeMaybeAsCreated_ReturnsCreatedResultWithLocationAndValue()
-    {
+    public async Task AsActionResultBuilder_WithSomeMaybeAsCreated_ReturnsCreatedResultWithLocationAndValue() {
         // Arrange (Given)
         var maybe = Maybe.Some(42);
 
@@ -61,12 +56,11 @@ public class MaybeMvcBuilderTests
         // Assert (Then)
         var createdResult = Assert.IsType<CreatedResult>(UnwrapWrappedResult(actionResult));
         Assert.Equal("/items/42", createdResult.Location);
-        Assert.Equal(42, createdResult.Value);
+        Assert.Equal(42,          createdResult.Value);
     }
 
     [Fact]
-    public async Task AsActionResultBuilder_WithNoneMapper_ReturnsCustomNoContentResult()
-    {
+    public async Task AsActionResultBuilder_WithNoneMapper_ReturnsCustomNoContentResult() {
         // Arrange (Given)
         var maybe = Maybe.None<int>();
 
@@ -79,8 +73,7 @@ public class MaybeMvcBuilderTests
     }
 
     [Fact]
-    public async Task AsActionResultBuilder_WithHeader_StoresHeaderMetadata()
-    {
+    public async Task AsActionResultBuilder_WithHeader_StoresHeaderMetadata() {
         // Arrange (Given)
         var maybe = Maybe.Some(42);
 
@@ -94,15 +87,74 @@ public class MaybeMvcBuilderTests
         Assert.Equal("abc", headers!["X-Trace-Id"]);
     }
 
-    private static IActionResult UnwrapWrappedResult(IActionResult result)
-    {
-        var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+    [Fact]
+    public async Task AsActionResultBuilder_WithHeader_CopiesExistingHeadersWhenChaining() {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var actionResult = await maybe.AsActionResultBuilder()
+                                      .WithHeader("X-First", "one")
+                                      .WithHeader("X-Second", "two");
+        var headers = GetWrappedHeaders(actionResult);
+
+        // Assert (Then)
+        Assert.NotNull(headers);
+        Assert.Equal("one", headers!["X-First"]);
+        Assert.Equal("two", headers["X-Second"]);
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithStatusCode_OverridesDefaultStatusCode() {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var actionResult = await maybe.AsActionResultBuilder()
+                                      .WithStatusCode(202);
+
+        // Assert (Then)
+        var accepted = Assert.IsType<AcceptedResult>(UnwrapWrappedResult(actionResult));
+        Assert.Equal(202, accepted.StatusCode);
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithCreatedStatusCodeAndNoLocationFactory_ReturnsCreatedResult() {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var actionResult = await maybe.AsActionResultBuilder()
+                                      .WithStatusCode(201);
+
+        // Assert (Then)
+        var created = Assert.IsType<CreatedResult>(UnwrapWrappedResult(actionResult));
+        Assert.Equal(201, created.StatusCode);
+    }
+
+    [Fact]
+    public async Task AsActionResultBuilder_WithDefaultCustomStatusCode_ReturnsStatusCodeResult() {
+        // Arrange (Given)
+        var maybe = Maybe.Some(42);
+
+        // Act (When)
+        var actionResult = await maybe.AsActionResultBuilder()
+                                      .WithStatusCode(418);
+
+        // Assert (Then)
+        var statusResult = Assert.IsType<StatusCodeResult>(UnwrapWrappedResult(actionResult));
+        Assert.Equal(418, statusResult.StatusCode);
+    }
+
+    private static IActionResult UnwrapWrappedResult(IActionResult result) {
+        var innerField = result.GetType()
+                               .GetField("_inner", BindingFlags.NonPublic | BindingFlags.Instance);
         return innerField?.GetValue(result) as IActionResult ?? result;
     }
 
-    private static IReadOnlyDictionary<string, string>? GetWrappedHeaders(IActionResult result)
-    {
-        var headersField = result.GetType().GetField("_headers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+    private static IReadOnlyDictionary<string, string>? GetWrappedHeaders(IActionResult result) {
+        var headersField = result.GetType()
+                                 .GetField("_headers", BindingFlags.NonPublic | BindingFlags.Instance);
         return headersField?.GetValue(result) as IReadOnlyDictionary<string, string>;
     }
 }

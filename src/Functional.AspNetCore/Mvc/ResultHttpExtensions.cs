@@ -8,14 +8,12 @@ namespace UnambitiousFx.Functional.AspNetCore.Mvc;
 ///     These methods convert Result and Result&lt;T&gt; instances to IActionResult, supporting both
 ///     success and error scenarios with mapping to HTTP status codes.
 /// </summary>
-public static class ResultHttpExtensions
-{
+public static class ResultHttpExtensions {
     /// <summary>
     ///     Creates a fluent builder for converting a Result to an <see cref="IActionResult" />.
     /// </summary>
-    public static ResultMvcBuilder AsActionResultBuilder(this Result result,
-                                                         IFailureHttpMapper? failureMapper = null)
-    {
+    public static ResultMvcBuilder AsActionResultBuilder(this Result         result,
+                                                         IFailureHttpMapper? failureMapper = null) {
         return new ResultMvcBuilder(result, failureMapper ?? DefaultFailureHttpMapper.Instance);
     }
 
@@ -23,18 +21,8 @@ public static class ResultHttpExtensions
     ///     Creates a fluent builder for converting an asynchronous Result to an <see cref="IActionResult" />.
     /// </summary>
     public static ResultMvcBuilder AsActionResultBuilder(this ValueTask<Result> resultTask,
-                                                         IFailureHttpMapper? failureMapper = null)
-    {
+                                                         IFailureHttpMapper?    failureMapper = null) {
         return new ResultMvcBuilder(resultTask, failureMapper ?? DefaultFailureHttpMapper.Instance);
-    }
-
-    /// <summary>
-    ///     Creates a fluent builder for converting an asynchronous Result to an <see cref="IActionResult" />.
-    /// </summary>
-    public static ResultMvcBuilder AsActionResultBuilder(this Task<Result> resultTask,
-                                                         IFailureHttpMapper? failureMapper = null)
-    {
-        return new ResultMvcBuilder(new ValueTask<Result>(resultTask), failureMapper ?? DefaultFailureHttpMapper.Instance);
     }
 
     /// <summary>
@@ -42,8 +30,7 @@ public static class ResultHttpExtensions
     /// </summary>
     public static ResultMvcBuilder<TValue> AsActionResultBuilder<TValue>(this Result<TValue> result,
                                                                          IFailureHttpMapper? failureMapper = null)
-        where TValue : notnull
-    {
+        where TValue : notnull {
         return new ResultMvcBuilder<TValue>(result, failureMapper ?? DefaultFailureHttpMapper.Instance);
     }
 
@@ -51,20 +38,8 @@ public static class ResultHttpExtensions
     ///     Creates a fluent builder for converting an asynchronous Result&lt;T&gt; to an <see cref="IActionResult" />.
     /// </summary>
     public static ResultMvcBuilder<TValue> AsActionResultBuilder<TValue>(this ValueTask<Result<TValue>> resultTask,
-                                                                         IFailureHttpMapper? failureMapper = null)
-        where TValue : notnull
-    {
+                                                                         IFailureHttpMapper?            failureMapper = null)
+        where TValue : notnull {
         return new ResultMvcBuilder<TValue>(resultTask, failureMapper ?? DefaultFailureHttpMapper.Instance);
-    }
-
-    /// <summary>
-    ///     Creates a fluent builder for converting an asynchronous Result&lt;T&gt; to an <see cref="IActionResult" />.
-    /// </summary>
-    public static ResultMvcBuilder<TValue> AsActionResultBuilder<TValue>(this Task<Result<TValue>> resultTask,
-                                                                         IFailureHttpMapper? failureMapper = null)
-        where TValue : notnull
-    {
-        return new ResultMvcBuilder<TValue>(new ValueTask<Result<TValue>>(resultTask),
-                                            failureMapper ?? DefaultFailureHttpMapper.Instance);
     }
 }
