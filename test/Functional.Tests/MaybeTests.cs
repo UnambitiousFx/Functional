@@ -16,7 +16,7 @@ public sealed class MaybeTests
 
         // Assert (Then)
         maybe.ShouldBe()
-            .None();
+             .None();
     }
 
     #endregion
@@ -34,8 +34,8 @@ public sealed class MaybeTests
 
         // Assert (Then)
         maybe.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(value, v));
+             .Some()
+             .And(v => Assert.Equal(value, v));
     }
 
     #endregion
@@ -55,8 +55,8 @@ public sealed class MaybeTests
 
         // Assert (Then)
         maybe.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(value, v));
+             .Some()
+             .And(v => Assert.Equal(value, v));
     }
 
     [Fact]
@@ -70,8 +70,8 @@ public sealed class MaybeTests
 
         // Assert (Then)
         maybe.ShouldBe()
-            .Some()
-            .And(v => Assert.Equal(value, v));
+             .Some()
+             .And(v => Assert.Equal(value, v));
     }
 
     #endregion
@@ -168,15 +168,15 @@ public sealed class MaybeTests
     public void IfSome_WithSome_ExecutesAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe    = Maybe.Some(42);
         var executed = false;
-        var result = 0;
+        var result   = 0;
 
         // Act (When)
         maybe.IfSome(v =>
         {
             executed = true;
-            result = v;
+            result   = v;
         });
 
         // Assert (Then)
@@ -188,7 +188,7 @@ public sealed class MaybeTests
     public void IfSome_WithNone_DoesNotExecuteAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -202,15 +202,15 @@ public sealed class MaybeTests
     public async Task IfSome_Async_WithSome_ExecutesAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe    = Maybe.Some(42);
         var executed = false;
-        var result = 0;
+        var result   = 0;
 
         // Act (When)
         await maybe.IfSome(v =>
         {
             executed = true;
-            result = v;
+            result   = v;
             return ValueTask.CompletedTask;
         });
 
@@ -223,7 +223,7 @@ public sealed class MaybeTests
     public async Task IfSome_Async_WithNone_DoesNotExecuteAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -245,7 +245,7 @@ public sealed class MaybeTests
     public void IfNone_WithSome_DoesNotExecuteAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe    = Maybe.Some(42);
         var executed = false;
 
         // Act (When)
@@ -259,7 +259,7 @@ public sealed class MaybeTests
     public void IfNone_WithNone_ExecutesAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -273,7 +273,7 @@ public sealed class MaybeTests
     public async Task IfNone_Async_WithSome_DoesNotExecuteAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe    = Maybe.Some(42);
         var executed = false;
 
         // Act (When)
@@ -291,7 +291,7 @@ public sealed class MaybeTests
     public async Task IfNone_Async_WithNone_ExecutesAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe    = Maybe.None<int>();
         var executed = false;
 
         // Act (When)
@@ -375,17 +375,17 @@ public sealed class MaybeTests
     public void Match_Action_WithSome_ExecutesSomeAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe        = Maybe.Some(42);
         var someExecuted = false;
         var noneExecuted = false;
-        var result = 0;
+        var result       = 0;
 
         // Act (When)
         maybe.Match(
             v =>
             {
                 someExecuted = true;
-                result = v;
+                result       = v;
             },
             () => noneExecuted = true);
 
@@ -399,17 +399,50 @@ public sealed class MaybeTests
     public void Match_Action_WithNone_ExecutesNoneAction()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe        = Maybe.None<int>();
         var someExecuted = false;
         var noneExecuted = false;
 
         // Act (When)
         maybe.Match(
             _ => someExecuted = true,
-            () =>
-            {
-                noneExecuted = true;
-            });
+            () => { noneExecuted = true; });
+
+        // Assert (Then)
+        Assert.False(someExecuted);
+        Assert.True(noneExecuted);
+    }
+
+    [Fact]
+    public void Switch_WithSome_ExecutesSomeAction()
+    {
+        // Arrange (Given)
+        var maybe        = Maybe.Some(42);
+        var someExecuted = false;
+        var noneExecuted = false;
+
+        // Act (When)
+        maybe.Switch(
+            _ => someExecuted  = true,
+            () => noneExecuted = true);
+
+        // Assert (Then)
+        Assert.True(someExecuted);
+        Assert.False(noneExecuted);
+    }
+
+    [Fact]
+    public void Switch_WithNone_ExecutesNoneAction()
+    {
+        // Arrange (Given)
+        var maybe        = Maybe.None<int>();
+        var someExecuted = false;
+        var noneExecuted = false;
+
+        // Act (When)
+        maybe.Switch(
+            _ => someExecuted  = true,
+            () => noneExecuted = true);
 
         // Assert (Then)
         Assert.False(someExecuted);

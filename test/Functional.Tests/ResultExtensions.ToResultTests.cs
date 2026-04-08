@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -20,7 +20,8 @@ public sealed partial class ResultExtensions
         var converted = result.ToResult();
 
         // Assert (Then)
-        converted.ShouldBe().Success();
+        converted.ShouldBe()
+                 .Success();
     }
 
     [Fact]
@@ -33,7 +34,8 @@ public sealed partial class ResultExtensions
         var converted = result.ToResult();
 
         // Assert (Then)
-        converted.ShouldBe().Success();
+        converted.ShouldBe()
+                 .Success();
         Assert.IsType<Result>(converted);
     }
 
@@ -41,13 +43,15 @@ public sealed partial class ResultExtensions
     public void ToResult_WithSuccessResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Success(10).WithMetadata("key", "value");
+        var result = Result.Success(10)
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var converted = result.ToResult();
 
         // Assert (Then)
-        converted.ShouldBe().Success();
+        converted.ShouldBe()
+                 .Success();
         Assert.Equal("value", converted.Metadata["key"]);
     }
 
@@ -59,7 +63,7 @@ public sealed partial class ResultExtensions
     public void ToResult_WithFailureResult_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -67,15 +71,15 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         converted.ShouldBe()
-            .Failure()
-            .AndMessage("Test error");
+                 .Failure()
+                 .AndMessage("Test error");
     }
 
     [Fact]
     public void ToResult_WithFailureResult_PreservesErrorCode()
     {
         // Arrange (Given)
-        var error = new Error("TEST_CODE", "Test error");
+        var error  = new Failure("TEST_CODE", "Test error");
         var result = Result.Failure<string>(error);
 
         // Act (When)
@@ -83,22 +87,24 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         converted.ShouldBe()
-            .Failure()
-            .AndCode("TEST_CODE");
+                 .Failure()
+                 .AndCode("TEST_CODE");
     }
 
     [Fact]
     public void ToResult_WithFailureResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure<int>(error).WithMetadata("key", "value");
+        var error = new Failure("Test error");
+        var result = Result.Failure<int>(error)
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var converted = result.ToResult();
 
         // Assert (Then)
-        converted.ShouldBe().Failure();
+        converted.ShouldBe()
+                 .Failure();
         Assert.Equal("value", converted.Metadata["key"]);
     }
 
@@ -116,7 +122,8 @@ public sealed partial class ResultExtensions
         var converted = result.ToResult();
 
         // Assert (Then)
-        converted.ShouldBe().Success();
+        converted.ShouldBe()
+                 .Success();
     }
 
     [Fact]
@@ -124,13 +131,14 @@ public sealed partial class ResultExtensions
     {
         // Arrange (Given)
         var result = Result.Success(42)
-            .Map(x => x * 2);
+                           .Map(x => x * 2);
 
         // Act (When)
         var converted = result.ToResult();
 
         // Assert (Then)
-        converted.ShouldBe().Success();
+        converted.ShouldBe()
+                 .Success();
     }
 
     #endregion

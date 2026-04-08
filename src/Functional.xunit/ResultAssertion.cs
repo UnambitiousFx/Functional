@@ -26,14 +26,24 @@ public readonly struct ResultAssertion
     ///     Asserts that the result instance represents a successful outcome.
     ///     Throws an assertion failure if the result indicates a failure.
     /// </summary>
+    /// <param name="because">
+    ///     Optional reason why this assertion should succeed. Will be included in the failure message if the assertion fails.
+    /// </param>
     /// <returns>
     ///     A <see cref="SuccessAssertion" /> that represents the success state of the result
     /// </returns>
-    public SuccessAssertion Success()
+    public SuccessAssertion Success(string? because = null)
     {
-        if (!_result.IsSuccess)
-        {
-            Assert.Fail("Expected success result but was failure.");
+        if (!_result.IsSuccess) {
+            if (_result.TryGetFailure(out var error)) {
+                var message = because != null
+                    ? $"Expected success result but was failure because {because}. Actual error: [{error.Code}] {error.Message}"
+                    : $"Expected success result but was failure. Actual error: [{error.Code}] {error.Message}";
+                Assert.Fail(message);
+            }
+            else {
+                Assert.Fail(because != null ? $"Expected success result but was failure because {because}." : "Expected success result but was failure.");
+            }
         }
 
         return new SuccessAssertion();
@@ -44,15 +54,17 @@ public readonly struct ResultAssertion
     ///     in the context of unit tests. This enables detailed validation of errors associated
     ///     with a failed result.
     /// </summary>
+    /// <param name="because">
+    ///     Optional reason why this assertion should succeed. Will be included in the failure message if the assertion fails.
+    /// </param>
     /// <returns>
     ///     An instance of <see cref="FailureAssertion" /> for chaining further assertions on the
     ///     error associated with the failure.
     /// </returns>
-    public FailureAssertion Failure()
+    public FailureAssertion Failure(string? because = null)
     {
-        if (_result.TryGet(out var error))
-        {
-            Assert.Fail("Expected failure result but was success.");
+        if (!_result.TryGetFailure(out var error)) {
+            Assert.Fail(because != null ? $"Expected failure result but was success because {because}." : "Expected failure result but was success.");
         }
 
         return new FailureAssertion(error);
@@ -69,7 +81,8 @@ public readonly struct ResultAssertion
 ///     Must be a non-nullable reference or value type.
 /// </typeparam>
 [DebuggerStepThrough]
-public readonly struct ResultAssertion<TValue> where TValue : notnull
+public readonly struct ResultAssertion<TValue>
+    where TValue : notnull
 {
     private readonly Result<TValue> _result;
 
@@ -86,6 +99,9 @@ public readonly struct ResultAssertion<TValue> where TValue : notnull
     ///     Asserts that the result is successful and provides a fluent assertion object
     ///     for further verification of the encapsulated value.
     /// </summary>
+    /// <param name="because">
+    ///     Optional reason why this assertion should succeed. Will be included in the failure message if the assertion fails.
+    /// </param>
     /// <returns>
     ///     A <see cref="SuccessAssertion{TValue}" /> instance that allows verification of
     ///     the non-nullable value associated with a successful result.
@@ -93,11 +109,18 @@ public readonly struct ResultAssertion<TValue> where TValue : notnull
     /// <exception cref="Xunit.Sdk.XunitException">
     ///     Thrown if the result is not successful.
     /// </exception>
-    public SuccessAssertion<TValue> Success()
+    public SuccessAssertion<TValue> Success(string? because = null)
     {
-        if (!_result.TryGet(out TValue? value))
-        {
-            Assert.Fail("Expected success result but was failure.");
+        if (!_result.TryGetValue(out var value)) {
+            if (_result.TryGetFailure(out var error)) {
+                var message = because != null
+                    ? $"Expected success result but was failure because {because}. Actual error: [{error.Code}] {error.Message}"
+                    : $"Expected success result but was failure. Actual error: [{error.Code}] {error.Message}";
+                Assert.Fail(message);
+            }
+            else {
+                Assert.Fail(because != null ? $"Expected success result but was failure because {because}." : "Expected success result but was failure.");
+            }
         }
 
         return new SuccessAssertion<TValue>(value);
@@ -107,12 +130,22 @@ public readonly struct ResultAssertion<TValue> where TValue : notnull
     ///     Asserts that the current <see cref="Result{TValue}" /> instance represents a failure state.
     ///     If the result is not in a failure state, the method will fail the test.
     /// </summary>
+    /// <param name="because">
+    ///     Optional reason why this assertion should succeed. Will be included in the failure message if the assertion fails.
+    /// </param>
     /// <returns>A <see cref="FailureAssertion" /> instance allowing further inspection or validation of the associated error.</returns>
-    public FailureAssertion Failure()
+    public FailureAssertion Failure(string? because = null)
     {
-        if (_result.TryGet(out _, out var error))
-        {
-            Assert.Fail("Expected failure result but was success.");
+        if (!_result.TryGetFailure(out var error)) {
+            if (_result.TryGetValue(out var value)) {
+                var message = because != null
+                    ? $"Expected failure result but was success because {because}. Actual value: {value}"
+                    : $"Expected failure result but was success. Actual value: {value}";
+                Assert.Fail(message);
+            }
+            else {
+                Assert.Fail(because != null ? $"Expected failure result but was success because {because}." : "Expected failure result but was success.");
+            }
         }
 
         return new FailureAssertion(error);

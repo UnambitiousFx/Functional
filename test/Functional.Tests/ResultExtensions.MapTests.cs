@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -18,14 +18,14 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var mapped = result
-            .Map(() => 10)
-            .Map(x => x * 2)
-            .Map(x => x.ToString());
+                    .Map(() => 10)
+                    .Map(x => x * 2)
+                    .Map(x => x.ToString());
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal("20", value));
+              .Success()
+              .And(value => Assert.Equal("20", value));
     }
 
     #endregion
@@ -43,8 +43,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal(10, value));
+              .Success()
+              .And(value => Assert.Equal(10, value));
     }
 
     [Fact]
@@ -58,21 +58,23 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal("42", value));
+              .Success()
+              .And(value => Assert.Equal("42", value));
     }
 
     [Fact]
     public void Map_WithSuccessResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Success(10).WithMetadata("key", "value");
+        var result = Result.Success(10)
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var mapped = result.Map(x => x * 3);
 
         // Assert (Then)
-        mapped.ShouldBe().Success();
+        mapped.ShouldBe()
+              .Success();
         Assert.Equal("value", mapped.Metadata["key"]);
     }
 
@@ -84,7 +86,7 @@ public sealed partial class ResultExtensions
     public void Map_WithFailureResult_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -92,16 +94,16 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Failure()
-            .AndMessage("Test error");
+              .Failure()
+              .AndMessage("Test error");
     }
 
     [Fact]
     public void Map_WithFailureResult_DoesNotExecuteMapper()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure<int>(error);
+        var error    = new Failure("Test error");
+        var result   = Result.Failure<int>(error);
         var executed = false;
 
         // Act (When)
@@ -113,21 +115,24 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         Assert.False(executed);
-        mapped.ShouldBe().Failure();
+        mapped.ShouldBe()
+              .Failure();
     }
 
     [Fact]
     public void Map_WithFailureResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure<int>(error).WithMetadata("key", "value");
+        var error = new Failure("Test error");
+        var result = Result.Failure<int>(error)
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var mapped = result.Map(x => x.ToString());
 
         // Assert (Then)
-        mapped.ShouldBe().Failure();
+        mapped.ShouldBe()
+              .Failure();
         Assert.Equal("value", mapped.Metadata["key"]);
     }
 
@@ -143,14 +148,14 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var mapped = result
-            .Map(x => x * 2) // 10
-            .Map(x => x + 5) // 15
-            .Map(x => x.ToString()); // "15"
+                    .Map(x => x * 2)         // 10
+                    .Map(x => x + 5)         // 15
+                    .Map(x => x.ToString()); // "15"
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal("15", value));
+              .Success()
+              .And(value => Assert.Equal("15", value));
     }
 
     [Fact]
@@ -164,8 +169,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal("John is 30 years old", value));
+              .Success()
+              .And(value => Assert.Equal("John is 30 years old", value));
     }
 
     #endregion
@@ -183,8 +188,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal(42, value));
+              .Success()
+              .And(value => Assert.Equal(42, value));
     }
 
     [Fact]
@@ -198,8 +203,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal("Hello", value));
+              .Success()
+              .And(value => Assert.Equal("Hello", value));
     }
 
     [Fact]
@@ -213,25 +218,27 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Success()
-            .And(value =>
-            {
-                Assert.Equal("Test", value.Name);
-                Assert.Equal(123, value.Value);
-            });
+              .Success()
+              .And(value =>
+               {
+                   Assert.Equal("Test", value.Name);
+                   Assert.Equal(123,    value.Value);
+               });
     }
 
     [Fact]
     public void Map_WithNonGenericSuccessResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Success().WithMetadata("key", "value");
+        var result = Result.Success()
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var mapped = result.Map(() => 100);
 
         // Assert (Then)
-        mapped.ShouldBe().Success();
+        mapped.ShouldBe()
+              .Success();
         Assert.Equal("value", mapped.Metadata["key"]);
     }
 
@@ -243,7 +250,7 @@ public sealed partial class ResultExtensions
     public void Map_WithNonGenericFailureResult_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Operation failed");
+        var error  = new Failure("Operation failed");
         var result = Result.Failure(error);
 
         // Act (When)
@@ -251,16 +258,16 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         mapped.ShouldBe()
-            .Failure()
-            .AndMessage("Operation failed");
+              .Failure()
+              .AndMessage("Operation failed");
     }
 
     [Fact]
     public void Map_WithNonGenericFailureResult_DoesNotExecuteMapper()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure(error);
+        var error    = new Failure("Test error");
+        var result   = Result.Failure(error);
         var executed = false;
 
         // Act (When)
@@ -272,21 +279,24 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         Assert.False(executed);
-        mapped.ShouldBe().Failure();
+        mapped.ShouldBe()
+              .Failure();
     }
 
     [Fact]
     public void Map_WithNonGenericFailureResult_PreservesMetadata()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure(error).WithMetadata("key", "value");
+        var error = new Failure("Test error");
+        var result = Result.Failure(error)
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var mapped = result.Map(() => "test");
 
         // Assert (Then)
-        mapped.ShouldBe().Failure();
+        mapped.ShouldBe()
+              .Failure();
         Assert.Equal("value", mapped.Metadata["key"]);
     }
 

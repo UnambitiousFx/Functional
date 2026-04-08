@@ -3,14 +3,15 @@ using System.Diagnostics.CodeAnalysis;
 namespace UnambitiousFx.Functional;
 
 /// <summary>
-/// Represents an interface for a container that can optionally hold a single value
-/// of type <typeparamref name="TValue"/>. The container can either be in a state where
-/// it contains a value (Some) or it does not (None).
+///     Represents an interface for a container that can optionally hold a single value
+///     of type <typeparamref name="TValue" />. The container can either be in a state where
+///     it contains a value (Some) or it does not (None).
 /// </summary>
 /// <typeparam name="TValue">
-/// The type of the value that this container may hold. Must be a non-nullable type.
+///     The type of the value that this container may hold. Must be a non-nullable type.
 /// </typeparam>
-public interface IMaybe<TValue> where TValue : notnull
+public interface IMaybe<TValue>
+    where TValue : notnull
 {
     /// <summary>
     ///     Gets a value indicating whether this instance contains a value.
@@ -67,12 +68,14 @@ public interface IMaybe<TValue> where TValue : notnull
     /// <param name="some">The function to execute if a value is present.</param>
     /// <param name="none">The function to execute if no value is present.</param>
     /// <returns>The result of the executed function.</returns>
-    TOut Match<TOut>(Func<TValue, TOut> some, Func<TOut> none);
+    TOut Match<TOut>(Func<TValue, TOut> some,
+                     Func<TOut>         none);
 
     /// <summary>
     ///     Matches the Maybe instance and executes the corresponding action based on whether a value is present.
     /// </summary>
     /// <param name="some">The action to execute if a value is present.</param>
     /// <param name="none">The action to execute if no value is present.</param>
-    void Match(Action<TValue> some, Action none);
+    void Match(Action<TValue> some,
+               Action         none);
 }

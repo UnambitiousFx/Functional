@@ -44,8 +44,7 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     public Metadata(IReadOnlyMetadata metadata)
     {
         _data = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in metadata)
-        {
+        foreach (var kv in metadata) {
             _data[kv.Key] = kv.Value;
         }
     }
@@ -75,13 +74,19 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     ///     Returns an enumerator that iterates through the metadata key-value pairs.
     /// </summary>
     /// <returns>An enumerator for the metadata collection</returns>
-    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => _data.GetEnumerator();
+    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+    {
+        return _data.GetEnumerator();
+    }
 
     /// <summary>
     ///     Returns an enumerator that iterates through the metadata key-value pairs.
     /// </summary>
     /// <returns>An enumerator for the metadata collection</returns>
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
     /// <summary>
     ///     Gets the number of key-value pairs in the metadata.
@@ -93,7 +98,10 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     /// </summary>
     /// <param name="key">The key to locate</param>
     /// <returns>true if the metadata contains the key; otherwise, false</returns>
-    public bool ContainsKey(string key) => _data.ContainsKey(key);
+    public bool ContainsKey(string key)
+    {
+        return _data.ContainsKey(key);
+    }
 
     /// <summary>
     ///     Attempts to get the value associated with the specified key.
@@ -101,7 +109,11 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     /// <param name="key">The key to locate</param>
     /// <param name="value">When this method returns, contains the value associated with the key if found; otherwise, null</param>
     /// <returns>true if the key was found; otherwise, false</returns>
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out object? value) => _data.TryGetValue(key, out value);
+    public bool TryGetValue(string                             key,
+                            [MaybeNullWhen(false)] out object? value)
+    {
+        return _data.TryGetValue(key, out value);
+    }
 
     /// <summary>
     ///     Returns a string representation of the first specified number of metadata entries.
@@ -110,14 +122,14 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     /// <returns>A comma-separated string of key:value pairs</returns>
     public string ToString(int take)
     {
-        if (take <= 0 || _data.Count == 0)
-        {
+        if (take        <= 0 ||
+            _data.Count == 0) {
             return string.Empty;
         }
 
         return string.Join(",", _data
-            .Take(take)
-            .Select(kv => kv.Key + ":" + (kv.Value ?? "null")));
+                               .Take(take)
+                               .Select(kv => kv.Key + ":" + (kv.Value ?? "null")));
     }
 
     /// <summary>
@@ -126,13 +138,12 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     /// <returns>A comma-separated string of key:value pairs</returns>
     public override string ToString()
     {
-        if (_data.Count == 0)
-        {
+        if (_data.Count == 0) {
             return string.Empty;
         }
 
         return string.Join(",", _data
-            .Select(kv => kv.Key + ":" + (kv.Value ?? "null")));
+                              .Select(kv => kv.Key + ":" + (kv.Value ?? "null")));
     }
 
     /// <summary>
@@ -144,8 +155,7 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     public static Metadata Create(ReadOnlySpan<KeyValuePair<string, object?>> items)
     {
         var metadata = new Metadata();
-        foreach (var item in items)
-        {
+        foreach (var item in items) {
             metadata[item.Key] = item.Value;
         }
 
@@ -160,8 +170,7 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     public static Metadata From(params (string Key, object? Value)[] items)
     {
         var metadata = new Metadata();
-        foreach (var (key, value) in items)
-        {
+        foreach (var (key, value) in items) {
             metadata[key] = value;
         }
 
@@ -177,10 +186,10 @@ public sealed record Metadata : IMetadata, IReadOnlyMetadata
     public static Metadata Merge(params IReadOnlyMetadata[] sources)
     {
         var metadata = new Metadata();
-        foreach (var source in sources)
-        foreach (var kv in source)
-        {
-            metadata[kv.Key] = kv.Value;
+        foreach (var source in sources) {
+            foreach (var kv in source) {
+                metadata[kv.Key] = kv.Value;
+            }
         }
 
         return metadata;

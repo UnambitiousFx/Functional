@@ -9,10 +9,10 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
-        <Copyright>Copyright 2025 (c) Maxime Charles. All rights reserved.</Copyright>
-        <GoalTargetFrameworks>net8.0;net9.0;net10.0</GoalTargetFrameworks>
+        <Copyright>Copyright $([System.DateTime]::Now.Year) (c) UnambitiousFx. All rights reserved.</Copyright>
+        <LibraryTargetFrameworks>net8.0;net9.0;net10.0</LibraryTargetFrameworks>
         <LatestTargetFramework>net10.0</LatestTargetFramework>
-        <Version>1.0.0</Version>
+        <Version>2.0.0</Version>
     </PropertyGroup>
 
 

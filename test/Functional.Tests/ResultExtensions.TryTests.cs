@@ -1,5 +1,6 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
+using ExceptionalFailure = UnambitiousFx.Functional.Failures.ExceptionalFailure;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -18,7 +19,9 @@ public sealed partial class ResultExtensions
         var transformed = result.Try(x => x * 2);
 
         // Assert (Then)
-        transformed.ShouldBe().Success().And(value => Assert.Equal(10, value));
+        transformed.ShouldBe()
+                   .Success()
+                   .And(value => Assert.Equal(10, value));
     }
 
     [Fact]
@@ -31,10 +34,11 @@ public sealed partial class ResultExtensions
         var transformed = result.Try<int, int>(x => throw new InvalidOperationException("Test exception"));
 
         // Assert (Then)
-        transformed.ShouldBe().Failure();
-        transformed.TryGet(out Error? error);
-        var nonGenericResult = Result.Failure(error!);
-        Assert.True(nonGenericResult.HasException<InvalidOperationException>());
+        transformed.ShouldBe()
+                   .Failure();
+        transformed.TryGetFailure(out var error);
+        var exceptionalError = Assert.IsType<ExceptionalFailure>(error);
+        Assert.IsType<InvalidOperationException>(exceptionalError.Exception);
     }
 
     [Fact]
@@ -47,7 +51,9 @@ public sealed partial class ResultExtensions
         var transformed = result.Try(x => x * 2);
 
         // Assert (Then)
-        transformed.ShouldBe().Failure().AndMessage("Original error");
+        transformed.ShouldBe()
+                   .Failure()
+                   .AndMessage("Original error");
     }
 
     [Fact]
@@ -60,10 +66,11 @@ public sealed partial class ResultExtensions
         var transformed = result.Try(x => x / 0);
 
         // Assert (Then)
-        transformed.ShouldBe().Failure();
-        transformed.TryGet(out Error? error);
-        var nonGenericResult = Result.Failure(error!);
-        Assert.True(nonGenericResult.HasException<DivideByZeroException>());
+        transformed.ShouldBe()
+                   .Failure();
+        transformed.TryGetFailure(out var error);
+        var exceptionalError = Assert.IsType<ExceptionalFailure>(error);
+        Assert.IsType<DivideByZeroException>(exceptionalError.Exception);
     }
 
     [Fact]
@@ -76,7 +83,9 @@ public sealed partial class ResultExtensions
         var transformed = result.Try(x => x.ToString());
 
         // Assert (Then)
-        transformed.ShouldBe().Success().And(value => Assert.Equal("42", value));
+        transformed.ShouldBe()
+                   .Success()
+                   .And(value => Assert.Equal("42", value));
     }
 
     [Fact]
@@ -87,13 +96,14 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var final = result
-            .Try(x => x * 2)
-            .Try(x => x + 5);
+                   .Try(x => x * 2)
+                   .Try(x => x + 5);
 
         // Assert (Then)
-        final.ShouldBe().Success().And(value => Assert.Equal(25, value));
+        final.ShouldBe()
+             .Success()
+             .And(value => Assert.Equal(25, value));
     }
-
 
     [Fact]
     public void Try_WithFileOperation_CapturesIOException()
@@ -105,7 +115,8 @@ public sealed partial class ResultExtensions
         var tried = result.Try(path => File.ReadAllText(path));
 
         // Assert (Then)
-        tried.ShouldBe().Failure();
+        tried.ShouldBe()
+             .Failure();
     }
 
     [Fact]
@@ -118,9 +129,10 @@ public sealed partial class ResultExtensions
         var tried = result.Try(list => list[10]); // Index out of range
 
         // Assert (Then)
-        tried.ShouldBe().Failure();
+        tried.ShouldBe()
+             .Failure();
         Assert.False(tried.TryGet(out _, out var error));
-        Assert.IsType<ExceptionalError>(error);
+        Assert.IsType<ExceptionalFailure>(error);
     }
 
     [Fact]
@@ -133,7 +145,9 @@ public sealed partial class ResultExtensions
         var tried = result.Try(x => int.Parse(x));
 
         // Assert (Then)
-        tried.ShouldBe().Success().And(value => Assert.Equal(42, value));
+        tried.ShouldBe()
+             .Success()
+             .And(value => Assert.Equal(42, value));
     }
 
     [Fact]
@@ -146,21 +160,25 @@ public sealed partial class ResultExtensions
         var tried = result.Try(x => x * 2);
 
         // Assert (Then)
-        tried.ShouldBe().Success().And(value => Assert.Equal(10, value));
+        tried.ShouldBe()
+             .Success()
+             .And(value => Assert.Equal(10, value));
     }
 
     [Fact]
     public void Try_WithFailure_PropagatesError()
     {
         // Arrange (Given)
-        var error = new Error("Initial error");
+        var error  = new Failure("Initial error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
         var tried = result.Try(x => x * 2);
 
         // Assert (Then)
-        tried.ShouldBe().Failure().AndMessage("Initial error");
+        tried.ShouldBe()
+             .Failure()
+             .AndMessage("Initial error");
     }
 
     [Fact]
@@ -173,7 +191,8 @@ public sealed partial class ResultExtensions
         var tried = result.Try(x => 10 / x); // Division by zero
 
         // Assert (Then)
-        tried.ShouldBe().Failure();
+        tried.ShouldBe()
+             .Failure();
     }
 
     [Fact]
@@ -186,9 +205,10 @@ public sealed partial class ResultExtensions
         var tried = result.Try(x => int.Parse(x));
 
         // Assert (Then)
-        tried.ShouldBe().Failure();
+        tried.ShouldBe()
+             .Failure();
         Assert.False(tried.TryGet(out _, out var error));
-        Assert.IsType<ExceptionalError>(error);
+        Assert.IsType<ExceptionalFailure>(error);
     }
 
     [Fact]
@@ -201,7 +221,9 @@ public sealed partial class ResultExtensions
         var tried = result.Try(x => x.ToString());
 
         // Assert (Then)
-        tried.ShouldBe().Success().And(value => Assert.Equal("42", value));
+        tried.ShouldBe()
+             .Success()
+             .And(value => Assert.Equal("42", value));
     }
 
     [Fact]
@@ -212,33 +234,36 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var final = result
-            .Try(x => int.Parse(x))
-            .Try(x => x * 2)
-            .Try(x => x.ToString());
+                   .Try(x => int.Parse(x))
+                   .Try(x => x * 2)
+                   .Try(x => x.ToString());
 
         // Assert (Then)
-        final.ShouldBe().Success().And(value => Assert.Equal("84", value));
+        final.ShouldBe()
+             .Success()
+             .And(value => Assert.Equal("84", value));
     }
 
     [Fact]
     public void Try_SuccessChainStopsAtFirstException()
     {
         // Arrange (Given)
-        var result = Result.Success("not a number");
+        var result      = Result.Success("not a number");
         var thirdCalled = false;
 
         // Act (When)
         var final = result
-            .Try(x => int.Parse(x)) // This will throw
-            .Try(x => x * 2)
-            .Try(x =>
-            {
-                thirdCalled = true;
-                return x.ToString();
-            });
+                   .Try(x => int.Parse(x)) // This will throw
+                   .Try(x => x * 2)
+                   .Try(x =>
+                    {
+                        thirdCalled = true;
+                        return x.ToString();
+                    });
 
         // Assert (Then)
-        final.ShouldBe().Failure();
+        final.ShouldBe()
+             .Failure();
         Assert.False(thirdCalled);
     }
 
@@ -250,11 +275,12 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var final = result
-            .Try(x => x * 2)
-            .Try<int, int>(x => throw new InvalidOperationException("First exception"))
-            .Try(x => x + 100); // This should not execute
+                   .Try(x => x * 2)
+                   .Try<int, int>(x => throw new InvalidOperationException("First exception"))
+                   .Try(x => x + 100); // This should not execute
 
         // Assert (Then)
-        final.ShouldBe().Failure();
+        final.ShouldBe()
+             .Failure();
     }
 }

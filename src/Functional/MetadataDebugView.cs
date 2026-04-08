@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace UnambitiousFx.Functional;
 
+[ExcludeFromCodeCoverage]
 internal sealed class MetadataDebugView
 {
     private readonly Metadata _metadata;

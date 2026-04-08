@@ -1,4 +1,5 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
+using FunctionalException = UnambitiousFx.Functional.Failures.FunctionalException;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -26,7 +27,7 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_WithFailure_ThrowsException()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act & Assert
@@ -68,12 +69,12 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_WithCustomFactory_ThrowsCustomException()
     {
         // Arrange (Given)
-        var error = new Error("Custom error");
+        var error  = new Failure("Custom error");
         var result = Result.Failure<int>(error);
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            result.ValueOrThrow(err => new ArgumentException(err.Message)));
+                                                             result.ValueOrThrow(err => new ArgumentException(err.Message)));
 
         Assert.Equal("Custom error", exception.Message);
     }
@@ -82,12 +83,12 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_CanThrowSpecificExceptionType()
     {
         // Arrange (Given)
-        var error = new Error("Not found");
+        var error  = new Failure("Not found");
         var result = Result.Failure<string>(error);
 
         // Act & Assert
         var exception = Assert.Throws<KeyNotFoundException>(() =>
-            result.ValueOrThrow(err => new KeyNotFoundException($"Item not found: {err.Message}")));
+                                                                result.ValueOrThrow(err => new KeyNotFoundException($"Item not found: {err.Message}")));
 
         Assert.Contains("Item not found", exception.Message);
     }
@@ -96,12 +97,12 @@ public sealed partial class ResultExtensions
     public void ValueOrThrow_CustomFactory_ReceivesError()
     {
         // Arrange (Given)
-        var error = new Error("ERR_404", "Resource not found");
+        var error  = new Failure("ERR_404", "Resource not found");
         var result = Result.Failure<int>(error);
 
         // Act & Assert
         var exception = Assert.Throws<Exception>(() =>
-            result.ValueOrThrow(err => new Exception($"[{err.Code}] {err.Message}")));
+                                                     result.ValueOrThrow(err => new Exception($"[{err.Code}] {err.Message}")));
 
         Assert.Equal("[ERR_404] Resource not found", exception.Message);
     }
@@ -118,9 +119,9 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var value = result
-            .Try(x => int.Parse(x))
-            .Try(x => x * 2)
-            .ValueOrThrow();
+                   .Try(x => int.Parse(x))
+                   .Try(x => x * 2)
+                   .ValueOrThrow();
 
         // Assert (Then)
         Assert.Equal(84, value);
@@ -134,9 +135,9 @@ public sealed partial class ResultExtensions
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            result
-                .Try(x => int.Parse(x))
-                .ValueOrThrow(err => new InvalidOperationException($"Parse failed: {err.Message}")));
+                                                                     result
+                                                                        .Try(x => int.Parse(x))
+                                                                        .ValueOrThrow(err => new InvalidOperationException($"Parse failed: {err.Message}")));
 
         Assert.Contains("Parse failed", exception.Message);
     }

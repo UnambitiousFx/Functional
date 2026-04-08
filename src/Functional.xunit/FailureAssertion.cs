@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using Xunit;
 
 namespace UnambitiousFx.Functional.xunit;
@@ -14,9 +14,9 @@ public readonly struct FailureAssertion
     /// <summary>
     ///     Represents a fluent assertion mechanism for handling failure cases in the context of test results.
     /// </summary>
-    internal FailureAssertion(IError error)
+    internal FailureAssertion(IFailure failure)
     {
-        Error = error;
+        Failure = failure;
     }
 
     /// <summary>
@@ -26,7 +26,15 @@ public readonly struct FailureAssertion
     ///     Represents the error information related to a failed operation,
     ///     allowing further assertions or evaluations on the errors.
     /// </remarks>
-    public IError Error { get; }
+    public IFailure Failure { get; }
+
+    /// <summary>
+    ///     Gets the subject (underlying failure) of the failure assertion.
+    /// </summary>
+    /// <remarks>
+    ///     This is an alias for <see cref="Failure" /> to provide a more FluentAssertions-like API.
+    /// </remarks>
+    public IFailure Subject => Failure;
 
     /// <summary>
     ///     Applies the specified assertion action to the encapsulated errors and returns the current failure assertion
@@ -34,9 +42,9 @@ public readonly struct FailureAssertion
     /// </summary>
     /// <param name="assert">The action to be applied to the encapsulated errors.</param>
     /// <returns>The current <see cref="FailureAssertion" /> instance to allow method chaining.</returns>
-    public FailureAssertion And(Action<IError> assert)
+    public FailureAssertion And(Action<IFailure> assert)
     {
-        assert(Error);
+        assert(Failure);
         return this;
     }
 
@@ -47,7 +55,7 @@ public readonly struct FailureAssertion
     /// <returns>The current instance of <see cref="FailureAssertion" /> for further chaining.</returns>
     public FailureAssertion AndMessage(string expected)
     {
-        Assert.Equal(expected, Error.Message);
+        Assert.Equal(expected, Failure.Message);
         return this;
     }
 
@@ -58,7 +66,25 @@ public readonly struct FailureAssertion
     /// <returns>The current instance of <see cref="FailureAssertion" /> for further chaining.</returns>
     public FailureAssertion AndCode(string expected)
     {
-        Assert.Equal(expected, Error.Code);
+        Assert.Equal(expected, Failure.Code);
+        return this;
+    }
+
+    /// <summary>
+    ///     Inspects the current failure by invoking the specified action, useful for debugging without breaking the chain.
+    /// </summary>
+    /// <param name="inspector">An action to perform on the failure for inspection purposes.</param>
+    /// <returns>The current <see cref="FailureAssertion" /> instance, enabling further chaining.</returns>
+    /// <example>
+    ///     result.ShouldBe()
+    ///           .Failure()
+    ///           .Inspect(f => Console.WriteLine($"Debug: error is [{f.Code}] {f.Message}"))
+    ///           .AndMessage("Expected error");
+    /// </example>
+    public FailureAssertion Inspect(Action<IFailure> inspector)
+    {
+        ArgumentNullException.ThrowIfNull(inspector);
+        inspector(Failure);
         return this;
     }
 }

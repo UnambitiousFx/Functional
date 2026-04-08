@@ -46,3 +46,8 @@ jobs:
         run: |
           dotnet nuget push ./local_packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
           dotnet nuget push ./local_packages/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Publish to MyGet
+        run: |
+          dotnet nuget push ./local_packages/*.nupkg --api-key ${{ secrets.MYGET_API_KEY }} --source ${{ vars.MYGET_FEED }} --skip-duplicate
+          dotnet nuget push ./local_packages/*.snupkg --api-key ${{ secrets.MYGET_API_KEY }} --source ${{ vars.MYGET_FEED }} --skip-duplicate

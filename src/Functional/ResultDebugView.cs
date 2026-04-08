@@ -1,7 +1,9 @@
-using UnambitiousFx.Functional.Errors;
+using System.Diagnostics.CodeAnalysis;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional;
 
+[ExcludeFromCodeCoverage]
 internal sealed class ResultDebugView<TValue>
     where TValue : notnull
 {
@@ -13,31 +15,40 @@ internal sealed class ResultDebugView<TValue>
     }
 
     public bool IsSuccess => _result.IsSuccess;
-    public bool IsFaulted => _result.IsFaulted;
+    public bool IsFaulted => _result.IsFailure;
 
-    public TValue? Value => _result.TryGet(out TValue? value) ? value : default;
+    public TValue? Value => _result.TryGetValue(out var value)
+                                ? value
+                                : default;
 
-    public Error? Error => _result.TryGet(out _, out var error) ? null : error;
+    public Failure? Failure => _result.TryGet(out _, out var failure)
+                                 ? null
+                                 : failure;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
-    public object? ErrorDetails
+    public object? FailureDetails
     {
         get
         {
-            if (!_result.TryGet(out _, out var error))
-            {
-                return error switch
+            if (!_result.TryGet(out _, out var failure)) {
+                return failure switch
                 {
-                    AggregateError agg => new
+                    AggregateFailure agg => new
                     {
-                        Type = "AggregateError", ErrorCount = agg.Errors.Count(), Errors = agg.Errors.ToArray()
+                        Type = "AggregateFailure", FailureCount = agg.Errors.Count(), Failures = agg.Errors.ToArray()
                     },
-                    ExceptionalError exc => new
+                    ExceptionalFailure exc => new
                     {
-                        Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType().Name
+                        Type = "ExceptionalFailure", exc.Exception, ExceptionType = exc.Exception.GetType()
+                                                                                     .Name
                     },
-                    _ => new { Type = error.GetType().Name, error.Code, error.Message }
+                    _ => new
+                    {
+                        Type = failure.GetType()
+                                    .Name,
+                        failure.Code, failure.Message
+                    }
                 };
             }
 
@@ -56,32 +67,39 @@ internal sealed class ResultDebugView
     }
 
     public bool IsSuccess => _result.IsSuccess;
-    public bool IsFaulted => _result.IsFaulted;
+    public bool IsFaulted => _result.IsFailure;
 
-    public Error? Error => _result.TryGet(out var error) ? null : error;
+    public Failure? Failure => !_result.TryGetFailure(out var failure)
+                                 ? null
+                                 : failure;
 
     public Metadata Metadata => (Metadata)_result.Metadata;
 
-    public object? ErrorDetails
+    public object? FailureDetails
     {
         get
         {
-            if (_result.TryGet(out var error))
-            {
+            if (!_result.TryGetFailure(out var failure)) {
                 return null;
             }
 
-            return error switch
+            return failure switch
             {
-                AggregateError agg => new
+                AggregateFailure agg => new
                 {
-                    Type = "AggregateError", ErrorCount = agg.Errors.Count(), Errors = agg.Errors.ToArray()
+                    Type = "AggregateFailure", FailureCount = agg.Errors.Count(), Failures = agg.Errors.ToArray()
                 },
-                ExceptionalError exc => new
+                ExceptionalFailure exc => new
                 {
-                    Type = "ExceptionalError", exc.Exception, ExceptionType = exc.Exception.GetType().Name
+                    Type = "ExceptionalFailure", exc.Exception, ExceptionType = exc.Exception.GetType()
+                                                                                 .Name
                 },
-                _ => new { Type = error?.GetType().Name, error?.Code, error?.Message }
+                _ => new
+                {
+                    Type = failure.GetType()
+                                .Name,
+                    failure.Code, failure.Message
+                }
             };
         }
     }

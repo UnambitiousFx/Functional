@@ -1,131 +1,221 @@
-using UnambitiousFx.Functional.Errors;
-using UnambitiousFx.Functional.xunit;
+using UnambitiousFx.Functional.Failures;
+using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit.Tests;
 
 public class FluentAssertionExtensionsTests
 {
-    [Fact(DisplayName = "WhichIsValidationError returns ValidationErrorAssertion when error is ValidationError")]
-    public void WhichIsValidationError_WhenValidationError_ReturnsValidationErrorAssertion()
+    [Fact]
+    public void WhichIsValidationError_WhenValidationError_ReturnsValidationFailureAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Field is required"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new ValidationFailure(["Field is required"]));
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var validationAssertion = failureAssertion.WhichIsValidationError();
 
         // Assert (Then)
-        Assert.NotNull(validationAssertion.Error);
-        Assert.IsType<ValidationError>(validationAssertion.Error);
+        Assert.NotNull(validationAssertion.Failure);
+        Assert.IsType<ValidationFailure>(validationAssertion.Failure);
     }
 
-    [Fact(DisplayName = "WhichIsValidationError throws when error is not ValidationError")]
+    [Fact]
     public void WhichIsValidationError_WhenNotValidationError_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new NotFoundError("User", "123"));
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new NotFoundFailure("User", "123"));
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsValidationError());
-        Assert.Contains("Expected ValidationError but was NotFoundError", exception.Message);
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIsValidationError());
+        Assert.Contains("Expected ValidationError but was NotFoundFailure", exception.Message);
     }
 
-    [Fact(DisplayName = "WhichIsNotFoundError returns NotFoundErrorAssertion when error is NotFoundError")]
-    public void WhichIsNotFoundError_WhenNotFoundError_ReturnsNotFoundErrorAssertion()
+    [Fact]
+    public void WhichIsNotFoundError_WhenNotFoundError_ReturnsNotFoundFailureAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new NotFoundError("User", "123"));
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new NotFoundFailure("User", "123"));
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var notFoundAssertion = failureAssertion.WhichIsNotFoundError();
 
         // Assert (Then)
-        Assert.NotNull(notFoundAssertion.Error);
-        Assert.IsType<NotFoundError>(notFoundAssertion.Error);
+        Assert.NotNull(notFoundAssertion.Failure);
+        Assert.IsType<NotFoundFailure>(notFoundAssertion.Failure);
     }
 
-    [Fact(DisplayName = "WhichIsNotFoundError throws when error is not NotFoundError")]
+    [Fact]
     public void WhichIsNotFoundError_WhenNotNotFoundError_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Invalid"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new ValidationFailure(["Invalid"]));
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsNotFoundError());
-        Assert.Contains("Expected NotFoundError but was ValidationError", exception.Message);
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIsNotFoundError());
+        Assert.Contains("Expected NotFoundError but was ValidationFailure", exception.Message);
     }
 
-    [Fact(DisplayName = "WhichIsConflictError returns ConflictErrorAssertion when error is ConflictError")]
-    public void WhichIsConflictError_WhenConflictError_ReturnsConflictErrorAssertion()
+    [Fact]
+    public void WhichIsConflictError_WhenConflictError_ReturnsConflictFailureAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ConflictError("Resource already exists"));
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new ConflictFailure("Resource already exists"));
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
         var conflictAssertion = failureAssertion.WhichIsConflictError();
 
         // Assert (Then)
-        Assert.NotNull(conflictAssertion.Error);
-        Assert.IsType<ConflictError>(conflictAssertion.Error);
+        Assert.NotNull(conflictAssertion.Failure);
+        Assert.IsType<ConflictFailure>(conflictAssertion.Failure);
     }
 
-    [Fact(DisplayName = "WhichIsConflictError throws when error is not ConflictError")]
+    [Fact]
     public void WhichIsConflictError_WhenNotConflictError_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Invalid"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new ValidationFailure(["Invalid"]));
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsConflictError());
-        Assert.Contains("Expected ConflictError but was ValidationError", exception.Message);
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIsConflictError());
+        Assert.Contains("Expected ConflictError but was ValidationFailure", exception.Message);
     }
 
-    [Fact(DisplayName = "WhichIs<TError> returns TypedErrorAssertion when error matches type")]
-    public void WhichIs_WhenErrorMatchesType_ReturnsTypedErrorAssertion()
+    [Fact]
+    public void WhichIs_WhenErrorMatchesType_ReturnsTypedFailureAssertion()
     {
         // Arrange (Given)
-        var result = Result.Failure(new UnauthorizedError());
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new UnauthorizedFailure());
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When)
-        var typedAssertion = failureAssertion.WhichIs<UnauthorizedError>();
+        var typedAssertion = failureAssertion.WhichIs<UnauthorizedFailure>();
 
         // Assert (Then)
-        Assert.NotNull(typedAssertion.Error);
-        Assert.IsType<UnauthorizedError>(typedAssertion.Error);
+        Assert.NotNull(typedAssertion.Failure);
+        Assert.IsType<UnauthorizedFailure>(typedAssertion.Failure);
     }
 
-    [Fact(DisplayName = "WhichIs<TError> throws when error does not match type")]
+    [Fact]
     public void WhichIs_WhenErrorDoesNotMatchType_Throws()
     {
         // Arrange (Given)
-        var result = Result.Failure(new ValidationError(["Invalid"]));
-        var failureAssertion = result.ShouldBe().Failure();
+        var result = Result.Failure(new ValidationFailure(["Invalid"]));
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
 
         // Act (When) & Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIs<UnauthorizedError>());
-        Assert.Contains("Expected UnauthorizedError but was ValidationError", exception.Message);
+        var exception = Assert.Throws<FailException>(() => failureAssertion.WhichIs<UnauthorizedFailure>());
+        Assert.Contains("Expected UnauthorizedFailure but was ValidationFailure", exception.Message);
     }
 
-    [Fact(DisplayName = "WhichIs<TError> works with custom error types")]
+    [Fact]
     public void WhichIs_WithCustomErrorType_WorksCorrectly()
     {
         // Arrange (Given)
-        var customError = new Error("CUSTOM", "Custom error");
-        var result = Result.Failure(customError);
+        var customError = new Failure("CUSTOM", "Custom error");
+        var result      = Result.Failure(customError);
+        var failureAssertion = result.ShouldBe()
+                                     .Failure();
+
+        // Act (When)
+        var typedAssertion = failureAssertion.WhichIs<Failure>();
+
+        // Assert (Then)
+        Assert.NotNull(typedAssertion.Failure);
+        Assert.Equal("CUSTOM", typedAssertion.Failure.Code);
+    }
+
+    [Fact]
+    public void WhichIsTimeoutError_WhenTimeoutFailure_ReturnsTypedAssertion()
+    {
+        // Arrange (Given)
+        var failure          = new TimeoutFailure(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(6));
+        var result           = Result.Failure(failure);
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When)
-        var typedAssertion = failureAssertion.WhichIs<Error>();
+        var typedAssertion = failureAssertion.WhichIsTimeoutError();
 
         // Assert (Then)
-        Assert.NotNull(typedAssertion.Error);
-        Assert.Equal("CUSTOM", typedAssertion.Error.Code);
+        Assert.NotNull(typedAssertion.Failure);
+        Assert.IsType<TimeoutFailure>(typedAssertion.Failure);
+    }
+
+    [Fact]
+    public void WhichIsTimeoutError_WhenNotTimeoutFailure_ThrowsFailException()
+    {
+        // Arrange (Given)
+        var result           = Result.Failure(new Failure("ERR", "not timeout"));
+        var failureAssertion = result.ShouldBe().Failure();
+
+        // Act (When) / Assert (Then)
+        Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsTimeoutError());
+    }
+
+    [Fact]
+    public void WhichIsUnauthenticatedError_WhenUnauthenticatedFailure_ReturnsTypedAssertion()
+    {
+        // Arrange (Given)
+        var failure          = new UnauthenticatedFailure();
+        var result           = Result.Failure(failure);
+        var failureAssertion = result.ShouldBe().Failure();
+
+        // Act (When)
+        var typedAssertion = failureAssertion.WhichIsUnauthenticatedError();
+
+        // Assert (Then)
+        Assert.NotNull(typedAssertion.Failure);
+        Assert.IsType<UnauthenticatedFailure>(typedAssertion.Failure);
+    }
+
+    [Fact]
+    public void WhichIsUnauthenticatedError_WhenNotUnauthenticatedFailure_ThrowsFailException()
+    {
+        // Arrange (Given)
+        var result           = Result.Failure(new Failure("ERR", "not unauthenticated"));
+        var failureAssertion = result.ShouldBe().Failure();
+
+        // Act (When) / Assert (Then)
+        Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsUnauthenticatedError());
+    }
+
+    [Fact]
+    public void WhichIsUnauthorizedError_WhenUnauthorizedFailure_ReturnsTypedAssertion()
+    {
+        // Arrange (Given)
+        var failure          = new UnauthorizedFailure();
+        var result           = Result.Failure(failure);
+        var failureAssertion = result.ShouldBe().Failure();
+
+        // Act (When)
+        var typedAssertion = failureAssertion.WhichIsUnauthorizedError();
+
+        // Assert (Then)
+        Assert.NotNull(typedAssertion.Failure);
+        Assert.IsType<UnauthorizedFailure>(typedAssertion.Failure);
+    }
+
+    [Fact]
+    public void WhichIsUnauthorizedError_WhenNotUnauthorizedFailure_ThrowsFailException()
+    {
+        // Arrange (Given)
+        var result           = Result.Failure(new Failure("ERR", "not unauthorized"));
+        var failureAssertion = result.ShouldBe().Failure();
+
+        // Act (When) / Assert (Then)
+        Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsUnauthorizedError());
     }
 }

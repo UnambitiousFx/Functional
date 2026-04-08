@@ -1,15 +1,20 @@
 # Guidelines for UnambitiousFx.Functional
 
-This document provides guidelines and best practices for developing and maintaining the UnambitiousFx.Functional library.
+This document provides guidelines and best practices for developing and maintaining the UnambitiousFx.Functional
+library.
 
 ## Project Overview
 
-UnambitiousFx.Functional is a lightweight, performance-focused functional programming library for .NET. Its core goal is to provide type-safe, expressive functional primitives like `Result<T>`, `Maybe<T>`, and `OneOf<T>` while minimizing allocations and overhead.
+UnambitiousFx.Functional is a lightweight, performance-focused functional programming library for .NET. Its core goal is
+to provide type-safe, expressive functional primitives like `Result<T>`, `Maybe<T>`, and `OneOf<T>` while minimizing
+allocations and overhead.
 
 ### Core Principles
 
-- **Zero-Allocation**: Strive for minimal heap allocations in hot paths. Use `readonly struct` for core types where appropriate.
-- **Functional-First**: Embrace railway-oriented programming. Use composition (Bind, Map, Tap) over exceptions for control flow.
+- **Zero-Allocation**: Strive for minimal heap allocations in hot paths. Use `readonly struct` for core types where
+  appropriate.
+- **Functional-First**: Embrace railway-oriented programming. Use composition (Bind, Map, Tap) over exceptions for
+  control flow.
 - **Type Safety**: Leverage the .NET type system and source generators to ensure correctness at compile time.
 - **Modern C#**: Use modern C# features (file-scoped namespaces, pattern matching, records, collection expressions).
 
@@ -27,11 +32,13 @@ UnambitiousFx.Functional is a lightweight, performance-focused functional progra
 
 ## Unit Testing Guidelines
 
-Testing is a first-class citizen in this project. We aim for high coverage (80%+) and expressive, readable tests. For testing `Result`, `Maybe`, or `OneOf`, you must use `Functional.xunit` to ensure consistent and effective assertions.
+Testing is a first-class citizen in this project. We aim for high coverage (80%+) and expressive, readable tests. For
+testing `Result`, `Maybe`, or `OneOf`, you must use `Functional.xunit` to ensure consistent and effective assertions.
 
 ### AAA Pattern (Gherkin style)
 
-All tests should follow the **Arrange-Act-Assert (AAA)** pattern, which maps directly to the **Gherkin (Given-When-Then)** structure. Use comments to clearly separate these sections.
+All tests should follow the **Arrange-Act-Assert (AAA)** pattern, which maps directly to the **Gherkin (Given-When-Then)
+** structure. Use comments to clearly separate these sections.
 
 - **Arrange (Given)**: Set up the test conditions, initialize objects, and prepare input data.
 - **Act (When)**: Execute the specific method or operation being tested.
@@ -58,18 +65,21 @@ public void Map_WithSuccessResult_TransformsValue()
 
 ### Best Practices in .NET Testing
 
-1.  **Descriptive Test Names**: Use the pattern `MethodName_Scenario_ExpectedBehavior`.
-2.  **Theory Tests**: Use `[Theory]` and `[InlineData]` to test multiple scenarios with the same logic.
-3.  **Edge Case Identification**: Always test nulls, empty collections, boundary conditions, and error states.
-4.  **Use Custom Fluent Assertions**: Leverage the `Functional.xunit` library for expressive assertions on functional types (`Result`, `Maybe`, `OneOf`). This is the preferred way to ensure consistency across the test suite.
+1. **Descriptive Test Names**: Use the pattern `MethodName_Scenario_ExpectedBehavior`.
+2. **Theory Tests**: Use `[Theory]` and `[InlineData]` to test multiple scenarios with the same logic.
+3. **Edge Case Identification**: Always test nulls, empty collections, boundary conditions, and error states.
+4. **Use Custom Fluent Assertions**: Leverage the `Functional.xunit` library for expressive assertions on functional
+   types (`Result`, `Maybe`, `OneOf`). This is the preferred way to ensure consistency across the test suite.
     - Use `result.ShouldBe().Success()` or `result.ShouldBe().Failure()` for `Result`.
     - Use `maybe.ShouldBe().Some()` or `maybe.ShouldBe().None()` for `Maybe`.
     - Use `oneOf.ShouldBe().First()`, `.Second()`, etc., for `OneOf`.
     - Chain with `.And(v => ...)` or `.Where(v => ...)` for further validation.
-    - For errors, use `.AndMessage("expected message")` or `.AndCode("expected code")`.
-5.  **Avoid Implementation Details**: Test the public API and its behavior, not the internal state or private methods.
-6.  **Mocking**: Use `NSubstitute` when you need to mock external dependencies, but prefer using real instances of core functional types.
+    - For failures, use `.AndMessage("expected message")` or `.AndCode("expected code")`.
+5. **Avoid Implementation Details**: Test the public API and its behavior, not the internal state or private methods.
+6. **Mocking**: Use `NSubstitute` when you need to mock external dependencies, but prefer using real instances of core
+   functional types.
 
 ## Performance Testing
 
-For changes in hot paths, add or update benchmarks in the `benchmarks/FunctionalBenchmark` project using **BenchmarkDotNet**.
+For changes in hot paths, add or update benchmarks in the `benchmarks/FunctionalBenchmark` project using *
+*BenchmarkDotNet**.

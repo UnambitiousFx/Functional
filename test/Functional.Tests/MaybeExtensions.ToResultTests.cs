@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -10,15 +10,15 @@ public sealed class MaybeExtensionsToResultTests
     {
         // Arrange (Given)
         var maybe = Maybe.Some(42);
-        var error = new Error("code", "message");
+        var error = new Failure("code", "message");
 
         // Act (When)
         var result = maybe.ToResult(error);
 
         // Assert (Then)
         result.ShouldBe()
-            .Success()
-            .And(v => Assert.Equal(42, v));
+              .Success()
+              .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
@@ -26,16 +26,16 @@ public sealed class MaybeExtensionsToResultTests
     {
         // Arrange (Given)
         var maybe = Maybe.None<int>();
-        var error = new Error("code", "message");
+        var error = new Failure("code", "message");
 
         // Act (When)
         var result = maybe.ToResult(error);
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(error.Code)
-            .AndMessage(error.Message);
+              .Failure()
+              .AndCode(error.Code)
+              .AndMessage(error.Message);
     }
 
     [Fact]
@@ -45,12 +45,12 @@ public sealed class MaybeExtensionsToResultTests
         var maybe = Maybe.Some(42);
 
         // Act (When)
-        var result = maybe.ToResult(() => new Error("code", "message"));
+        var result = maybe.ToResult(() => new Failure("code", "message"));
 
         // Assert (Then)
         result.ShouldBe()
-            .Success()
-            .And(v => Assert.Equal(42, v));
+              .Success()
+              .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
@@ -58,23 +58,23 @@ public sealed class MaybeExtensionsToResultTests
     {
         // Arrange (Given)
         var maybe = Maybe.None<int>();
-        var error = new Error("code", "message");
+        var error = new Failure("code", "message");
 
         // Act (When)
         var result = maybe.ToResult(() => error);
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(error.Code)
-            .AndMessage(error.Message);
+              .Failure()
+              .AndCode(error.Code)
+              .AndMessage(error.Message);
     }
 
     [Fact]
     public void ToResult_WithMessage_WithSome_ReturnsSuccess()
     {
         // Arrange (Given)
-        var maybe = Maybe.Some(42);
+        var maybe   = Maybe.Some(42);
         var message = "error message";
 
         // Act (When)
@@ -82,15 +82,15 @@ public sealed class MaybeExtensionsToResultTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Success()
-            .And(v => Assert.Equal(42, v));
+              .Success()
+              .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
     public void ToResult_WithMessage_WithNone_ReturnsFailure()
     {
         // Arrange (Given)
-        var maybe = Maybe.None<int>();
+        var maybe   = Maybe.None<int>();
         var message = "error message";
 
         // Act (When)
@@ -98,7 +98,7 @@ public sealed class MaybeExtensionsToResultTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage(message);
+              .Failure()
+              .AndMessage(message);
     }
 }

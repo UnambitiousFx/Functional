@@ -14,9 +14,8 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Optional configuration action.</param>
     /// <returns>The service collection for fluent chaining.</returns>
-    public static IServiceCollection AddResultHttp(
-        this IServiceCollection services,
-        Action<ResultHttpOptions>? configure = null)
+    public static IServiceCollection AddResultHttp(this IServiceCollection    services,
+                                                   Action<ResultHttpOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -25,6 +24,7 @@ public static class ServiceCollectionExtensions
 
         var mapper = options.BuildMapper();
         services.AddSingleton(mapper);
+        services.AddSingleton(options.Policy);
 
         return services;
     }

@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Ardalis.Result" />
-    <PackageReference Include="BenchmarkDotNet" />
-    <PackageReference Include="FluentResults" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Ardalis.Result"/>
+        <PackageReference Include="BenchmarkDotNet"/>
+        <PackageReference Include="FluentResults"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Functional\Functional.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Functional\Functional.csproj"/>
+    </ItemGroup>
 
 </Project>

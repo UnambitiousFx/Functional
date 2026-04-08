@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional.Tests;
 
@@ -26,7 +26,7 @@ public sealed partial class ResultExtensions
     public void ValueOr_WithFailure_ReturnsFallback()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<int>(error);
 
         // Act (When)
@@ -53,7 +53,7 @@ public sealed partial class ResultExtensions
     public void ValueOr_WithFailure_StringType_ReturnsFallback()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<string>(error);
 
         // Act (When)
@@ -71,7 +71,7 @@ public sealed partial class ResultExtensions
     public void ValueOr_WithFactory_WithSuccess_ReturnsValue()
     {
         // Arrange (Given)
-        var result = Result.Success(42);
+        var result        = Result.Success(42);
         var factoryCalled = false;
 
         // Act (When)
@@ -90,8 +90,8 @@ public sealed partial class ResultExtensions
     public void ValueOr_WithFactory_WithFailure_CallsFactory()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure<int>(error);
+        var error         = new Failure("Test error");
+        var result        = Result.Failure<int>(error);
         var factoryCalled = false;
 
         // Act (When)
@@ -110,7 +110,7 @@ public sealed partial class ResultExtensions
     public void ValueOr_WithFactory_CanUseComplexLogic()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
+        var error  = new Failure("Test error");
         var result = Result.Failure<string>(error);
 
         // Act (When)
@@ -133,8 +133,8 @@ public sealed partial class ResultExtensions
     public void ValueOr_WithComplexType_ReturnsCorrectValue()
     {
         // Arrange (Given)
-        var person = new { Name = "John", Age = 30 };
-        var result = Result.Success(person);
+        var person   = new { Name = "John", Age = 30 };
+        var result   = Result.Success(person);
         var fallback = new { Name = "Default", Age = 0 };
 
         // Act (When)
@@ -142,15 +142,15 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         Assert.Equal("John", value.Name);
-        Assert.Equal(30, value.Age);
+        Assert.Equal(30,     value.Age);
     }
 
     [Fact]
     public void ValueOr_WithComplexType_WithFailure_ReturnsFallback()
     {
         // Arrange (Given)
-        var error = new Error("Test error");
-        var result = Result.Failure<(string Name, int Age)>(error);
+        var error    = new Failure("Test error");
+        var result   = Result.Failure<(string Name, int Age)>(error);
         var fallback = (Name: "Default", Age: 0);
 
         // Act (When)
@@ -158,7 +158,7 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         Assert.Equal("Default", value.Name);
-        Assert.Equal(0, value.Age);
+        Assert.Equal(0,         value.Age);
     }
 
     #endregion

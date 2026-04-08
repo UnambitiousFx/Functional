@@ -12,7 +12,7 @@ A console application demonstrating the core features of the library:
 - Pattern matching with `Match()`
 - `Maybe<T>` for optional values
 - Chaining operations with `Bind()`
-- Different error types (NotFound, Validation, Unauthorized)
+- Different failure types (NotFound, Validation, Unauthorized)
 - Metadata support
 - Side effects with `IfSuccess()` and `IfFailure()`
 
@@ -28,10 +28,11 @@ dotnet run
 A minimal API demonstrating integration with ASP.NET Core:
 
 - Converting `Result<T>` to `IResult` with `ToHttpResult()`
-- Converting `Maybe<T>` to `Result<T>` then to `IResult`
-- Automatic HTTP status code mapping for different error types
-- Validation error handling
-- Authorization error handling
+- Converting `Maybe<T>` directly to `IResult` with `ToHttpResult()`
+- Automatic HTTP status code mapping for different failure types
+- Policy-based defaults for non-generic `Result` and `Maybe.None`
+- Validation failure handling
+- Authorization failure handling
 - RESTful API endpoints
 
 **Run the example:**
@@ -49,7 +50,7 @@ Then test the API endpoints using curl or your browser.
 # Success case - divide numbers
 curl https://localhost:5001/api/divide/10/2
 
-# Error case - divide by zero
+# Failure case - divide by zero
 curl https://localhost:5001/api/divide/10/0
 
 # Success case - get user
@@ -58,23 +59,23 @@ curl https://localhost:5001/api/users/123
 # Not found case - unknown user
 curl https://localhost:5001/api/users/999
 
-# Success case - get config value
-curl https://localhost:5001/api/config/app-name
+# Success case - get profile
+curl https://localhost:5001/api/profiles/123
 
-# Not found case - missing config
-curl https://localhost:5001/api/config/unknown-key
+# Not found case - missing profile
+curl https://localhost:5001/api/profiles/999
 
 # Success case - create user
 curl -X POST https://localhost:5001/api/users \
   -H "Content-Type: application/json" \
   -d '{"name":"Jane Doe","email":"jane@example.com"}'
 
-# Validation error - invalid email
+# Validation failure - invalid email
 curl -X POST https://localhost:5001/api/users \
   -H "Content-Type: application/json" \
   -d '{"name":"Jane Doe","email":"invalid-email"}'
 
-# Unauthorized error - admin endpoint
+# Unauthorized failure - admin endpoint
 curl https://localhost:5001/api/admin/users/123
 ```
 
@@ -88,7 +89,7 @@ Railway-oriented programming with `Result<T>` allows you to handle success and f
 var result = Divide(10, 2);
 result.Match(
     onSuccess: value => Console.WriteLine($"Result: {value}"),
-    onFailure: error => Console.WriteLine($"Error: {error.Message}")
+  onFailure: failure => Console.WriteLine($"Failure: {failure.Message}")
 );
 ```
 
@@ -114,19 +115,19 @@ var result = Result.Success("42")
     .Bind(ValidatePositive);
 ```
 
-### Error Types
+### Failure Types
 
-Use specific error types for different failure scenarios:
+Use specific failure types for different failure scenarios:
 
 ```csharp
 // Not found
-Result.Failure<User>(new NotFoundError("User", id));
+Result.Failure<User>(new NotFoundFailure("User", id));
 
 // Validation
-Result.Failure<User>(new ValidationError("Email is required"));
+Result.Failure<User>(new ValidationFailure("Email is required"));
 
 // Unauthorized
-Result.Failure<User>(new UnauthorizedError("Admin access required"));
+Result.Failure<User>(new UnauthorizedFailure("Admin access required"));
 ```
 
 ### ASP.NET Core Integration
@@ -138,6 +139,12 @@ app.MapGet("/api/users/{id}", (string id) =>
 {
     var result = GetUser(id);
     return result.ToHttpResult(); // Automatic status code mapping
+});
+
+app.MapGet("/api/profiles/{id}", (string id) =>
+{
+  var maybe = TryGetProfile(id);
+  return maybe.ToHttpResult(); // Some -> 200, None -> 404 (default)
 });
 ```
 

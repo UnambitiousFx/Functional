@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace UnambitiousFx.Functional;
 
+[ExcludeFromCodeCoverage]
 internal sealed class MaybeDebugView<TValue>
     where TValue : notnull
 {
@@ -10,8 +13,11 @@ internal sealed class MaybeDebugView<TValue>
         _maybe = maybe;
     }
 
-    public bool IsSome => _maybe.IsSome;
-    public bool IsNone => _maybe.IsNone;
+    public bool IsSome   => _maybe.IsSome;
+    public bool IsNone   => _maybe.IsNone;
     public bool HasValue => _maybe.IsSome;
-    public TValue? Value => _maybe.Some(out var value) ? value : default;
+
+    public TValue? Value => _maybe.Some(out var value)
+                                ? value
+                                : default;
 }

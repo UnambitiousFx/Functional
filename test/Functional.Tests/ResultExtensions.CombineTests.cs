@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -18,7 +18,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Success();
+        combined.ShouldBe()
+                .Success();
     }
 
     [Fact]
@@ -34,9 +35,10 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
-        Assert.False(combined.TryGet(out var error));
-        Assert.IsType<AggregateError>(error);
+        combined.ShouldBe()
+                .Failure();
+        Assert.True(combined.TryGetFailure(out var error));
+        Assert.IsType<AggregateFailure>(error);
     }
 
     [Fact]
@@ -49,7 +51,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
+        combined.ShouldBe()
+                .Failure();
     }
 
     [Fact]
@@ -62,7 +65,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Success();
+        combined.ShouldBe()
+                .Success();
     }
 
     [Fact]
@@ -76,8 +80,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         combined.ShouldBe()
-            .Success()
-            .And(values => Assert.Equal([1, 2, 3], values));
+                .Success()
+                .And(values => Assert.Equal([1, 2, 3], values));
     }
 
     [Fact]
@@ -93,9 +97,10 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
+        combined.ShouldBe()
+                .Failure();
         Assert.False(combined.TryGet(out _, out var error));
-        Assert.IsType<AggregateError>(error);
+        Assert.IsType<AggregateFailure>(error);
     }
 
     [Fact]
@@ -111,7 +116,8 @@ public sealed partial class ResultExtensions
         var combined = results.Combine();
 
         // Assert (Then)
-        combined.ShouldBe().Failure();
+        combined.ShouldBe()
+                .Failure();
     }
 
     [Fact]
@@ -125,8 +131,8 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         combined.ShouldBe()
-            .Success()
-            .And(values => Assert.Empty(values));
+                .Success()
+                .And(values => Assert.Empty(values));
     }
 
     [Theory]
@@ -142,7 +148,7 @@ public sealed partial class ResultExtensions
 
         // Assert (Then)
         combined.ShouldBe()
-            .Success()
-            .And(values => Assert.Equal(inputValues, values));
+                .Success()
+                .And(values => Assert.Equal(inputValues, values));
     }
 }

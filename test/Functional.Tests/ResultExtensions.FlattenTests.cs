@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -14,14 +14,16 @@ public sealed partial class ResultExtensions
     public void Flatten_WithFailure_PropagatesOuterError()
     {
         // Arrange (Given)
-        var error = new Error("Outer error");
+        var error       = new Failure("Outer error");
         var outerResult = Result.Failure<Result<int>>(error);
 
         // Act (When)
         var flattened = outerResult.Flatten();
 
         // Assert (Then)
-        flattened.ShouldBe().Failure().AndMessage("Outer error");
+        flattened.ShouldBe()
+                 .Failure()
+                 .AndMessage("Outer error");
     }
 
     #endregion
@@ -39,14 +41,16 @@ public sealed partial class ResultExtensions
         var flattened = outerResult.Flatten();
 
         // Assert (Then)
-        flattened.ShouldBe().Success().And(value => Assert.Equal(42, value));
+        flattened.ShouldBe()
+                 .Success()
+                 .And(value => Assert.Equal(42, value));
     }
 
     [Fact]
     public void Flatten_WithSuccessOfFailure_ReturnsInnerFailure()
     {
         // Arrange (Given)
-        var error = new Error("Inner error");
+        var error       = new Failure("Inner error");
         var innerResult = Result.Failure<int>(error);
         var outerResult = Result.Success(innerResult);
 
@@ -54,7 +58,9 @@ public sealed partial class ResultExtensions
         var flattened = outerResult.Flatten();
 
         // Assert (Then)
-        flattened.ShouldBe().Failure().AndMessage("Inner error");
+        flattened.ShouldBe()
+                 .Failure()
+                 .AndMessage("Inner error");
     }
 
     #endregion
@@ -69,11 +75,13 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         // Bind returns Result<Result<int>>, Flatten simplifies to Result<int>
-        var nested = result.Bind(x => Result.Success(Result.Success(x * 2)));
+        var nested    = result.Bind(x => Result.Success(Result.Success(x * 2)));
         var flattened = nested.Flatten();
 
         // Assert (Then)
-        flattened.ShouldBe().Success().And(value => Assert.Equal(10, value));
+        flattened.ShouldBe()
+                 .Success()
+                 .And(value => Assert.Equal(10, value));
     }
 
     [Fact]
@@ -84,12 +92,14 @@ public sealed partial class ResultExtensions
 
         // Act (When)
         var final = result
-            .Flatten()
-            .Map(x => x * 2)
-            .Bind(x => Result.Success(x + 5));
+                   .Flatten()
+                   .Map(x => x * 2)
+                   .Bind(x => Result.Success(x + 5));
 
         // Assert (Then)
-        final.ShouldBe().Success().And(value => Assert.Equal(25, value));
+        final.ShouldBe()
+             .Success()
+             .And(value => Assert.Equal(25, value));
     }
 
     #endregion
@@ -107,14 +117,16 @@ public sealed partial class ResultExtensions
         var flattened = outerResult.Flatten();
 
         // Assert (Then)
-        flattened.ShouldBe().Success().And(value => Assert.Equal("hello", value));
+        flattened.ShouldBe()
+                 .Success()
+                 .And(value => Assert.Equal("hello", value));
     }
 
     [Fact]
     public void Flatten_WithComplexType_WorksCorrectly()
     {
         // Arrange (Given)
-        var person = new { Name = "John", Age = 30 };
+        var person      = new { Name = "John", Age = 30 };
         var innerResult = Result.Success(person);
         var outerResult = Result.Success(innerResult);
 
@@ -122,10 +134,11 @@ public sealed partial class ResultExtensions
         var flattened = outerResult.Flatten();
 
         // Assert (Then)
-        flattened.ShouldBe().Success();
+        flattened.ShouldBe()
+                 .Success();
         Assert.True(flattened.TryGet(out var value, out _));
         Assert.Equal("John", value.Name);
-        Assert.Equal(30, value.Age);
+        Assert.Equal(30,     value.Age);
     }
 
     #endregion

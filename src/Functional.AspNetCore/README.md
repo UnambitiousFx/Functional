@@ -1,16 +1,17 @@
 # Functional.AspNetCore
 
-ASP.NET Core integration for UnambitiousFx `Result<T>` types. This library provides seamless conversion from `Result` types to HTTP responses for both minimal APIs and MVC controllers.
+ASP.NET Core integration for `Result<T>` and `Maybe<T>`. Provides one-line conversion to HTTP responses for both Minimal
+APIs and MVC controllers, with predictable defaults and zero boilerplate for common cases.
 
 ## Features
 
 - ✅ **AOT-Compatible**: Designed for Native AOT compilation
-- ✅ **Minimal API Support**: Convert `Result<T>` to `IResult`
-- ✅ **MVC Controller Support**: Convert `Result<T>` to `IActionResult`
-- ✅ **DTO Mapping**: Optional transformation layer for response DTOs
-- ✅ **Extensible Error Mapping**: Custom error-to-HTTP status code mappers
-- ✅ **Problem Details Support**: RFC 7807 compliant error responses
-- ✅ **Built-in Error Types**: Automatic mapping for ValidationError, NotFoundError, UnauthorizedError, etc.
+- ✅ **Minimal API Support**: Convert `Result<T>` / `Maybe<T>` to `IResult`
+- ✅ **MVC Controller Support**: Convert `Result<T>` / `Maybe<T>` to `IActionResult`
+- ✅ **async-first**: First-class `ValueTask<Result<T>>` and `Task<Result<T>>` overloads
+- ✅ **Policy-based defaults**: Configure success/none HTTP behavior globally via `AddResultHttp`
+- ✅ **Extensible Error Mapping**: Typed helper builders and chain-of-responsibility mapper pipeline
+- ✅ **Problem Details**: RFC 7807 compliant error responses out of the box
 
 ## Installation
 
@@ -18,41 +19,41 @@ ASP.NET Core integration for UnambitiousFx `Result<T>` types. This library provi
 dotnet add package UnambitiousFx.Functional.AspNetCore
 ```
 
+## Setup
+
+Register the required services once in your app startup:
+
+```csharp
+builder.Services.AddResultHttp();
+```
+
 ## Quick Start
 
 ### Minimal API
 
 ```csharp
-using UnambitiousFx.Functional.AspNetCore.Extensions;
-using UnambitiousFx.Functional.Results;
+using UnambitiousFx.Functional.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddResultHttp();
 
 var app = builder.Build();
 
-// Simple success/failure
-app.MapGet("/users/{id:guid}", async (Guid id, IUserService userService) =>
-{
-    var result = await userService.GetUserAsync(id);
-    return result.ToHttpResult();
-});
+// Result<T> — success: 200 OK with value, failure: mapped error status
+app.MapGet("/users/{id:guid}", async (Guid id, IUserService svc) =>
+    await svc.GetUserAsync(id).ToHttpResult());
 
-// With DTO mapping
-app.MapGet("/users/{id:guid}", async (Guid id, IUserService userService) =>
-{
-    var result = await userService.GetUserAsync(id);
-    return result.ToHttpResult(user => new UserDto(user.Id, user.Email));
-});
+// Maybe<T> — Some: 200 OK with value, None: 404 Not Found (by default)
+app.MapGet("/profiles/{id:guid}", async (Guid id, IProfileService svc) =>
+    await svc.TryGetProfileAsync(id).ToHttpResult());
 
-// Created response
-app.MapPost("/users", async (CreateUserRequest request, IUserService userService) =>
-{
-    var result = await userService.CreateUserAsync(request);
-    return result.ToCreatedHttpResult(
-        user => $"/users/{user.Id}",
-        user => new UserDto(user.Id, user.Email));
-});
+// Result (non-generic) — success: 204 No Content, failure: mapped error status
+app.MapDelete("/users/{id:guid}", async (Guid id, IUserService svc) =>
+    await svc.DeleteUserAsync(id).ToHttpResult());
+
+// Created response from Result<T>
+app.MapPost("/users", async (CreateUserRequest req, IUserService svc) =>
+    await svc.CreateUserAsync(req).ToCreatedHttpResult(user => $"/users/{user.Id}"));
 
 app.Run();
 ```
@@ -60,218 +61,267 @@ app.Run();
 ### MVC Controllers
 
 ```csharp
-using Microsoft.AspNetCore.Mvc;
-using UnambitiousFx.Functional.AspNetCore.Extensions;
+using UnambitiousFx.Functional.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IUserService _svc;
 
-    public UsersController(IUserService userService)
-    {
-        _userService = userService;
-    }
+    public UsersController(IUserService svc) => _svc = svc;
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetUser(Guid id)
-    {
-        var result = await _userService.GetUserAsync(id);
-        return result.ToActionResult(user => new UserDto(user.Id, user.Email));
-    }
+        => await _svc.GetUserAsync(id).ToActionResult();
+
+    [HttpGet("profiles/{id:guid}")]
+    public async Task<IActionResult> GetProfile(Guid id)
+        // Maybe<T> — Some: 200 OK, None: 404 Not Found (by default)
+        => await _svc.TryGetProfileAsync(id).ToActionResult();
 
     [HttpPost]
-    public async Task<IActionResult> CreateUser(CreateUserRequest request)
-    {
-        var result = await _userService.CreateUserAsync(request);
-        return result.ToCreatedActionResult(
-            "GetUser",
-            user => new UserDto(user.Id, user.Email),
-            new { id = result.TryGet(out var user, out _) ? user.Id : Guid.Empty });
-    }
+    public async Task<IActionResult> CreateUser(CreateUserRequest req)
+        // Pass a success mapper lambda to return 201 Created
+        => await _svc.CreateUserAsync(req)
+            .ToActionResult(user => new CreatedAtActionResult(
+                nameof(GetUser), null, new { id = user.Id }, user));
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id)
-    {
-        var result = await _userService.DeleteUserAsync(id);
-        return result.ToActionResult();
-    }
+        => await _svc.DeleteUserAsync(id).ToActionResult();
 }
 ```
 
 ## Error Handling
 
-The library automatically maps standard error types to appropriate HTTP status codes:
+The built-in default mapper converts standard failure types to RFC 7807 Problem Details responses:
 
-| Error Type | HTTP Status Code |
-|------------|------------------|
-| `ValidationError` | 400 Bad Request |
-| `NotFoundError` | 404 Not Found |
-| `UnauthorizedError` | 401 Unauthorized |
-| `ConflictError` | 409 Conflict |
-| `ExceptionalError` | 500 Internal Server Error |
-| Custom `Error` | 400 Bad Request |
+| Failure Type             | HTTP Status               |
+|--------------------------|---------------------------|
+| `ValidationFailure`      | 400 Bad Request           |
+| `NotFoundFailure`        | 404 Not Found             |
+| `UnauthorizedFailure`    | 401 Unauthorized          |
+| `UnauthenticatedFailure` | 403 Forbidden             |
+| `ConflictFailure`        | 409 Conflict              |
+| `ExceptionalFailure`     | 500 Internal Server Error |
+| Unrecognised `Failure`   | 500 Internal Server Error |
 
-### Example Error Responses
-
-```csharp
-// Validation error → 400 Bad Request
-var result = Result.Failure<User>(
-    new ValidationError(["Email is required", "Password must be at least 8 characters"]));
-return result.ToHttpResult();
-
-// Not found → 404 Not Found
-var result = Result.Failure<User>(
-    new NotFoundError("User", userId.ToString()));
-return result.ToHttpResult();
-
-// Unauthorized → 401 Unauthorized
-var result = Result.Failure<User>(
-    new UnauthorizedError("Invalid API key"));
-return result.ToHttpResult();
-```
-
-## Configuration
-
-### Basic Configuration
-
-```csharp
-builder.Services.AddResultHttp();
-```
-
-### With Problem Details (RFC 7807)
-
-```csharp
-builder.Services.AddResultHttp(options =>
-{
-    options.UseProblemDetails = true;
-    options.IncludeExceptionDetails = builder.Environment.IsDevelopment();
-});
-```
-
-Problem Details response example:
+Example error response (RFC 7807 Problem Details):
 
 ```json
 {
   "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-  "title": "Validation Failed",
+  "title": "Validation Error",
   "status": 400,
-  "detail": "Email is required; Password must be at least 8 characters",
-  "code": "VALIDATION",
-  "failures": [
-    "Email is required",
-    "Password must be at least 8 characters"
-  ]
+  "detail": "One or more fields are invalid.",
+  "failures": ["Email is required", "Password too short"]
 }
 ```
 
-### Custom Error Mappers
+## Configuration
 
-Create a custom mapper for domain-specific errors:
+### Global policy defaults
 
 ```csharp
-public class DomainErrorMapper : IErrorHttpMapper
+builder.Services.AddResultHttp(options =>
 {
-    public int? GetStatusCode(IError error)
+    // Result (non-generic) success: 204 NoContent (default) or 200 OK
+    options.Policy = new ResultHttpAdapterPolicy
     {
-        return error switch
-        {
-            PaymentRequiredError => 402,
-            RateLimitError => 429,
-            _ => null // Let other mappers handle it
-        };
-    }
+        ResultSuccessBehavior = ResultSuccessHttpBehavior.NoContent, // default
+        MaybeNoneBehavior     = MaybeNoneHttpBehavior.NotFound       // default
+    };
 
-    public object? GetResponseBody(IError error)
+    // Include stack traces in error responses (development only)
+    options.IncludeExceptionDetails = builder.Environment.IsDevelopment();
+});
+```
+
+#### `ResultSuccessHttpBehavior`
+
+| Value                 | Behaviour                                     |
+|-----------------------|-----------------------------------------------|
+| `NoContent` (default) | Non-generic `Result` success → 204 No Content |
+| `Ok`                  | Non-generic `Result` success → 200 OK         |
+
+#### `MaybeNoneHttpBehavior`
+
+| Value                | Behaviour                        |
+|----------------------|----------------------------------|
+| `NotFound` (default) | `Maybe<T>` None → 404 Not Found  |
+| `NoContent`          | `Maybe<T>` None → 204 No Content |
+
+### Per-endpoint policy override
+
+The global policy can be overridden at any call site:
+
+```csharp
+var policy = new ResultHttpAdapterPolicy
+{
+    ResultSuccessBehavior = ResultSuccessHttpBehavior.Ok
+};
+
+app.MapPost("/publish", async (IPublishService svc) =>
+    await svc.PublishAsync().ToHttpResult(policy: policy));
+```
+
+### Custom error mappers
+
+#### Typed helper (most common)
+
+Register a handler for a specific failure type using a status code or a factory:
+
+```csharp
+builder.Services.AddResultHttp(options =>
+{
+    // Simple: status code + default ProblemDetails body
+    options.AddMapper<RateLimitFailure>(429);
+    options.AddMapper<PaymentRequiredFailure>(402);
+
+    // Full control: custom factory
+    options.AddMapper<RateLimitFailure>(f => new FailureHttpResponse
     {
-        return error switch
+        StatusCode = 429,
+        Body = new { message = f.Message, retryAfter = f.RetryAfterSeconds },
+        Headers = new Dictionary<string, string>
         {
-            PaymentRequiredError payment => new
+            ["Retry-After"] = f.RetryAfterSeconds.ToString()
+        }
+    });
+});
+```
+
+Typed mappers participate in the same first-match-wins chain and fall through to the default mapper for unhandled types.
+
+#### Full `IFailureHttpMapper` implementation
+
+Use this when one mapper needs to handle several related failure types:
+
+```csharp
+public sealed class DomainErrorMapper : IFailureHttpMapper
+{
+    public FailureHttpResponse? GetFailureResponse(IFailure failure) =>
+        failure switch
+        {
+            RateLimitFailure f => new FailureHttpResponse
             {
-                error = payment.Code,
-                message = payment.Message,
-                subscriptionRequired = true
+                StatusCode = 429,
+                Body       = new { message = f.Message },
+                Headers    = new Dictionary<string, string> { ["Retry-After"] = "60" }
             },
-            RateLimitError rateLimit => new
+            PaymentRequiredFailure f => new FailureHttpResponse
             {
-                error = rateLimit.Code,
-                message = rateLimit.Message,
-                retryAfter = rateLimit.RetryAfter
+                StatusCode = 402,
+                Body       = new { message = f.Message, subscriptionRequired = true }
             },
-            _ => null
+            _ => null  // return null to pass to the next mapper in the chain
         };
-    }
 }
 
-// Register custom mapper
 builder.Services.AddResultHttp(options =>
 {
     options.AddMapper(new DomainErrorMapper());
 });
 ```
 
-Custom mappers are evaluated before the default mapper, allowing you to override behavior for specific error types.
+Custom mappers registered via `AddMapper` are tried in the order they are added, before the built-in default mapper.
 
 ## API Reference
 
-### Extension Methods
+### Minimal API (`IResult`) — namespace `UnambitiousFx.Functional.AspNetCore.Http`
 
-#### Minimal API (`IResult`)
+#### `Result` (non-generic)
 
-- `ToHttpResult()` - Convert `Result` to 200 OK or error status
-- `ToHttpResult<TValue>()` - Convert `Result<T>` to 200 OK with value or error status
-- `ToHttpResult<TValue, TDto>()` - Convert and map to DTO
-- `ToCreatedHttpResult<TValue>()` - Convert to 201 Created with location
-- `ToCreatedHttpResult<TValue, TDto>()` - Convert to 201 Created with DTO mapping
+| Method                                                | Success                                     | Failure      |
+|-------------------------------------------------------|---------------------------------------------|--------------|
+| `ToHttpResult(successMapper?, failureMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
 
-#### MVC Controllers (`IActionResult`)
+Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
 
-- `ToActionResult()` - Convert `Result` to `OkResult` or error result
-- `ToActionResult<TValue>()` - Convert `Result<T>` to `OkObjectResult` or error result
-- `ToActionResult<TValue, TDto>()` - Convert and map to DTO
-- `ToCreatedActionResult<TValue>()` - Convert to `CreatedAtActionResult`
-- `ToCreatedActionResult<TValue, TDto>()` - Convert with DTO mapping
+#### `Result<T>`
 
-All extension methods accept an optional `IErrorHttpMapper` parameter for custom error handling.
+| Method                                               | Success                                   | Failure      |
+|------------------------------------------------------|-------------------------------------------|--------------|
+| `ToHttpResult(successMapper?, failureMapper?)`         | `successMapper(value)` or `200 OK(value)` | Mapped error |
+| `ToCreatedHttpResult(locationFactory, failureMapper?)` | `201 Created(location, value)`            | Mapped error |
 
-### Configuration Options
+Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
 
-- `UseProblemDetails` - Enable RFC 7807 Problem Details format (default: false)
-- `IncludeExceptionDetails` - Include stack traces in responses (default: false, use only in development)
-- `AddMapper(IErrorHttpMapper)` - Add custom error mapper
+#### `Maybe<T>`
 
-## Best Practices
+| Method                                                       | Some                                   | None                                     |
+|--------------------------------------------------------------|----------------------------------------|------------------------------------------|
+| `ToHttpResult(someMapper?, noneMapper?, policy?)`            | `someMapper(value)` or `200 OK(value)` | `noneMapper()` or `404`/`204` per policy |
+| `ToCreatedHttpResult(locationFactory, noneMapper?, policy?)` | `201 Created(location, value)`         | `noneMapper()` or `404`/`204` per policy |
 
-1. **Use DTO Mapping**: Transform domain entities to DTOs at the boundary
-   ```csharp
-   return result.ToHttpResult(user => new UserDto(user));
-   ```
+Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 
-2. **Register Result HTTP Services**: Always call `AddResultHttp()` in your DI configuration
-   ```csharp
-   builder.Services.AddResultHttp(options => { /* configure */ });
-   ```
+---
 
-3. **Enable Problem Details in Production**: Use RFC 7807 for consistent error responses
-   ```csharp
-   options.UseProblemDetails = true;
-   ```
+### MVC (`IActionResult`) — namespace `UnambitiousFx.Functional.AspNetCore.Mvc`
 
-4. **Create Domain-Specific Error Types**: Extend `ErrorBase` for custom errors
-   ```csharp
-   public sealed record PaymentRequiredError(string Message)
-       : ErrorBase("PAYMENT_REQUIRED", Message);
-   ```
+#### `Result` (non-generic)
 
-5. **Use Specific Error Types**: Prefer `ValidationError`, `NotFoundError`, etc. over generic `Error`
-   ```csharp
-   // Good
-   return Result.Failure<User>(new NotFoundError("User", id));
+| Method                                                  | Success                                     | Failure      |
+|---------------------------------------------------------|---------------------------------------------|--------------|
+| `ToActionResult(successMapper?, failureMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
 
-   // Avoid
-   return Result.Failure<User>("User not found");
-   ```
+Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
+
+#### `Result<T>`
+
+| Method                                         | Success                                           | Failure      |
+|------------------------------------------------|---------------------------------------------------|--------------|
+| `ToActionResult(successMapper?, failureMapper?)` | `successMapper(value)` or `OkObjectResult(value)` | Mapped error |
+
+Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
+
+#### `Maybe<T>`
+
+| Method                                              | Some                                           | None                                     |
+|-----------------------------------------------------|------------------------------------------------|------------------------------------------|
+| `ToActionResult(someMapper?, noneMapper?, policy?)` | `someMapper(value)` or `OkObjectResult(value)` | `noneMapper()` or `404`/`204` per policy |
+
+Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
+
+---
+
+### `ResultHttpOptions` configuration
+
+| Member                                                   | Type                      | Default   | Description                                     |
+|----------------------------------------------------------|---------------------------|-----------|-------------------------------------------------|
+| `Policy`                                                 | `ResultHttpAdapterPolicy` | `Default` | Global success/none behavior defaults           |
+| `IncludeExceptionDetails`                                | `bool`                    | `false`   | Include stack traces in error bodies            |
+| `AddMapper(IFailureHttpMapper)`                            | —                         | —         | Register a custom mapper instance               |
+| `AddMapper<TFailure>(int statusCode)`                    | —                         | —         | Register a typed mapper returning a status code |
+| `AddMapper<TFailure>(Func<TFailure, FailureHttpResponse>)` | —                         | —         | Register a typed mapper with a custom factory   |
+
+---
+
+### `IFailureHttpMapper` contract
+
+```csharp
+public interface IFailureHttpMapper
+{
+    /// <summary>
+    /// Returns a response for the given failure, or null to pass to the next mapper.
+    /// </summary>
+    FailureHttpResponse? GetFailureResponse(IFailure failure);
+}
+```
+
+`FailureHttpResponse` properties: `StatusCode` (required), `Body`, `Headers`, `ContentType`.
+
+## Migration from v1
+
+| v1                                                            | v2                                                                              |
+|---------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `result.ToHttpResult(v => dto)`                               | `result.ToHttpResult(v => Results.Ok(dto))`                                     |
+| `result.ToCreatedHttpResult(loc, v => dto)`                   | `result.ToCreatedHttpResult(loc)` — value returned directly                     |
+| `result.ToCreatedActionResult("Get", ctrl, routes)`           | `result.ToActionResult(v => new CreatedAtActionResult("Get", ctrl, routes, v))` |
+| `options.UseProblemDetails = true`                            | Removed — Problem Details is always on                                          |
+| Implicit `IFailureHttpMapper.GetStatusCode` / `GetResponseBody` | Implement `GetFailureResponse(IFailure)` → `FailureHttpResponse?`                   |
 
 ## Thread Safety
 
@@ -279,7 +329,8 @@ All components are thread-safe and designed for concurrent use in ASP.NET Core a
 
 ## AOT Compatibility
 
-This library is fully compatible with Native AOT compilation. All error mappings use static patterns that don't require runtime code generation.
+This library is fully compatible with Native AOT compilation. All error mappings use static patterns that do not require
+runtime code generation.
 
 ## License
 

@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -17,7 +17,8 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated("Invalid token");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -28,8 +29,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Unauthenticated);
+              .Failure()
+              .AndCode(FailureCodes.Unauthenticated);
     }
 
     [Fact]
@@ -40,8 +41,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Session expired");
+              .Failure()
+              .AndMessage("Session expired");
     }
 
     [Fact]
@@ -52,8 +53,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Unauthenticated");
+              .Failure()
+              .AndMessage("Unauthenticated");
     }
 
     [Fact]
@@ -63,8 +64,8 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated("Invalid credentials");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<UnauthenticatedError>(error);
+        result.TryGetFailure(out var error);
+        Assert.IsType<UnauthenticatedFailure>(error);
     }
 
     [Fact]
@@ -75,8 +76,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Unauthenticated");
+              .Failure()
+              .AndMessage("Unauthenticated");
     }
 
     #endregion
@@ -90,7 +91,8 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated<string>("Invalid token");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -101,8 +103,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndCode(ErrorCodes.Unauthenticated);
+              .Failure()
+              .AndCode(FailureCodes.Unauthenticated);
     }
 
     [Fact]
@@ -113,8 +115,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Session expired");
+              .Failure()
+              .AndMessage("Session expired");
     }
 
     [Fact]
@@ -125,8 +127,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Unauthenticated");
+              .Failure()
+              .AndMessage("Unauthenticated");
     }
 
     [Fact]
@@ -136,8 +138,8 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated<string>("Invalid credentials");
 
         // Assert (Then)
-        result.TryGet(out Error? error);
-        Assert.IsType<UnauthenticatedError>(error);
+        result.TryGetFailure(out var error);
+        Assert.IsType<UnauthenticatedFailure>(error);
     }
 
     [Fact]
@@ -147,7 +149,8 @@ public sealed class ResultFailUnauthenticatedTests
         var result = Result.FailUnauthenticated<Dictionary<string, object>>("Missing auth header");
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
@@ -155,12 +158,12 @@ public sealed class ResultFailUnauthenticatedTests
     {
         // Arrange & Act (Given/When)
         var result = Result.FailUnauthenticated<int>("Invalid token")
-            .Recover(_ => 42);
+                           .Recover(_ => 42);
 
         // Assert (Then)
         result.ShouldBe()
-            .Success()
-            .And(value => Assert.Equal(42, value));
+              .Success()
+              .And(value => Assert.Equal(42, value));
     }
 
     #endregion
@@ -178,8 +181,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage(detailedReason);
+              .Failure()
+              .AndMessage(detailedReason);
     }
 
     [Fact]
@@ -190,12 +193,13 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Act (When)
         var result = successResult.Bind(token =>
-            string.IsNullOrEmpty(token)
-                ? Result.FailUnauthenticated<string>("No token provided")
-                : Result.Success(token));
+                                            string.IsNullOrEmpty(token)
+                                                ? Result.FailUnauthenticated<string>("No token provided")
+                                                : Result.Success(token));
 
         // Assert (Then)
-        result.ShouldBe().Success();
+        result.ShouldBe()
+              .Success();
     }
 
     [Fact]
@@ -206,8 +210,8 @@ public sealed class ResultFailUnauthenticatedTests
 
         // Assert (Then)
         result.ShouldBe()
-            .Failure()
-            .AndMessage("Token contains invalid characters: <>&\"'");
+              .Failure()
+              .AndMessage("Token contains invalid characters: <>&\"'");
     }
 
     #endregion

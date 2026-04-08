@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 using UnambitiousFx.Functional.xunit;
 
 namespace UnambitiousFx.Functional.Tests;
@@ -15,8 +15,9 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.True(result.IsSuccess);
-        Assert.False(result.IsFaulted);
-        result.ShouldBe().Success();
+        Assert.False(result.IsFailure);
+        result.ShouldBe()
+              .Success();
     }
 
     [Fact]
@@ -27,8 +28,10 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.True(result.IsSuccess);
-        Assert.False(result.IsFaulted);
-        result.ShouldBe().Success().And(v => Assert.Equal(42, v));
+        Assert.False(result.IsFailure);
+        result.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
     }
 
     [Fact]
@@ -38,7 +41,32 @@ public sealed class ResultTests
         var result = Result.Success("hello");
 
         // Assert (Then)
-        result.ShouldBe().Success().And(v => Assert.Equal("hello", v));
+        result.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal("hello", v));
+    }
+
+    [Fact]
+    public void Ok_CreatesSuccessfulResult()
+    {
+        // Arrange (Given) & Act (When)
+        var result = Result.Ok();
+
+        // Assert (Then)
+        result.ShouldBe()
+              .Success();
+    }
+
+    [Fact]
+    public void Ok_WithValue_CreatesSuccessfulResult()
+    {
+        // Arrange (Given) & Act (When)
+        var result = Result.Ok(42);
+
+        // Assert (Then)
+        result.ShouldBe()
+              .Success()
+              .And(v => Assert.Equal(42, v));
     }
 
     #endregion
@@ -56,21 +84,24 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.False(result.IsSuccess);
-        Assert.True(result.IsFaulted);
-        result.ShouldBe().Failure();
+        Assert.True(result.IsFailure);
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
     public void Failure_FromError_CreatesFailedResult()
     {
         // Arrange (Given)
-        var error = new Error("Invalid input");
+        var error = new Failure("Invalid input");
 
         // Act (When)
         var result = Result.Failure(error);
 
         // Assert (Then)
-        result.ShouldBe().Failure().AndMessage("Invalid input");
+        result.ShouldBe()
+              .Failure()
+              .AndMessage("Invalid input");
     }
 
     [Fact]
@@ -83,23 +114,41 @@ public sealed class ResultTests
         var result = Result.Failure(message);
 
         // Assert (Then)
-        result.ShouldBe().Failure().AndMessage(message);
+        result.ShouldBe()
+              .Failure()
+              .AndMessage(message);
+    }
+
+    [Fact]
+    public void Fail_FromString_CreatesFailedResult()
+    {
+        // Arrange (Given)
+        var message = "Something went wrong";
+
+        // Act (When)
+        var result = Result.Fail(message);
+
+        // Assert (Then)
+        result.ShouldBe()
+              .Failure()
+              .AndMessage(message);
     }
 
     [Fact]
     public void Failure_FromMultipleErrors_CreatesAggregateError()
     {
         // Arrange (Given)
-        var errors = new[] { new Error("Error 1"), new Error("Error 2"), new Error("Error 3") };
+        var errors = new[] { new Failure("Error 1"), new Failure("Error 2"), new Failure("Error 3") };
 
         // Act (When)
         var result = Result.Failure(errors.AsEnumerable());
 
         // Assert (Then)
-        result.ShouldBe().Failure();
-        Assert.False(result.TryGet(out var error));
+        result.ShouldBe()
+              .Failure();
+        Assert.True(result.TryGetFailure(out var error));
         Assert.NotNull(error);
-        Assert.IsType<AggregateError>(error);
+        Assert.IsType<AggregateFailure>(error);
     }
 
     [Fact]
@@ -113,21 +162,24 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.False(result.IsSuccess);
-        Assert.True(result.IsFaulted);
-        result.ShouldBe().Failure();
+        Assert.True(result.IsFailure);
+        result.ShouldBe()
+              .Failure();
     }
 
     [Fact]
     public void Failure_Generic_FromError_CreatesFailedResult()
     {
         // Arrange (Given)
-        var error = new Error("Invalid input");
+        var error = new Failure("Invalid input");
 
         // Act (When)
         var result = Result.Failure<string>(error);
 
         // Assert (Then)
-        result.ShouldBe().Failure().AndMessage("Invalid input");
+        result.ShouldBe()
+              .Failure()
+              .AndMessage("Invalid input");
     }
 
     [Fact]
@@ -140,20 +192,23 @@ public sealed class ResultTests
         var result = Result.Failure<bool>(message);
 
         // Assert (Then)
-        result.ShouldBe().Failure().AndMessage(message);
+        result.ShouldBe()
+              .Failure()
+              .AndMessage(message);
     }
 
     [Fact]
     public void Failure_Generic_FromMultipleErrors_CreatesAggregateError()
     {
         // Arrange (Given)
-        var errors = new[] { new Error("Error 1"), new Error("Error 2") };
+        var errors = new[] { new Failure("Error 1"), new Failure("Error 2") };
 
         // Act (When)
         var result = Result.Failure<int>(errors.AsEnumerable());
 
         // Assert (Then)
-        result.ShouldBe().Failure();
+        result.ShouldBe()
+              .Failure();
     }
 
     #endregion
@@ -161,31 +216,31 @@ public sealed class ResultTests
     #region TryGet
 
     [Fact]
-    public void TryGet_WithSuccess_ReturnsTrueAndNullError()
+    public void TryGetFailure_WithSuccess_ReturnsFalseAndNullError()
     {
         // Arrange (Given)
         var result = Result.Success();
 
         // Act (When)
-        var success = result.TryGet(out var error);
+        var hasError = result.TryGetFailure(out var error);
 
         // Assert (Then)
-        Assert.True(success);
+        Assert.False(hasError);
         Assert.Null(error);
     }
 
     [Fact]
-    public void TryGet_WithFailure_ReturnsFalseAndError()
+    public void TryGetFailure_WithFailure_ReturnsTrueAndError()
     {
         // Arrange (Given)
-        var testError = new Error("Test error");
-        var result = Result.Failure(testError);
+        var testError = new Failure("Test error");
+        var result    = Result.Failure(testError);
 
         // Act (When)
-        var success = result.TryGet(out var error);
+        var hasError = result.TryGetFailure(out var error);
 
         // Assert (Then)
-        Assert.False(success);
+        Assert.True(hasError);
         Assert.NotNull(error);
         Assert.Equal("Test error", error.Message);
     }
@@ -198,14 +253,14 @@ public sealed class ResultTests
     public void Match_Action_WithSuccess_ExecutesSuccessAction()
     {
         // Arrange (Given)
-        var result = Result.Success();
+        var result        = Result.Success();
         var successCalled = false;
         var failureCalled = false;
 
         // Act (When)
         result.Match(
             () => successCalled = true,
-            _ => failureCalled = true);
+            _ => failureCalled  = true);
 
         // Assert (Then)
         Assert.True(successCalled);
@@ -216,10 +271,10 @@ public sealed class ResultTests
     public void Match_Action_WithFailure_ExecutesFailureAction()
     {
         // Arrange (Given)
-        var result = Result.Failure("Error");
-        var successCalled = false;
-        var failureCalled = false;
-        Error? capturedError = null;
+        var      result        = Result.Failure("Error");
+        var      successCalled = false;
+        var      failureCalled = false;
+        Failure? capturedError = null;
 
         // Act (When)
         result.Match(
@@ -264,6 +319,42 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.StartsWith("failure:", value);
+    }
+
+    [Fact]
+    public void Switch_WithSuccess_ExecutesSuccessAction()
+    {
+        // Arrange (Given)
+        var result        = Result.Success();
+        var successCalled = false;
+        var failureCalled = false;
+
+        // Act (When)
+        result.Switch(
+            () => successCalled = true,
+            _ => failureCalled  = true);
+
+        // Assert (Then)
+        Assert.True(successCalled);
+        Assert.False(failureCalled);
+    }
+
+    [Fact]
+    public void Switch_WithFailure_ExecutesFailureAction()
+    {
+        // Arrange (Given)
+        var result        = Result.Failure("Error");
+        var successCalled = false;
+        var failureCalled = false;
+
+        // Act (When)
+        result.Switch(
+            () => successCalled = true,
+            _ => failureCalled  = true);
+
+        // Assert (Then)
+        Assert.False(successCalled);
+        Assert.True(failureCalled);
     }
 
     #endregion
@@ -316,14 +407,14 @@ public sealed class ResultTests
     public void IfFailure_WithFailure_ExecutesAction()
     {
         // Arrange (Given)
-        var result = Result.Failure("Error");
-        var called = false;
-        Error? capturedError = null;
+        var      result        = Result.Failure("Error");
+        var      called        = false;
+        Failure? capturedError = null;
 
         // Act (When)
         result.IfFailure(e =>
         {
-            called = true;
+            called        = true;
             capturedError = e;
         });
 
@@ -353,8 +444,8 @@ public sealed class ResultTests
     public void Deconstruct_WithFailure_ReturnsError()
     {
         // Arrange (Given)
-        var testError = new Error("Test error");
-        var result = Result.Failure(testError);
+        var testError = new Failure("Test error");
+        var result    = Result.Failure(testError);
 
         // Act (When)
         result.Deconstruct(out var error);
@@ -396,14 +487,15 @@ public sealed class ResultTests
     public void WithMetadata_IReadOnlyMetadata_MergesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Success().WithMetadata("key1", "value1");
+        var result = Result.Success()
+                           .WithMetadata("key1", "value1");
         var additionalMeta = new Metadata { ["key2"] = "value2" };
 
         // Act (When)
         var resultWithMeta = result.WithMetadata(additionalMeta);
 
         // Assert (Then)
-        Assert.Equal(2, resultWithMeta.Metadata.Count);
+        Assert.Equal(2,        resultWithMeta.Metadata.Count);
         Assert.Equal("value1", resultWithMeta.Metadata["key1"]);
         Assert.Equal("value2", resultWithMeta.Metadata["key2"]);
     }
@@ -422,9 +514,9 @@ public sealed class ResultTests
         var resultWithMeta = result.WithMetadata(kvps);
 
         // Assert (Then)
-        Assert.Equal(2, resultWithMeta.Metadata.Count);
+        Assert.Equal(2,        resultWithMeta.Metadata.Count);
         Assert.Equal("value1", resultWithMeta.Metadata["key1"]);
-        Assert.Equal(42, resultWithMeta.Metadata["key2"]);
+        Assert.Equal(42,       resultWithMeta.Metadata["key2"]);
     }
 
     [Fact]
@@ -440,10 +532,10 @@ public sealed class ResultTests
             ("key3", true));
 
         // Assert (Then)
-        Assert.Equal(3, resultWithMeta.Metadata.Count);
+        Assert.Equal(3,        resultWithMeta.Metadata.Count);
         Assert.Equal("value1", resultWithMeta.Metadata["key1"]);
-        Assert.Equal(42, resultWithMeta.Metadata["key2"]);
-        Assert.Equal(true, resultWithMeta.Metadata["key3"]);
+        Assert.Equal(42,       resultWithMeta.Metadata["key2"]);
+        Assert.Equal(true,     resultWithMeta.Metadata["key3"]);
     }
 
     [Fact]
@@ -460,9 +552,9 @@ public sealed class ResultTests
         });
 
         // Assert (Then)
-        Assert.Equal(2, resultWithMeta.Metadata.Count);
+        Assert.Equal(2,        resultWithMeta.Metadata.Count);
         Assert.Equal("value1", resultWithMeta.Metadata["key1"]);
-        Assert.Equal(42, resultWithMeta.Metadata["key2"]);
+        Assert.Equal(42,       resultWithMeta.Metadata["key2"]);
     }
 
     [Fact]
@@ -489,7 +581,8 @@ public sealed class ResultTests
 
         // Assert (Then)
         Assert.False(resultWithMeta.IsSuccess);
-        resultWithMeta.ShouldBe().Failure();
+        resultWithMeta.ShouldBe()
+                      .Failure();
     }
 
     #endregion
@@ -513,7 +606,8 @@ public sealed class ResultTests
     public void ToString_WithSuccess_AndMetadata_IncludesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Success().WithMetadata("key", "value");
+        var result = Result.Success()
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var str = result.ToString();
@@ -539,7 +633,8 @@ public sealed class ResultTests
     public void ToString_WithFailure_AndMetadata_IncludesMetadata()
     {
         // Arrange (Given)
-        var result = Result.Failure("Error").WithMetadata("key", "value");
+        var result = Result.Failure("Error")
+                           .WithMetadata("key", "value");
 
         // Act (When)
         var str = result.ToString();

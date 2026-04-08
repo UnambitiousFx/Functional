@@ -1,4 +1,4 @@
-using UnambitiousFx.Functional.Errors;
+using UnambitiousFx.Functional.Failures;
 
 namespace UnambitiousFx.Functional;
 
@@ -6,19 +6,20 @@ public static partial class MaybeExtensions
 {
     /// <param name="maybe">The maybe instance.</param>
     /// <typeparam name="TValue">The value type.</typeparam>
-    extension<TValue>(Maybe<TValue> maybe) where TValue : notnull
+    extension<TValue>(Maybe<TValue> maybe)
+        where TValue : notnull
     {
         /// <summary>
         ///     Converts a Maybe to a Result. If the Maybe is Some, returns Success with the value.
         ///     If the Maybe is None, returns Failure with the provided error.
         /// </summary>
-        /// <param name="error">The error to use when the maybe is None.</param>
+        /// <param name="failure">The error to use when the maybe is None.</param>
         /// <returns>A Result that is successful if the maybe is Some; otherwise a failure with the provided error.</returns>
-        public Result<TValue> ToResult(Error error)
+        public Result<TValue> ToResult(Failure failure)
         {
             return maybe.Match(
-                some: Result.Success,
-                none: () => Result.Failure<TValue>(error));
+                Result.Success,
+                () => Result.Failure<TValue>(failure));
         }
 
         /// <summary>
@@ -27,11 +28,11 @@ public static partial class MaybeExtensions
         /// </summary>
         /// <param name="errorFactory">Factory function to create an error when the maybe is None.</param>
         /// <returns>A Result that is successful if the maybe is Some; otherwise a failure with the error from the factory.</returns>
-        public Result<TValue> ToResult(Func<Error> errorFactory)
+        public Result<TValue> ToResult(Func<Failure> errorFactory)
         {
             return maybe.Match(
-                some: Result.Success,
-                none: () => Result.Failure<TValue>(errorFactory()));
+                Result.Success,
+                () => Result.Failure<TValue>(errorFactory()));
         }
 
         /// <summary>
@@ -43,8 +44,8 @@ public static partial class MaybeExtensions
         public Result<TValue> ToResult(string message)
         {
             return maybe.Match(
-                some: Result.Success,
-                none: () => Result.Failure<TValue>(message));
+                Result.Success,
+                () => Result.Failure<TValue>(message));
         }
     }
 }
