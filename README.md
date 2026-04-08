@@ -13,14 +13,12 @@ type-safe.
 ## 🔧 Compatibility & support
 
 - **Dependency-free**: No external runtime dependencies — the library is dependency-less at runtime.
-- **Supported .NET versions**: Supports all Microsoft LTS releases **and** the latest non-LTS release. See the CI matrix
-  or the Releases page for exact versions.
+- **Supported .NET versions**: `net8.0`, `net9.0`, and `net10.0`.
 
 ## 🎯 Features
 
 - **`Result<T>`** - Railway-oriented programming for failure handling without exceptions
 - **`Maybe<T>`** - Type-safe optional values, no more null reference exceptions
-- **`OneOf<T1..T10>`** - Discriminated unions via source generators
 - **Rich Failure Types** - `ValidationFailure`, `NotFoundFailure`, `ConflictFailure`, `UnauthorizedFailure`, and more
 - **Comprehensive Extensions** - Bind, Map, Match, Tap, Ensure, Recover, and dozens more
 - **Async First** - Full support for `Task<T>` and `ValueTask<T>`
@@ -121,31 +119,6 @@ maybeUser.Match(
 
 // Convert to Result
 var result = maybeUser.ToResult(new NotFoundFailure("User not found"));
-```
-
-### OneOf<T> - Discriminated Unions
-
-```csharp
-// Represent a value that can be one of several types
-public OneOf<Success, ValidationFailure, NotFoundFailure> ProcessRequest(int id)
-{
-    if (id <= 0)
-        return new ValidationFailure("Invalid ID");
-
-    var item = _repository.Find(id);
-    if (item is null)
-        return new NotFoundFailure($"Item {id} not found");
-
-    return new Success();
-}
-
-// Pattern match on all cases
-var response = ProcessRequest(id);
-response.Match(
-    first: success => Ok(),
-    second: validation => BadRequest(validation.Message),
-    third: notFound => NotFound(notFound.Message)
-);
 ```
 
 ## 📚 Core Concepts
@@ -310,19 +283,19 @@ public async ValueTask<Result<User>> GetUserAsync(int id)
 ## 🌐 ASP.NET Core Integration
 
 ```csharp
-using UnambitiousFx.Functional.AspNetCore;
+using UnambitiousFx.Functional.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    // Automatically converts Result to appropriate HTTP response
+    // Convert Result<T> to IActionResult with default mapping
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
     {
         return await _userService
             .GetUserAsync(id)
-            .ToHttpResult(); // 200 OK or 404 Not Found
+            .AsActionResultBuilder(); // 200 OK or mapped failure
     }
 
     [HttpPost]
@@ -330,7 +303,7 @@ public class UsersController : ControllerBase
     {
         return await _userService
             .CreateUserAsync(request)
-            .ToHttpResult(); // 200 OK, 400 Bad Request, or 409 Conflict
+            .AsActionResultBuilder(); // 200 OK, 400 Bad Request, or 409 Conflict
     }
 }
 ```
@@ -351,6 +324,7 @@ services.AddResultHttp(options =>
 
 ```csharp
 using UnambitiousFx.Functional.xunit;
+using Xunit;
 
 [Fact]
 public void CreateUser_WithValidData_ReturnsSuccess()
@@ -362,8 +336,9 @@ public void CreateUser_WithValidData_ReturnsSuccess()
     var result = _service.CreateUser(request);
 
     // Assert
-    result.Should().BeSuccess()
-        .Which(user => user.Name.Should().Be("John"));
+    result.ShouldBe()
+        .Success()
+        .And(user => Assert.Equal("John", user.Name));
 }
 
 [Fact]
@@ -376,9 +351,10 @@ public void CreateUser_WithInvalidEmail_ReturnsValidationFailure()
     var result = _service.CreateUser(request);
 
     // Assert
-    result.Should().BeFailure()
-        .WithError<ValidationFailure>()
-        .Which(failure => failure.Message.Should().Contain("email"));
+    result.ShouldBe()
+        .Failure()
+        .WhichIsValidationError()
+        .And(failure => Assert.Contains("email", failure.Message));
 }
 
 [Fact]
@@ -388,7 +364,7 @@ public void FindUser_WhenNotExists_ReturnsNone()
     var maybe = _repository.FindByEmail("notfound@example.com");
 
     // Assert
-    maybe.Should().BeNone();
+    maybe.ShouldBe().None();
 }
 ```
 
