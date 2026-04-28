@@ -2,6 +2,10 @@
     <Folder Name="/benchmarks/">
         <Project Path="benchmarks\FunctionalBenchmark\FunctionalBenchmark.csproj" />
     </Folder>
+    <Folder Name="/examples/">
+        <Project Path="examples/AspNetCoreExample/AspNetCoreExample.csproj" />
+        <Project Path="examples/BasicUsage/BasicUsage.csproj" />
+    </Folder>
     <Folder Name="/src/">
         <Project Path="src/Functional.AspNetCore/Functional.AspNetCore.csproj" />
         <Project Path="src/Functional.xunit/Functional.xunit.csproj" />
