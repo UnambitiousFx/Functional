@@ -51,12 +51,12 @@ public static partial class ResultAsyncExtensions
     ///     The task result contains the value returned by the <paramref name="onSuccess" /> or <paramref name="onFailure" />
     ///     function.
     /// </returns>
-    public static async ValueTask Match<TOut>(this ValueTask<Result> resultTask,
-                                              Func<TOut>             onSuccess,
-                                              Func<Failure, TOut>    onFailure)
+    public static async ValueTask<TOut> Match<TOut>(this ValueTask<Result> resultTask,
+                                                    Func<TOut>             onSuccess,
+                                                    Func<Failure, TOut>    onFailure)
     {
         var result = await resultTask;
-        result.Match(onSuccess, onFailure);
+        return result.Match(onSuccess, onFailure);
     }
 
     /// <summary>

@@ -132,53 +132,31 @@ public sealed partial class ResultAsyncExtensionsTests
     public async Task Match_NonGenericFunc_WithSuccess_ExecutesSuccessFunction()
     {
         // Arrange (Given)
-        var resultTask    = ValueTask.FromResult(Result.Success());
-        var successCalled = false;
-        var failureCalled = false;
+        var resultTask = ValueTask.FromResult(Result.Success());
 
         // Act (When)
-        await resultTask.Match(
-            () =>
-            {
-                successCalled = true;
-                return "success";
-            },
-            _ =>
-            {
-                failureCalled = true;
-                return "failure";
-            });
+        var output = await resultTask.Match(
+                         () => "success",
+                         _ => "failure");
 
         // Assert (Then)
-        Assert.True(successCalled);
-        Assert.False(failureCalled);
+        Assert.Equal("success", output);
     }
 
     [Fact]
     public async Task Match_NonGenericFunc_WithFailure_ExecutesFailureFunction()
     {
         // Arrange (Given)
-        var error         = new Failure("Test error");
-        var resultTask    = ValueTask.FromResult(Result.Failure(error));
-        var successCalled = false;
-        var failureCalled = false;
+        var error      = new Failure("Test error");
+        var resultTask = ValueTask.FromResult(Result.Failure(error));
 
         // Act (When)
-        await resultTask.Match(
-            () =>
-            {
-                successCalled = true;
-                return "success";
-            },
-            _ =>
-            {
-                failureCalled = true;
-                return "failure";
-            });
+        var output = await resultTask.Match(
+                         () => "success",
+                         e => $"failure:{e.Message}");
 
         // Assert (Then)
-        Assert.False(successCalled);
-        Assert.True(failureCalled);
+        Assert.Equal("failure:Test error", output);
     }
 
     [Fact]
