@@ -60,6 +60,26 @@ public static partial class ResultAsyncExtensions
     }
 
     /// <summary>
+    ///     Matches the result of an asynchronous operation and executes the appropriate function based on the success or
+    ///     failure state.
+    /// </summary>
+    /// <typeparam name="TOut">The type of the value returned by the matched functions.</typeparam>
+    /// <param name="resultTask">The asynchronous result to be matched.</param>
+    /// <param name="onSuccess">The function to execute if the result represents success.</param>
+    /// <param name="onFailure">The function to execute if the result represents failure.</param>
+    /// <returns>
+    ///     A task representing the asynchronous operation. The task's result contains the value returned by the matched
+    ///     function.
+    /// </returns>
+    public static async ValueTask<TOut> Match<TOut>(this ValueTask<Result>         resultTask,
+                                                    Func<ValueTask<TOut>>          onSuccess,
+                                                    Func<Failure, ValueTask<TOut>> onFailure)
+    {
+        var result = await resultTask;
+        return await result.Match(onSuccess, onFailure);
+    }
+
+    /// <summary>
     ///     Executes the specified actions based on the success or failure state of an asynchronous <see cref="Result" />.
     /// </summary>
     /// <param name="resultTask">
@@ -77,5 +97,28 @@ public static partial class ResultAsyncExtensions
     {
         var result = await resultTask;
         result.Match(onSuccess, onFailure);
+    }
+
+    /// <summary>
+    /// Pattern matches the asynchronous result, executing the appropriate function based on success or failure.
+    /// </summary>
+    /// <param name="resultTask">
+    /// The asynchronous result to be matched.
+    /// </param>
+    /// <param name="onSuccess">
+    /// A function invoked when the result is successful.
+    /// </param>
+    /// <param name="onFailure">
+    /// A function invoked when the result is a failure.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation of handling the result.
+    /// </returns>
+    public static async ValueTask Match(this ValueTask<Result>   resultTask,
+                                        Func<ValueTask>          onSuccess,
+                                        Func<Failure, ValueTask> onFailure)
+    {
+        var result = await resultTask;
+        await result.Match(onSuccess, onFailure);
     }
 }

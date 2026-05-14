@@ -195,4 +195,88 @@ public sealed partial class ResultAsyncExtensionsTests
         Assert.False(successCalled);
         Assert.True(failureCalled);
     }
+
+    [Fact]
+    public async Task Match_NonGenericAsyncFunc_WithSuccess_ExecutesSuccessFunction()
+    {
+        // Arrange (Given)
+        var resultTask = ValueTask.FromResult(Result.Success());
+
+        // Act (When)
+        var output = await resultTask.Match(
+                         () => ValueTask.FromResult("success"),
+                         _ => ValueTask.FromResult("failure"));
+
+        // Assert (Then)
+        Assert.Equal("success", output);
+    }
+
+    [Fact]
+    public async Task Match_NonGenericAsyncFunc_WithFailure_ExecutesFailureFunction()
+    {
+        // Arrange (Given)
+        var error      = new Failure("Test error");
+        var resultTask = ValueTask.FromResult(Result.Failure(error));
+
+        // Act (When)
+        var output = await resultTask.Match(
+                         () => ValueTask.FromResult("success"),
+                         e => ValueTask.FromResult($"failure:{e.Message}"));
+
+        // Assert (Then)
+        Assert.Equal("failure:Test error", output);
+    }
+
+    [Fact]
+    public async Task Match_NonGenericAsyncAction_WithSuccess_ExecutesSuccessAction()
+    {
+        // Arrange (Given)
+        var resultTask    = ValueTask.FromResult(Result.Success());
+        var successCalled = false;
+        var failureCalled = false;
+
+        // Act (When)
+        await resultTask.Match(
+            () =>
+            {
+                successCalled = true;
+                return ValueTask.CompletedTask;
+            },
+            _ =>
+            {
+                failureCalled = true;
+                return ValueTask.CompletedTask;
+            });
+
+        // Assert (Then)
+        Assert.True(successCalled);
+        Assert.False(failureCalled);
+    }
+
+    [Fact]
+    public async Task Match_NonGenericAsyncAction_WithFailure_ExecutesFailureAction()
+    {
+        // Arrange (Given)
+        var error         = new Failure("Test error");
+        var resultTask    = ValueTask.FromResult(Result.Failure(error));
+        var successCalled = false;
+        var failureCalled = false;
+
+        // Act (When)
+        await resultTask.Match(
+            () =>
+            {
+                successCalled = true;
+                return ValueTask.CompletedTask;
+            },
+            _ =>
+            {
+                failureCalled = true;
+                return ValueTask.CompletedTask;
+            });
+
+        // Assert (Then)
+        Assert.False(successCalled);
+        Assert.True(failureCalled);
+    }
 }
