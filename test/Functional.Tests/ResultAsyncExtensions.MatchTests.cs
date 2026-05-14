@@ -237,11 +237,13 @@ public sealed partial class ResultAsyncExtensionsTests
 
         // Act (When)
         await resultTask.Match(
-            () => {
+            () =>
+            {
                 successCalled = true;
                 return ValueTask.CompletedTask;
             },
-            _ => {
+            _ =>
+            {
                 failureCalled = true;
                 return ValueTask.CompletedTask;
             });
@@ -262,11 +264,13 @@ public sealed partial class ResultAsyncExtensionsTests
 
         // Act (When)
         await resultTask.Match(
-            () => {
+            () =>
+            {
                 successCalled = true;
                 return ValueTask.CompletedTask;
             },
-            _ => {
+            _ =>
+            {
                 failureCalled = true;
                 return ValueTask.CompletedTask;
             });
