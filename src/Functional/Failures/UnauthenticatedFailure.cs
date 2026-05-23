@@ -10,7 +10,7 @@ namespace UnambitiousFx.Functional.Failures;
 ///     and includes an optional reason describing the error context,
 ///     as well as additional metadata for further details.
 /// </remarks>
-public sealed record UnauthenticatedFailure : Failure
+public record UnauthenticatedFailure : Failure
 {
     /// <summary>
     ///     Represents an error that occurs when an operation encounters
