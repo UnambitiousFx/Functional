@@ -7,7 +7,7 @@ namespace UnambitiousFx.Functional.Failures;
 /// </summary>
 [DebuggerDisplay("ExceptionalError: {Exception.GetType().Name,nq}: {Message}")]
 [DebuggerTypeProxy(typeof(ExceptionalFailureDebugView))]
-public sealed record ExceptionalFailure : Failure
+public record ExceptionalFailure : Failure
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="ExceptionalFailure" /> class with an exception.

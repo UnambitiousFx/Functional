@@ -8,7 +8,7 @@ namespace UnambitiousFx.Functional.Failures;
 /// </summary>
 [DebuggerDisplay("AggregateError: {Errors.Count()} errors")]
 [DebuggerTypeProxy(typeof(AggregateFailureDebugView))]
-public sealed record AggregateFailure : Failure, IAggregateFailure
+public record AggregateFailure : Failure, IAggregateFailure
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="AggregateFailure" /> class with a collection of errors.

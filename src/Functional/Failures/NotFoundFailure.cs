@@ -3,7 +3,7 @@ namespace UnambitiousFx.Functional.Failures;
 /// <summary>
 ///     Represents an error indicating that a requested resource was not found.
 /// </summary>
-public sealed record NotFoundFailure : Failure
+public record NotFoundFailure : Failure
 {
     /// <summary>
     ///     Represents an error that occurs when a requested resource cannot be found.

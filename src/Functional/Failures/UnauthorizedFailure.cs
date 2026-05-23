@@ -3,7 +3,7 @@ namespace UnambitiousFx.Functional.Failures;
 /// <summary>
 ///     Represents an authorization failure error, typically used when access to a resource is denied.
 /// </summary>
-public sealed record UnauthorizedFailure : Failure
+public record UnauthorizedFailure : Failure
 {
     /// <summary>
     ///     Represents an authorization failure error, typically used when access to a resource is denied.
@@ -13,8 +13,8 @@ public sealed record UnauthorizedFailure : Failure
     public UnauthorizedFailure(string?                               reason = null,
                                IReadOnlyDictionary<string, object?>? extra  = null)
         : base(FailureCodes.Unauthorized, !string.IsNullOrWhiteSpace(reason)
-                                            ? reason
-                                            : "Unauthorized", Merge(extra, []))
+                                              ? reason
+                                              : "Unauthorized", Merge(extra, []))
     {
         Extra = extra;
     }
