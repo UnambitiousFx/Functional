@@ -1,5 +1,6 @@
 using UnambitiousFx.Functional.Failures;
 using Xunit;
+using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit;
 
@@ -52,6 +53,18 @@ public static class FluentAssertionExtensions
 
         Assert.Fail($"Expected ConflictError but was {assertion.Failure.GetType().Name}.");
         throw new InvalidOperationException("Unreachable");
+    }
+
+    /// <summary>
+    ///     Asserts that the failure is a BadRequestError and returns a BadRequestFailureAssertion for further validation checks.
+    /// </summary>
+    /// <param name="assertion">The failure assertion to validate.</param>
+    /// <returns>A <see cref="BadRequestFailureAssertion" /> for the BadRequestError.</returns>
+    public static BadRequestFailureAssertion WhichIsBadRequestError(this FailureAssertion assertion)
+    {
+        return assertion.Failure is BadRequestFailure badRequestError
+            ? new BadRequestFailureAssertion(badRequestError)
+            : throw new XunitException($"Expected BadRequestError but was {assertion.Failure.GetType().Name}.");
     }
 
     /// <summary>

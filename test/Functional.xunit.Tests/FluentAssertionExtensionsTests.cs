@@ -218,4 +218,31 @@ public class FluentAssertionExtensionsTests
         // Act (When) / Assert (Then)
         Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsUnauthorizedError());
     }
+
+    [Fact]
+    public void WhichIsBadRequestError_WhenBadRequestError_ReturnsBadRequestFailureAssertion()
+    {
+        // Arrange (Given)
+        var result           = Result.Failure(new BadRequestFailure("Request body is malformed"));
+        var failureAssertion = result.ShouldBe().Failure();
+
+        // Act (When)
+        var badRequestAssertion = failureAssertion.WhichIsBadRequestError();
+
+        // Assert (Then)
+        Assert.NotNull(badRequestAssertion.Failure);
+        Assert.IsType<BadRequestFailure>(badRequestAssertion.Failure);
+    }
+
+    [Fact]
+    public void WhichIsBadRequestError_WhenNotBadRequestError_ThrowsXunitException()
+    {
+        // Arrange (Given)
+        var result           = Result.Failure(new Failure("ERR", "not bad request"));
+        var failureAssertion = result.ShouldBe().Failure();
+
+        // Act (When) / Assert (Then)
+        var exception = Assert.Throws<Xunit.Sdk.XunitException>(() => failureAssertion.WhichIsBadRequestError());
+        Assert.Contains("Expected BadRequestError but was Failure", exception.Message);
+    }
 }
