@@ -50,4 +50,9 @@ public static class FailureCodes
     ///     Failure code indicating that the user is not authenticated.
     /// </summary>
     public const string Unauthenticated = "UNAUTHENTICATED";
+
+    /// <summary>
+    ///     Failure code for bad request failures, where the request is malformed or contains invalid input.
+    /// </summary>
+    public const string BadRequest = "BAD_REQUEST";
 }

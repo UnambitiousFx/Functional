@@ -10,6 +10,7 @@ public class DefaultFailureHttpMapperTests
 
     [Theory]
     [InlineData(typeof(ValidationFailure),      400)]
+    [InlineData(typeof(BadRequestFailure),       400)]
     [InlineData(typeof(NotFoundFailure),         404)]
     [InlineData(typeof(UnauthorizedFailure),     401)]
     [InlineData(typeof(UnauthenticatedFailure),  403)]
@@ -49,6 +50,24 @@ public class DefaultFailureHttpMapperTests
     }
 
     [Fact]
+    public void GetFailureResponse_BadRequestError_ReturnsBadRequestProblemDetails()
+    {
+        // Arrange (Given)
+        var error = new BadRequestFailure("Request body is malformed");
+
+        // Act (When)
+        var response = _sut.GetFailureResponse(error);
+
+        // Assert (Then)
+        Assert.NotNull(response);
+        Assert.NotNull(response.Body);
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal("Bad Request",                    problemDetail.Title);
+        Assert.Equal(400,                              problemDetail.Status);
+        Assert.Equal("Request body is malformed",      problemDetail.Detail);
+    }
+
+    [Fact]
     public void GetFailureResponse_NotFoundError_ReturnsResourceAndIdentifier()
     {
         // Arrange (Given)
@@ -82,6 +101,10 @@ public class DefaultFailureHttpMapperTests
 
         if (failureType == typeof(UnauthenticatedFailure)) {
             return new UnauthenticatedFailure();
+        }
+
+        if (failureType == typeof(BadRequestFailure)) {
+            return new BadRequestFailure("Request is malformed");
         }
 
         if (failureType == typeof(ConflictFailure)) {

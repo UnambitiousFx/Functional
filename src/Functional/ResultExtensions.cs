@@ -1,5 +1,6 @@
 ﻿using UnambitiousFx.Functional.Failures;
 using AggregateFailure = UnambitiousFx.Functional.Failures.AggregateFailure;
+using BadRequestFailure = UnambitiousFx.Functional.Failures.BadRequestFailure;
 using ConflictFailure = UnambitiousFx.Functional.Failures.ConflictFailure;
 using ExceptionalFailure = UnambitiousFx.Functional.Failures.ExceptionalFailure;
 using IFailure = UnambitiousFx.Functional.Failures.IFailure;
@@ -272,6 +273,44 @@ public static partial class ResultExtensions
             where T : notnull
         {
             return Result.Failure<T>(new ConflictFailure(message));
+        }
+
+        /// <summary>
+        ///     Creates a failure <see cref="Result" /> instance representing a "Bad Request" error
+        ///     with a specified error message.
+        /// </summary>
+        /// <param name="message">
+        ///     The error message describing why the request is invalid. Use this for malformed input
+        ///     or structural issues not covered by field-level validation.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Result" /> instance representing the failure, encapsulating a
+        ///     <see cref="Failures.BadRequestFailure" /> that contains the specified error message.
+        /// </returns>
+        public static Result FailBadRequest(string message)
+        {
+            return Result.Failure(new BadRequestFailure(message));
+        }
+
+        /// <summary>
+        ///     Creates a failure <see cref="Result{T}" /> instance representing a "Bad Request" error
+        ///     with a specified error message.
+        /// </summary>
+        /// <typeparam name="T">
+        ///     The type of the value that would have been encapsulated in the result if it succeeded.
+        /// </typeparam>
+        /// <param name="message">
+        ///     The error message describing why the request is invalid. Use this for malformed input
+        ///     or structural issues not covered by field-level validation.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="Result{T}" /> instance representing the failure, encapsulating a
+        ///     <see cref="BadRequestFailure" /> that contains the error details.
+        /// </returns>
+        public static Result<T> FailBadRequest<T>(string message)
+            where T : notnull
+        {
+            return Result.Failure<T>(new BadRequestFailure(message));
         }
     }
 }

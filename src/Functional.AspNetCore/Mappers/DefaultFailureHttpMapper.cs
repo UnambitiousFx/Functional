@@ -25,6 +25,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             UnauthorizedFailure unauthorized       => FromUnauthorizedError(unauthorized),
             UnauthenticatedFailure unauthenticated => FromUnauthenticatedError(unauthenticated),
             ConflictFailure conflict               => FromConflictError(conflict),
+            BadRequestFailure badRequest           => FromBadRequestError(badRequest),
             ExceptionalFailure exceptional         => FromExceptionalError(exceptional),
             _                                      => FromError(failure)
         };
@@ -105,6 +106,17 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
                 { "resource", failure.Resource },
                 { "identifier", failure.Identifier }
             }
+        };
+    }
+
+    private static ProblemDetails FromBadRequestError(BadRequestFailure failure)
+    {
+        return new ProblemDetails
+        {
+            Title  = "Bad Request",
+            Detail = failure.Message,
+            Status = (int)HttpStatusCode.BadRequest,
+            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
         };
     }
 

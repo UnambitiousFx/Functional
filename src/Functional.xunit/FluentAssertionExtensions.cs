@@ -55,6 +55,21 @@ public static class FluentAssertionExtensions
     }
 
     /// <summary>
+    ///     Asserts that the failure is a BadRequestError and returns a BadRequestFailureAssertion for further validation checks.
+    /// </summary>
+    /// <param name="assertion">The failure assertion to validate.</param>
+    /// <returns>A <see cref="BadRequestFailureAssertion" /> for the BadRequestError.</returns>
+    public static BadRequestFailureAssertion WhichIsBadRequestError(this FailureAssertion assertion)
+    {
+        if (assertion.Failure is BadRequestFailure badRequestError) {
+            return new BadRequestFailureAssertion(badRequestError);
+        }
+
+        Assert.Fail($"Expected BadRequestError but was {assertion.Failure.GetType().Name}.");
+        throw new InvalidOperationException("Unreachable");
+    }
+
+    /// <summary>
     ///     Asserts that the failure is of a specific error type and returns a strongly-typed assertion for further validation.
     /// </summary>
     /// <typeparam name="TError">The expected error type that implements IError.</typeparam>
