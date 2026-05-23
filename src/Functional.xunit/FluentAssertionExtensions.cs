@@ -1,5 +1,6 @@
 using UnambitiousFx.Functional.Failures;
 using Xunit;
+using Xunit.Sdk;
 
 namespace UnambitiousFx.Functional.xunit;
 
@@ -61,12 +62,9 @@ public static class FluentAssertionExtensions
     /// <returns>A <see cref="BadRequestFailureAssertion" /> for the BadRequestError.</returns>
     public static BadRequestFailureAssertion WhichIsBadRequestError(this FailureAssertion assertion)
     {
-        if (assertion.Failure is BadRequestFailure badRequestError) {
-            return new BadRequestFailureAssertion(badRequestError);
-        }
-
-        Assert.Fail($"Expected BadRequestError but was {assertion.Failure.GetType().Name}.");
-        throw new InvalidOperationException("Unreachable");
+        return assertion.Failure is BadRequestFailure badRequestError
+            ? new BadRequestFailureAssertion(badRequestError)
+            : throw new XunitException($"Expected BadRequestError but was {assertion.Failure.GetType().Name}.");
     }
 
     /// <summary>

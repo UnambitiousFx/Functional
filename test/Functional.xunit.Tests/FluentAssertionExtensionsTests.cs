@@ -235,14 +235,14 @@ public class FluentAssertionExtensionsTests
     }
 
     [Fact]
-    public void WhichIsBadRequestError_WhenNotBadRequestError_ThrowsFailException()
+    public void WhichIsBadRequestError_WhenNotBadRequestError_ThrowsXunitException()
     {
         // Arrange (Given)
         var result           = Result.Failure(new Failure("ERR", "not bad request"));
         var failureAssertion = result.ShouldBe().Failure();
 
         // Act (When) / Assert (Then)
-        var exception = Assert.Throws<Xunit.Sdk.FailException>(() => failureAssertion.WhichIsBadRequestError());
+        var exception = Assert.Throws<Xunit.Sdk.XunitException>(() => failureAssertion.WhichIsBadRequestError());
         Assert.Contains("Expected BadRequestError but was Failure", exception.Message);
     }
 }
