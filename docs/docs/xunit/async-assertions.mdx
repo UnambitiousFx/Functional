@@ -1,0 +1,141 @@
+---
+sidebar_position: 4
+title: Async Assertions
+description: Assert directly on Task&lt;Result&lt;T&gt;&gt;, ValueTask&lt;Result&lt;T&gt;&gt;, and async Maybe without awaiting first.
+---
+
+# Async Assertions
+
+Most code that returns `Result` or `Maybe` does so asynchronously. You can always `await` the operation and then assert on the materialized value, but `Functional.xunit` also lets you build the assertion chain **directly on the awaitable** and `await` once at the end.
+
+These async extensions live in the `UnambitiousFx.Functional.xunit.ValueTasks` namespace and cover both `Task<...>` and `ValueTask<...>`:
+
+```csharp
+using UnambitiousFx.Functional.xunit;            // sync ShouldBe + chaining
+using UnambitiousFx.Functional.xunit.ValueTasks; // Task / ValueTask overloads
+```
+
+The same `ShouldBe()` / `Success()` / `Failure()` / `Some()` / `None()` / `And()` / `Map()` / `AndMessage()` methods are available as awaitable overloads, so the chain reads identically to its synchronous counterpart — you just `await` the whole expression.
+
+## Assert without awaiting first
+
+`Task<Result<T>>` and `ValueTask<Result<T>>` both have a `ShouldBe()` overload, so you can compose the entire chain and await once.
+
+```csharp
+[Fact]
+public async Task CreateUserAsync_ValidInput_ReturnsSuccess()
+{
+    // Arrange (Given)
+    var email = "alice@example.com";
+
+    // Act + Assert (When / Then)
+    await _service.CreateUserAsync(email)
+        .ShouldBe()
+        .Success()
+        .And(user => Assert.Equal(email, user.Email));
+}
+```
+
+`Map` also chains across the await boundary:
+
+```csharp
+[Fact]
+public async Task GetOrderAsync_ExistingId_HasExpectedTotal()
+{
+    // Arrange (Given)
+    var orderId = "ORD-1";
+
+    // Act + Assert (When / Then)
+    await _service.GetOrderAsync(orderId)
+        .ShouldBe()
+        .Success()
+        .Map(order => order.Total)
+        .And(total => Assert.Equal(99.50m, total));
+}
+```
+
+## Async failure assertions
+
+Failure chaining works the same way; `AndMessage` has an awaitable overload.
+
+```csharp
+[Fact]
+public async Task WithdrawAsync_InsufficientFunds_ReturnsFailure()
+{
+    // Arrange (Given)
+    var account = new Account(balance: 10m);
+
+    // Act + Assert (When / Then)
+    await account.WithdrawAsync(50m)
+        .ShouldBe()
+        .Failure()
+        .AndMessage("Insufficient funds to complete the withdrawal.");
+}
+```
+
+## Async Maybe assertions
+
+`Task<Maybe<T>>` and `ValueTask<Maybe<T>>` expose `ShouldBe()`, then `Some()`/`None()` with the usual `And`/`Map` chaining.
+
+```csharp
+[Fact]
+public async Task FindUserAsync_ExistingEmail_ReturnsSome()
+{
+    // Arrange (Given)
+    var email = "john@example.com";
+
+    // Act + Assert (When / Then)
+    await _service.FindUserAsync(email)
+        .ShouldBe()
+        .Some()
+        .And(user => Assert.Equal(email, user.Email));
+}
+
+[Fact]
+public async Task FindUserAsync_UnknownEmail_ReturnsNone()
+{
+    // Arrange (Given)
+    var email = "missing@example.com";
+
+    // Act + Assert (When / Then)
+    await _service.FindUserAsync(email)
+        .ShouldBe()
+        .None();
+}
+```
+
+## Await-first is still fine
+
+If you prefer, await the operation first and assert on the synchronous value — handy when you need the value for additional setup before asserting.
+
+```csharp
+[Fact]
+public async Task CreateUserAsync_ValidInput_ReturnsActiveUser()
+{
+    // Arrange (Given)
+    var email = "alice@example.com";
+
+    // Act (When)
+    var result = await _service.CreateUserAsync(email);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Success()
+        .Where(user => user.IsActive);
+}
+```
+
+:::note
+The typed-failure narrowers (`.WhichIsValidationError()`, `.WhichIs<TError>()`, etc.) are synchronous. To use them on an async result, await the `Failure()` chain first, then continue:
+
+```csharp
+var failure = await GetOrderAsync("ORD-404").ShouldBe().Failure();
+failure.WhichIsNotFoundError().WithResource("Order");
+```
+:::
+
+## See also
+
+- [Result Assertions](./result-assertions)
+- [Maybe Assertions](./maybe-assertions)
+- [Test Organization](./test-organization)

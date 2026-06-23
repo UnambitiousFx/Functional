@@ -1,0 +1,102 @@
+---
+sidebar_position: 3
+title: Maybe Assertions
+description: Assert the Some and None branches of Maybe&lt;T&gt; and chain focused checks onto the contained value.
+---
+
+# Maybe Assertions
+
+`maybe.ShouldBe()` returns a `MaybeAssertion<T>`, the entry point for asserting optional values. From there, choose the branch you expect:
+
+- `.Some(string? because = null)` returns a `SomeAssertion<T>` carrying the value.
+- `.None(string? because = null)` returns a `NoneAssertion`.
+
+Each method accepts an optional `because` reason that is included in the failure message when the assertion fails. The `None` failure message also reports the unexpected value when the `Maybe` was actually `Some`.
+
+## Asserting `Some`
+
+`.Some()` exposes the value through `Value`/`Subject`, or you can chain assertions with `.And(...)`.
+
+```csharp
+[Fact]
+public void FindUser_ExistingEmail_ReturnsSome()
+{
+    // Arrange (Given)
+    var email = "john@example.com";
+
+    // Act (When)
+    var maybe = FindUser(email);
+
+    // Assert (Then)
+    maybe.ShouldBe()
+        .Some()
+        .And(user => Assert.Equal(email, user.Email));
+}
+```
+
+## Chaining on the value: `.And` and `.Where`
+
+`.And(Action<T>)` runs xUnit assertions and returns the same `SomeAssertion<T>` so several can be chained. `.Where(Func<T, bool>, because?)` fails the test if the predicate is not satisfied.
+
+```csharp
+[Fact]
+public void FindActiveUser_ExistingEmail_ReturnsActiveUser()
+{
+    // Arrange (Given)
+    var email = "john@example.com";
+
+    // Act (When)
+    var maybe = FindUser(email);
+
+    // Assert (Then)
+    maybe.ShouldBe()
+        .Some()
+        .Where(user => user.IsActive)
+        .And(user => Assert.Equal(email, user.Email));
+}
+```
+
+`SomeAssertion<T>` also offers `BeEquivalentTo(expected)`, `NotBeNull()`, `BeOfType<T, TExpected>()`, `SatisfyAll(params Action<T>[])`, `Map(...)`, and `Inspect(...)` for non-breaking debugging.
+
+```csharp
+[Fact]
+public void ParseConfig_ValidJson_ReturnsExpectedPort()
+{
+    // Arrange (Given)
+    var json = "{ \"port\": 8080 }";
+
+    // Act (When)
+    var maybe = ParseConfig(json);
+
+    // Assert (Then)
+    maybe.ShouldBe()
+        .Some()
+        .Map(config => config.Port)
+        .And(port => Assert.Equal(8080, port));
+}
+```
+
+## Asserting `None`
+
+`.None()` asserts the empty branch. There is nothing to chain onto, so the call typically ends the assertion.
+
+```csharp
+[Fact]
+public void FindUser_UnknownEmail_ReturnsNone()
+{
+    // Arrange (Given)
+    var email = "missing@example.com";
+
+    // Act (When)
+    var maybe = FindUser(email);
+
+    // Assert (Then)
+    maybe.ShouldBe().None("no user is registered with that email");
+}
+```
+
+## See also
+
+- [Result Assertions](./result-assertions)
+- [Async Assertions](./async-assertions)
+- [Maybe](/docs/maybe/)

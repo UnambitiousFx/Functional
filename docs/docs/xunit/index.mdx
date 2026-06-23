@@ -1,0 +1,133 @@
+---
+sidebar_position: 1
+title: Functional.xunit
+description: Fluent, intention-revealing xUnit assertions for Result and Maybe from UnambitiousFx.Functional.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Functional.xunit
+
+`UnambitiousFx.Functional.xunit` adds fluent assertions for `Result`, `Result<T>` and `Maybe<T>` to your xUnit test suites. Instead of unpacking results by hand, you state the branch you expect and chain focused checks onto the value or failure.
+
+## Why use it
+
+- **Express intent, not plumbing.** `result.ShouldBe().Success()` reads like the behavior under test, with no `TryGetValue`/`out` boilerplate.
+- **Rich failure messages.** A failing assertion reports the actual state, including the failure code and message, so a red test tells you what went wrong.
+- **Typed failures.** Narrow a failure to `ValidationFailure`, `NotFoundFailure`, `ConflictFailure`, `BadRequestFailure`, or any `IFailure` and assert its specific properties.
+- **Sync and async parity.** The same `ShouldBe()` chain works on `Task<Result<T>>` and `ValueTask<Result<T>>` (and their `Maybe` equivalents) without awaiting first.
+
+## Install
+
+<Tabs>
+  <TabItem value="cli" label=".NET CLI" default>
+    ```bash
+    dotnet add package UnambitiousFx.Functional.xunit
+    ```
+  </TabItem>
+  <TabItem value="packageref" label="PackageReference">
+    ```xml
+    <PackageReference Include="UnambitiousFx.Functional.xunit" Version="*" />
+    ```
+  </TabItem>
+</Tabs>
+
+## The `ShouldBe()` entry point
+
+Every assertion starts from `ShouldBe()`, then narrows to the expected case:
+
+- `result.ShouldBe()` returns a `ResultAssertion` (or `ResultAssertion<T>` for `Result<T>`).
+- `maybe.ShouldBe()` returns a `MaybeAssertion<T>`.
+
+From there you pick a branch:
+
+| Source        | Branch method        | Returns                       |
+| ------------- | -------------------- | ----------------------------- |
+| `Result`      | `.Success(because?)` | `SuccessAssertion`            |
+| `Result<T>`   | `.Success(because?)` | `SuccessAssertion<T>`         |
+| `Result`/`<T>`| `.Failure(because?)` | `FailureAssertion`            |
+| `Maybe<T>`    | `.Some(because?)`    | `SomeAssertion<T>`            |
+| `Maybe<T>`    | `.None(because?)`    | `NoneAssertion`               |
+
+Each branch method takes an optional `because` reason that is woven into the failure message.
+
+## Quick example — Result
+
+```csharp
+using UnambitiousFx.Functional;
+using UnambitiousFx.Functional.Failures;
+using UnambitiousFx.Functional.xunit;
+using Xunit;
+
+[Fact]
+public void Parse_ValidValue_ReturnsSuccess()
+{
+    // Arrange (Given)
+    var input = "42";
+
+    // Act (When)
+    var result = Parse(input);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Success()
+        .And(value => Assert.Equal(42, value));
+}
+
+[Fact]
+public void Parse_InvalidValue_ReturnsValidationFailure()
+{
+    // Arrange (Given)
+    var input = "abc";
+
+    // Act (When)
+    var result = Parse(input);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .WhichIsValidationError()
+        .WithFailureContaining("integer");
+}
+```
+
+## Quick example — Maybe
+
+```csharp
+using UnambitiousFx.Functional;
+using UnambitiousFx.Functional.xunit;
+using Xunit;
+
+[Fact]
+public void FindUser_ExistingEmail_ReturnsSome()
+{
+    // Arrange (Given)
+    var email = "john@example.com";
+
+    // Act (When)
+    var maybe = FindUser(email);
+
+    // Assert (Then)
+    maybe.ShouldBe()
+        .Some()
+        .And(user => Assert.Equal(email, user.Email));
+}
+```
+
+## Arrange-Act-Assert convention
+
+Tests in this family follow the **Arrange-Act-Assert (AAA)** pattern, which maps directly onto **Gherkin (Given-When-Then)**. Use comments to separate the three sections and name tests `MethodName_Scenario_ExpectedBehavior`. See [Test Organization](./test-organization) for the full convention.
+
+## Explore the assertions
+
+- [Result Assertions](./result-assertions) — `.Success()`/`.Failure()`, chaining, message/code checks, and typed failures.
+- [Maybe Assertions](./maybe-assertions) — `.Some()`/`.None()` and value chaining.
+- [Async Assertions](./async-assertions) — assert directly on `Task<Result<T>>` / `ValueTask<Result<T>>` and async `Maybe`.
+- [Test Organization](./test-organization) — AAA/Gherkin, naming, theories, and an edge-case checklist.
+
+## See also
+
+- [Result](/docs/result/)
+- [Maybe](/docs/maybe/)
+- [Failures and Metadata](/docs/failures-and-metadata)

@@ -22,6 +22,11 @@
       "matchManagers": ["nuget"],
       "matchPackageNames": ["xunit**", "NSubstitute**", "coverlet**"],
       "groupName": "testing"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchFileNames": ["docs/**"],
+      "groupName": "docs"
     }
   ]
 }

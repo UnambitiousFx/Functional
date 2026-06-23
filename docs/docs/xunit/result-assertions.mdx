@@ -1,0 +1,235 @@
+---
+sidebar_position: 2
+title: Result Assertions
+description: Assert success and failure branches of Result and Result&lt;T&gt;, chain value checks, and narrow to typed failures.
+---
+
+# Result Assertions
+
+`result.ShouldBe()` is the entry point for every `Result` assertion. From there you assert the branch you expect — `.Success()` or `.Failure()` — and chain focused checks onto the value or the failure.
+
+- `Result.ShouldBe()` returns a `ResultAssertion`.
+- `Result<T>.ShouldBe()` returns a `ResultAssertion<T>` whose `.Success()` exposes the contained value.
+
+Both `Success(string? because = null)` and `Failure(string? because = null)` accept an optional reason that is included in the failure message when the assertion fails.
+
+## Asserting success
+
+For `Result<T>`, `.Success()` returns a `SuccessAssertion<T>` carrying the value. Read it via `Value`/`Subject`, or chain `.And(...)`.
+
+```csharp
+[Fact]
+public void Parse_ValidValue_ReturnsSuccess()
+{
+    // Arrange (Given)
+    var input = "42";
+
+    // Act (When)
+    var result = Parse(input);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Success()
+        .And(value => Assert.Equal(42, value));
+}
+```
+
+For a non-generic `Result`, `.Success()` simply asserts the success branch:
+
+```csharp
+[Fact]
+public void Save_ValidEntity_Succeeds()
+{
+    // Arrange (Given)
+    var entity = new Entity("valid");
+
+    // Act (When)
+    Result result = Save(entity);
+
+    // Assert (Then)
+    result.ShouldBe().Success("the entity passed validation");
+}
+```
+
+## Chaining on the value: `.And` and `.Where`
+
+`.And(Action<T>)` runs xUnit assertions against the value and returns the same assertion, so you can chain several. `.Where(Func<T, bool>, because?)` fails the test if the predicate is not satisfied.
+
+```csharp
+[Fact]
+public void CreateUser_ValidInput_ReturnsPopulatedUser()
+{
+    // Arrange (Given)
+    var email = "alice@example.com";
+
+    // Act (When)
+    var result = CreateUser(email);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Success()
+        .Where(user => user.IsActive)
+        .And(user => Assert.Equal(email, user.Email))
+        .And(user => Assert.NotEqual(Guid.Empty, user.Id));
+}
+```
+
+Additional value helpers on `SuccessAssertion<T>` include `BeEquivalentTo(expected)`, `NotBeNull()`, `BeOfType<T, TExpected>()`, `SatisfyAll(params Action<T>[])`, `Map(...)`, and `Inspect(...)` for non-breaking debugging.
+
+## Asserting failure
+
+`.Failure()` returns a `FailureAssertion` exposing the underlying `IFailure` as `Failure`/`Subject`.
+
+```csharp
+[Fact]
+public void Withdraw_InsufficientFunds_ReturnsFailure()
+{
+    // Arrange (Given)
+    var account = new Account(balance: 10m);
+
+    // Act (When)
+    var result = account.Withdraw(50m);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .And(failure => Assert.NotNull(failure.Message));
+}
+```
+
+## Asserting the message and code: `.AndMessage` / `.AndCode`
+
+`AndMessage(expected)` asserts the exact `Failure.Message`; `AndCode(expected)` asserts the exact `Failure.Code`. Both return the `FailureAssertion` for further chaining.
+
+```csharp
+[Fact]
+public void Withdraw_InsufficientFunds_ReturnsExpectedError()
+{
+    // Arrange (Given)
+    var account = new Account(balance: 10m);
+
+    // Act (When)
+    var result = account.Withdraw(50m);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .AndCode("ACCOUNT_INSUFFICIENT_FUNDS")
+        .AndMessage("Insufficient funds to complete the withdrawal.");
+}
+```
+
+For looser matching, `FailureAssertion` also offers `ContainMessage(substring)`, `StartWithMessage(prefix)`, `ContainCode(substring)`, and `Where(Func<IFailure, bool>, because?)`.
+
+## Typed failures: `.WhichIs...()`
+
+After `.Failure()`, narrow the assertion to a concrete failure type. The narrowing methods fail the test with a clear message if the actual failure type does not match, and otherwise return a strongly-typed assertion exposing that failure's properties.
+
+| Method                          | Returns                                  |
+| ------------------------------- | ---------------------------------------- |
+| `.WhichIsValidationError()`     | `ValidationFailureAssertion`             |
+| `.WhichIsNotFoundError()`       | `NotFoundFailureAssertion`               |
+| `.WhichIsConflictError()`       | `ConflictFailureAssertion`               |
+| `.WhichIsBadRequestError()`     | `BadRequestFailureAssertion`             |
+| `.WhichIsTimeoutError()`        | `TypedFailureAssertion<TimeoutFailure>`  |
+| `.WhichIsUnauthenticatedError()`| `TypedFailureAssertion<UnauthenticatedFailure>` |
+| `.WhichIsUnauthorizedError()`   | `TypedFailureAssertion<UnauthorizedFailure>` |
+| `.WhichIs<TError>()`            | `TypedFailureAssertion<TError>` (any `IFailure`) |
+
+### Validation failures
+
+`ValidationFailureAssertion` adds `WithFailure(expected)`, `WithFailureContaining(text)`, and `WithFailureCount(count)` over the `Failures` collection, plus `And`, `AndMessage`, and `AndCode`.
+
+```csharp
+[Fact]
+public void Register_BlankEmail_ReturnsValidationFailure()
+{
+    // Arrange (Given)
+    var request = new RegisterRequest(Email: "");
+
+    // Act (When)
+    var result = Register(request);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .WhichIsValidationError()
+        .WithFailureCount(1)
+        .WithFailureContaining("Email");
+}
+```
+
+### Not-found failures
+
+`NotFoundFailureAssertion` adds `WithResource(expected)` and `WithIdentifier(expected)`.
+
+```csharp
+[Fact]
+public void GetOrder_UnknownId_ReturnsNotFound()
+{
+    // Arrange (Given)
+    var orderId = "ORD-404";
+
+    // Act (When)
+    var result = GetOrder(orderId);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .WhichIsNotFoundError()
+        .WithResource("Order")
+        .WithIdentifier(orderId);
+}
+```
+
+### Conflict and bad-request failures
+
+`ConflictFailureAssertion` and `BadRequestFailureAssertion` expose `And`, `AndMessage`, and `AndCode`.
+
+```csharp
+[Fact]
+public void Register_DuplicateEmail_ReturnsConflict()
+{
+    // Arrange (Given)
+    var request = new RegisterRequest(Email: "taken@example.com");
+
+    // Act (When)
+    var result = Register(request);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .WhichIsConflictError()
+        .AndCode("USER_EMAIL_CONFLICT");
+}
+```
+
+### Any failure type via `.WhichIs<TError>()`
+
+Use the generic form for custom failures (any type implementing `IFailure`). It returns a `TypedFailureAssertion<TError>` supporting `And`, `Where`, `AndMessage`, and `AndCode`.
+
+```csharp
+[Fact]
+public void Charge_ExpiredCard_ReturnsPaymentFailure()
+{
+    // Arrange (Given)
+    var card = new Card(isExpired: true);
+
+    // Act (When)
+    var result = Charge(card, amount: 25m);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .WhichIs<PaymentFailure>()
+        .Where(f => f.Declined)
+        .AndCode("CARD_EXPIRED");
+}
+```
+
+## See also
+
+- [Maybe Assertions](./maybe-assertions)
+- [Async Assertions](./async-assertions)
+- [Result](/docs/result/)
+- [Failures and Metadata](/docs/failures-and-metadata)

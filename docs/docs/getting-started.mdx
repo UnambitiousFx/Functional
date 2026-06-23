@@ -1,0 +1,169 @@
+---
+sidebar_position: 2
+title: Getting Started
+description: Install UnambitiousFx.Functional, create your first Result, chain operations with Bind and Map, and handle failures.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Getting Started
+
+This guide walks you through installing UnambitiousFx.Functional, creating your first `Result`, composing a railway-oriented pipeline, and handling failures.
+
+## Install
+
+<Tabs>
+  <TabItem value="cli" label=".NET CLI" default>
+    ```bash
+    dotnet add package UnambitiousFx.Functional
+    ```
+  </TabItem>
+  <TabItem value="packageref" label="PackageReference">
+    ```xml
+    <PackageReference Include="UnambitiousFx.Functional" Version="2.0.0" />
+    ```
+  </TabItem>
+</Tabs>
+
+For web API projects, also install the ASP.NET Core integration layer:
+
+<Tabs>
+  <TabItem value="cli" label=".NET CLI" default>
+    ```bash
+    dotnet add package UnambitiousFx.Functional.AspNetCore
+    ```
+  </TabItem>
+  <TabItem value="packageref" label="PackageReference">
+    ```xml
+    <PackageReference Include="UnambitiousFx.Functional.AspNetCore" Version="2.0.0" />
+    ```
+  </TabItem>
+</Tabs>
+
+## Your first Result
+
+A `Result<T>` represents an operation that either succeeds with a value or fails with a `Failure`. Create them with the static factory methods on `Result`:
+
+```csharp
+using UnambitiousFx.Functional;
+using UnambitiousFx.Functional.Failures;
+
+// Success carrying a value
+Result<int> ok = Result.Success(42);
+
+// Failure carrying a typed error
+Result<int> failed = Result.Failure<int>(new ValidationFailure("Value is required"));
+```
+
+Consume a result by pattern matching on it. `Match` forces you to handle both branches:
+
+```csharp
+ok.Match(
+    success: value => Console.WriteLine($"Got {value}"),
+    failure: error => Console.WriteLine($"Failed: {error.Message}"));
+```
+
+:::tip
+`Result.Success(value)` and `Result.Failure<T>(error)` have implicit conversions, so you can often `return value;` or `return new ValidationFailure("...");` directly where a `Result<T>` is expected.
+:::
+
+## Chaining with Bind and Map
+
+Real workflows are a series of steps where each can fail. Compose them into a single pipeline: `Map` transforms a success value, `Bind` chains another operation that itself returns a `Result`, and `Ensure` adds a guard. The first failure short-circuits the rest.
+
+```csharp
+using UnambitiousFx.Functional;
+using UnambitiousFx.Functional.Failures;
+
+public Result<Order> PlaceOrder(string rawQuantity)
+{
+    return ParseQuantity(rawQuantity)                                          // Result<int>
+        .Ensure(qty => qty > 0, new ValidationFailure("Quantity must be > 0")) // guard
+        .Map(qty => new Order(qty))                                            // transform
+        .Bind(SaveOrder)                                                       // chain a Result-returning step
+        .Tap(order => Console.WriteLine($"Saved order {order.Id}"));          // side effect on success
+}
+
+static Result<int> ParseQuantity(string input) =>
+    int.TryParse(input, out var qty)
+        ? Result.Success(qty)
+        : Result.Failure<int>(new ValidationFailure("Not a number"));
+
+static Result<Order> SaveOrder(Order order)
+{
+    // ... persist ...
+    return Result.Success(order);
+}
+```
+
+Everything works the same with `async` code — `Bind`, `Map`, `Tap`, and friends all have `Task<T>` and `ValueTask<T>` overloads:
+
+```csharp
+public async Task<Result<Order>> PlaceOrderAsync(string rawQuantity)
+{
+    return await ParseQuantity(rawQuantity)
+        .Bind(qty => SaveOrderAsync(new Order(qty)));
+}
+```
+
+## Handling failures
+
+When you need the value or the error out of a result, you have several options.
+
+Extract both with `TryGet` (the value on success, the error on failure):
+
+```csharp
+if (result.TryGet(out var value, out var error))
+    Console.WriteLine($"Value: {value}");
+else
+    Console.WriteLine($"Error: {error.Message}");
+```
+
+Inspect the failure directly with `TryGetFailure`:
+
+```csharp
+if (result.TryGetFailure(out var failure))
+    logger.LogWarning("Operation failed: {Code} {Message}", failure.Code, failure.Message);
+```
+
+Provide a fallback value with `ValueOr`, or recover into a new success with `Recover`:
+
+```csharp
+// Substitute a default when the result failed
+var quantity = result.ValueOr(0);
+
+// Turn a failure back into a success
+Result<int> recovered = result.Recover(error => 0);
+```
+
+## Testing your code
+
+Add the `UnambitiousFx.Functional.xunit` package to assert on results fluently with `ShouldBe()`:
+
+```csharp
+using UnambitiousFx.Functional.xunit;
+using Xunit;
+
+[Fact]
+public void PlaceOrder_WithValidQuantity_ReturnsSuccess()
+{
+    // Arrange (Given)
+    var input = "3";
+
+    // Act (When)
+    var result = PlaceOrder(input);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Success()
+        .And(order => Assert.Equal(3, order.Quantity));
+}
+```
+
+See [xUnit](./xunit/) for the full assertion API, including failure-type assertions and `Maybe` checks.
+
+## Next steps
+
+- [Result](./result/) — the complete railway-oriented operator set.
+- [Maybe](./maybe/) — model optional values without null.

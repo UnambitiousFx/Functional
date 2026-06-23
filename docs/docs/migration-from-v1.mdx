@@ -1,0 +1,157 @@
+---
+sidebar_position: 90
+title: Migration from v1
+description: Upgrade existing UnambitiousFx.Functional code from v1 to v2 — packages, namespaces, types, and pipeline APIs.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Migration from v1
+
+This guide helps you migrate existing `UnambitiousFx.Functional` code from v1 to v2.
+
+The migration is mostly mechanical. The pipeline APIs you already use — `Bind`, `Map`, `Ensure`, `Tap`, `Recover`, and `Match` — keep their familiar shapes, so most composition code carries over unchanged.
+
+## 1. Update packages
+
+Bump every UnambitiousFx.Functional package to v2:
+
+<Tabs>
+  <TabItem value="cli" label=".NET CLI" default>
+    ```bash
+    dotnet add package UnambitiousFx.Functional --version 2.0.0
+    dotnet add package UnambitiousFx.Functional.AspNetCore --version 2.0.0
+    dotnet add package UnambitiousFx.Functional.xunit --version 2.0.0
+    ```
+  </TabItem>
+  <TabItem value="packageref" label="PackageReference">
+    ```xml
+    <PackageReference Include="UnambitiousFx.Functional" Version="2.0.0" />
+    <PackageReference Include="UnambitiousFx.Functional.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="UnambitiousFx.Functional.xunit" Version="2.0.0" />
+    ```
+  </TabItem>
+</Tabs>
+
+If you pin versions centrally, update them in your `Directory.Packages.props`.
+
+## 2. Target framework
+
+v2 supports `net8.0`, `net9.0`, and `net10.0`. If your project targets an older framework, retarget it before upgrading:
+
+```xml
+<TargetFramework>net8.0</TargetFramework>
+```
+
+## 3. Failure types and the `Failures` namespace
+
+Failures live in the `UnambitiousFx.Functional.Failures` namespace. Make sure your files import it where you construct or inspect errors:
+
+```csharp
+using UnambitiousFx.Functional;
+using UnambitiousFx.Functional.Failures;
+
+return Result.Failure<User>(new ValidationFailure("Email is required"));
+```
+
+The built-in failure types are:
+
+- `Failure` — generic failure (code `ERROR`).
+- `ValidationFailure` — one or more validation messages (code `VALIDATION`).
+- `NotFoundFailure` — missing resource (code `NOT_FOUND`).
+- `ConflictFailure` — conflicting operation, e.g. duplicate key (code `CONFLICT`).
+- `UnauthorizedFailure` — access denied (code `UNAUTHORIZED`).
+- `UnauthenticatedFailure` — caller is not authenticated (code `UNAUTHENTICATED`).
+- `BadRequestFailure` — malformed request (code `BAD_REQUEST`).
+- `TimeoutFailure` — operation exceeded its time limit (code `TIMEOUT`).
+- `ExceptionalFailure` — wraps a caught `Exception` (code `EXCEPTION`).
+- `AggregateFailure` — bundles multiple failures (code `AGGREGATE_ERROR`).
+
+Each failure exposes a machine-readable `Code` (see `FailureCodes`) alongside its human-readable `Message`.
+
+## 4. Result state access
+
+Check result state with `IsSuccess` and `IsFailure`:
+
+```csharp
+if (result.IsFailure)
+{
+    // handle the error
+}
+```
+
+To get the error out, prefer `TryGetFailure`, which returns `true` and a non-null `Failure` when the result failed:
+
+```csharp
+if (result.TryGetFailure(out var failure))
+{
+    logger.LogWarning("{Code}: {Message}", failure.Code, failure.Message);
+}
+```
+
+For typed results, `TryGet` extracts the value on success or the error on failure in one call:
+
+```csharp
+if (result.TryGet(out var value, out var error))
+{
+    Use(value);
+}
+else
+{
+    Handle(error);
+}
+```
+
+## 5. Keep your existing pipeline style
+
+Composition code can stay as-is:
+
+```csharp
+return Validate(input)
+    .Bind(DoWork)
+    .Ensure(x => x.IsValid, new ValidationFailure("Invalid state"))
+    .Tap(_ => logger.LogInformation("done"));
+```
+
+## 6. ASP.NET Core mapping
+
+If you use `Functional.AspNetCore`, register your failure-to-status mappings and convert results at the edge:
+
+```csharp
+services.AddResultHttp(options =>
+{
+    options.AddMapper<ValidationFailure>(StatusCodes.Status400BadRequest);
+    options.AddMapper<NotFoundFailure>(StatusCodes.Status404NotFound);
+    options.AddMapper<ConflictFailure>(StatusCodes.Status409Conflict);
+    options.AddMapper<UnauthorizedFailure>(StatusCodes.Status401Unauthorized);
+});
+```
+
+The default HTTP mapping follows standard semantics (400 / 401 / 404 / 409 / 500 …).
+
+## 7. xUnit assertions
+
+The assertion style still starts with `ShouldBe()`. Confirm your typed assertions reference v2 failure names:
+
+```csharp
+result.ShouldBe()
+    .Failure()
+    .WhichIsValidationError()
+    .And(failure => Assert.Contains("email", failure.Message));
+```
+
+## Quick migration checklist
+
+- Update NuGet package versions to `2.0.0`.
+- Retarget to `net8.0`, `net9.0`, or `net10.0` if needed.
+- Ensure `using UnambitiousFx.Functional.Failures;` is present where you build or inspect failures.
+- Use `IsFailure` / `IsSuccess` and `TryGetFailure` / `TryGet` for state access.
+- Run your tests and confirm HTTP mapping expectations.
+
+## See also
+
+- [Functional Overview](./)
+- [Result](./result/)
+- [Maybe](./maybe/)
+- [Failures and Metadata](./failures-and-metadata)

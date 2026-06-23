@@ -1,0 +1,362 @@
+---
+sidebar_position: 1
+title: Result
+description: Model success and failure as values with Result and Result&lt;T&gt; — railway-oriented programming for .NET, without exceptions for control flow.
+---
+
+# Result
+
+`UnambitiousFx.Functional` embraces the principle that **errors are values**. Instead of throwing exceptions to signal that an operation failed, a method returns a `Result` (success/failure) or `Result<T>` (success-with-a-value/failure). The possibility of failure becomes part of the type, the compiler keeps you honest, and you compose operations into a pipeline that short-circuits the moment something goes wrong.
+
+This is **railway-oriented programming**: a chain of steps runs on the "success track" as long as each one succeeds. The first failure switches to the "failure track" and every subsequent step is skipped, carrying the failure straight through to the end.
+
+## Why Result instead of exceptions
+
+- **Explicit** — the signature `Result<User>` says the call can fail; `User` says it cannot.
+- **Composable** — `Bind`, `Map`, `Ensure`, and friends chain steps without nested `try`/`catch`.
+- **Cheap** — `Result` and `Result<T>` are `readonly record struct`s, so the happy path allocates almost nothing.
+- **Typed failures** — failures carry a machine-readable `Code` and a human-readable `Message`, and you can pattern-match specific kinds (`NotFoundFailure`, `ValidationFailure`, …).
+
+Reserve exceptions for genuine programming errors (misconfiguration, bugs). Use `Result` for expected domain outcomes.
+
+## Creating results
+
+### Success
+
+```csharp
+// Success without a value
+Result ok = Result.Success();
+Result ok2 = Result.Ok();              // alias for Success()
+
+// Success with a value
+Result<int> value = Result.Success(42);
+Result<int> value2 = Result.Ok(42);    // alias for Success(value)
+```
+
+`TValue` is constrained to `notnull`, so `Result<string?>` will not compile. Model the absence of a value with [`Maybe<T>`](/docs/maybe/) instead.
+
+### Failure
+
+```csharp
+// From a message
+Result fail = Result.Failure("Something went wrong");
+
+// From an exception (wrapped in an ExceptionalFailure)
+Result fail2 = Result.Failure(new InvalidOperationException("boom"));
+
+// From a Failure object
+Result fail3 = Result.Failure(new ValidationFailure("Email is required"));
+
+// From several failures (merged into an AggregateFailure)
+Result fail4 = Result.Failure(new[] { failureA, failureB });
+
+// Typed failures use the generic overloads
+Result<User> fail5 = Result.Failure<User>("not found");
+```
+
+`Failure` is also available under the `Fail` / `Fail<T>` aliases.
+
+### Semantic failure factories
+
+Prefer the specialized factories over a bare message — they attach the right `Code` and structured metadata, which downstream code (and the ASP.NET Core integration) can translate into the correct HTTP status:
+
+```csharp
+return Result.FailNotFound<User>("User", userId);          // NOT_FOUND
+return Result.FailValidation<User>("Email is required");   // VALIDATION
+return Result.FailUnauthenticated<User>("Token expired");  // UNAUTHENTICATED
+return Result.FailUnauthorized<User>("Admins only");       // UNAUTHORIZED
+return Result.FailConflict<User>("Email already taken");   // CONFLICT
+return Result.FailBadRequest<User>("Malformed payload");   // BAD_REQUEST
+```
+
+Each factory has a non-generic (`Result`) and a generic (`Result<T>`) form.
+
+### Implicit conversions
+
+A value converts implicitly to a success, and a `Failure` converts implicitly to a failure — so you rarely need to name the factory inside a method body:
+
+```csharp
+public Result<User> CreateUser(string name)
+{
+    if (string.IsNullOrWhiteSpace(name))
+        return new ValidationFailure("Name is required"); // Failure → Result<User>
+
+    return new User(name);                                 // User → Result<User>
+}
+```
+
+## Inspecting a result
+
+`Result` / `Result<T>` deliberately expose **no** public `Value` or `Error` property — you must go through a method that forces you to handle both cases.
+
+```csharp
+// Boolean guards
+if (result.IsSuccess) { /* ... */ }
+if (result.IsFailure) { /* ... */ }
+
+// out-variable style
+if (result.TryGet(out var user, out var error))
+    Use(user);
+else
+    Log(error);
+
+// Just the value, or just the failure
+if (result.TryGetValue(out var user)) { /* ... */ }
+if (result.TryGetFailure(out var failure)) { /* ... */ }
+```
+
+## Pattern matching with `Match` and `Switch`
+
+`Match` collapses both tracks into a single value; `Switch` runs side-effecting actions.
+
+```csharp
+string message = result.Match(
+    success: user  => $"Welcome, {user.Name}",
+    failure: error => $"Failed: {error.Message}");
+
+result.Switch(
+    success: user  => Console.WriteLine(user.Name),
+    failure: error => Console.WriteLine(error.Message));
+```
+
+For the non-generic `Result`, the success branch takes no argument:
+
+```csharp
+var http = result.Match(
+    onSuccess: ()    => Results.NoContent(),
+    onFailure: error => Results.Problem(error.Message));
+```
+
+Matching on the **kind** of failure is a common pattern at boundaries:
+
+```csharp
+return result.Match(
+    success: user  => Results.Ok(user),
+    failure: error => error switch
+    {
+        NotFoundFailure     => Results.NotFound(error.Message),
+        ValidationFailure   => Results.BadRequest(error.Message),
+        UnauthorizedFailure => Results.Forbid(),
+        _                   => Results.Problem(error.Message)
+    });
+```
+
+## Transforming with `Bind`, `Map`, `Then`, and `Flatten`
+
+These are the workhorses of the success track.
+
+- **`Map`** — transform the value with a plain function. `Result<A>` → `Result<B>`.
+- **`Bind`** — chain another operation that itself returns a `Result`. `Result<A>` → `Result<B>`. This is what keeps a pipeline flat instead of producing `Result<Result<B>>`.
+- **`Then`** — run a follow-up step that keeps the same value type (handy for `Result<T>` → `Result<T>` validations or `Result<T>` → `Result` checks that preserve the original value).
+- **`Flatten`** — collapse a `Result<Result<T>>` into a `Result<T>`.
+
+```csharp
+Result<int> doubled  = Result.Success(5).Map(x => x * 2);          // Success(10)
+Result<int> chained  = Result.Success(5).Bind(x => Parse(x));      // runs Parse only on success
+Result<int> unnested = Result.Success(Result.Success(5)).Flatten(); // Success(5)
+```
+
+### A worked railway example
+
+Each step returns a `Result`; the first failure short-circuits the rest.
+
+```csharp
+Result<Receipt> Checkout(CartRequest request) =>
+    LoadCart(request.CartId)                       // Result<Cart>
+        .Ensure(cart => cart.Items.Count > 0,
+                _ => new ValidationFailure("Cart is empty"))
+        .Bind(cart => ReserveStock(cart))          // Result<Reservation>
+        .Bind(reservation => ChargeCard(request.PaymentToken, reservation))
+        .Map(payment => new Receipt(payment.Id));  // Result<Receipt>
+
+// If LoadCart fails, ReserveStock / ChargeCard / Map never run —
+// the original failure flows straight to the caller.
+```
+
+## Validating with `Ensure`
+
+`Ensure` keeps the value on the success track when a predicate holds, and produces a failure (via your factory) when it does not:
+
+```csharp
+Result<string> email = Result.Success("a@b.com")
+    .Ensure(e => e.Contains('@'),
+            e => new ValidationFailure($"'{e}' is not a valid email"));
+```
+
+## Recovering with `Recover` and `Compensate`
+
+`Recover` turns a failure back into a success by supplying a fallback value:
+
+```csharp
+Result<Config> config = LoadConfig()
+    .Recover(error => Config.Default);     // from the failure
+// or simply
+Result<Config> config2 = LoadConfig().Recover(Config.Default);
+```
+
+`Compensate` runs a rollback when the result has failed — ideal for sagas and compensating transactions. If the rollback also fails, both failures are merged into an `AggregateFailure`:
+
+```csharp
+Result result = ReserveInventory(productId, qty)
+    .Bind(() => ChargePayment(amount))
+    .Compensate(error => ReleaseInventory(productId, qty));
+```
+
+`Try` wraps a throwing delegate, converting any exception into a failure:
+
+```csharp
+Result<int> parsed = Result.Success("42").Try(s => int.Parse(s));
+```
+
+## Side effects with the `Tap` family
+
+`Tap` lets you observe a result (logging, metrics) without breaking the chain — it always returns the original result unchanged.
+
+```csharp
+var result = GetUser(id)
+    .Tap(user => _logger.LogInformation("Loaded {Id}", user.Id))   // on success
+    .TapIf(user => user.IsAdmin, user => Audit(user))              // conditional
+    .TapFailure(error => _logger.LogError("Failed: {Msg}", error.Message)) // on failure
+    .Map(user => user.ToDto());
+```
+
+| Method        | Runs when                          |
+| ------------- | ---------------------------------- |
+| `Tap`         | the result is a success            |
+| `TapIf`       | success **and** the predicate is true |
+| `TapFailure`  | the result is a failure            |
+
+## Extracting values with `ValueOr*`
+
+When you finally need the raw value, choose how to handle the failure case:
+
+```csharp
+int a = result.ValueOr(0);                 // fallback value
+int b = result.ValueOr(() => Compute());   // lazily-produced fallback
+int? c = result.ValueOrDefault();          // default(T) on failure
+int d = result.ValueOrThrow();             // throws the aggregated exception
+int e = result.ValueOrThrow(err => new MyException(err.Message)); // custom exception
+```
+
+## LINQ query syntax
+
+`Select`, `SelectMany`, and `Where` let you compose results with C# query syntax. `Select` maps, `SelectMany` binds, and `Where` filters (producing a `ValidationFailure` when the predicate is false).
+
+```csharp
+var result =
+    from order    in GetOrder(orderId)
+    from customer in GetCustomer(order.CustomerId)   // SelectMany / Bind
+    where customer.IsActive                          // Where / Ensure
+    from address  in GetAddress(customer.AddressId)
+    select new OrderDetails(order, customer, address); // Select / Map
+```
+
+## Aggregating with `Combine`
+
+`Combine` folds many results into one. It succeeds only if every input succeeds; otherwise **all** failures are aggregated into a single `AggregateFailure` — perfect for collecting every validation error at once.
+
+```csharp
+Result validation = new[]
+{
+    ValidateName(input.Name),
+    ValidateEmail(input.Email),
+    ValidateAge(input.Age)
+}.Combine();
+
+// Result<TValue> collections combine into Result<IEnumerable<TValue>>
+Result<IEnumerable<int>> all = new[]
+{
+    Result.Success(1),
+    Result.Success(2)
+}.Combine();
+```
+
+## Attaching metadata
+
+Every result can carry contextual `Metadata` that flows through transformations. It does not change success/failure — it just travels alongside.
+
+```csharp
+var result = GetUser(id)
+    .WithMetadata("UserId", id)
+    .WithMetadata(("Operation", "Fetch"), ("Timestamp", DateTime.UtcNow))
+    .WithMetadata(builder =>
+    {
+        builder.Add("CorrelationId", correlationId);
+    })
+    .Bind(user => Activate(user)); // metadata is preserved across the Bind
+```
+
+## Async usage
+
+Most operators have `Task<Result<T>>` and `ValueTask<Result<T>>` overloads, so you can `await` an entire pipeline without unwrapping it at each step:
+
+```csharp
+ValueTask<Result<Receipt>> pipeline =
+    LoadCartAsync(cartId)                       // ValueTask<Result<Cart>>
+        .Ensure(cart => cart.Items.Count > 0,
+                _ => new ValidationFailure("Cart is empty"))
+        .Bind(cart => ReserveStockAsync(cart))  // async Bind
+        .Map(reservation => new Receipt(reservation.Id));
+
+Result<Receipt> receipt = await pipeline;
+```
+
+The async overloads accept both synchronous and asynchronous continuations, so you can freely mix `Map(x => ...)` and `Bind(x => SomethingAsync(x))` in the same chain.
+
+## Testing results
+
+Use the `Functional.xunit` fluent assertions to make tests expressive and consistent:
+
+```csharp
+[Fact]
+public void Map_WithSuccessResult_TransformsValue()
+{
+    // Arrange (Given)
+    var result = Result.Success(5);
+
+    // Act (When)
+    var mapped = result.Map(x => x * 2);
+
+    // Assert (Then)
+    mapped.ShouldBe()
+        .Success()
+        .And(value => Assert.Equal(10, value));
+}
+
+[Fact]
+public void Ensure_WithFailingPredicate_ProducesValidationFailure()
+{
+    // Arrange (Given)
+    var result = Result.Success("invalid-email");
+
+    // Act (When)
+    var ensured = result.Ensure(e => e.Contains('@'),
+                                _ => new ValidationFailure("Invalid email"));
+
+    // Assert (Then)
+    ensured.ShouldBe()
+        .Failure()
+        .AndMessage("Invalid email");
+}
+```
+
+For failures you can chain `.AndMessage("...")` or `.AndCode("...")`; for successes use `.And(v => ...)` or `.Where(v => ...)`.
+
+## Best practices
+
+1. **Stay on the rails.** Compose with `Bind`/`Map`/`Ensure` instead of manually checking `IsFailure` after every step — let failures propagate.
+2. **Prefer semantic factories.** `Result.FailNotFound`, `FailValidation`, etc. carry the right code and metadata; a bare `Result.Failure("...")` does not.
+3. **Return failures, don't throw them.** Inside domain code, `return` a failure; reserve exceptions for misconfiguration and bugs.
+4. **Convert at the boundary.** Keep `Result` flowing through your core; translate to HTTP responses or exceptions only at the edges, via `Match`.
+5. **Use `Tap` for observation.** Logging and metrics belong in `Tap`/`TapFailure`, not in the transformation steps.
+6. **Collect errors with `Combine`.** When validating several independent inputs, combine them so the caller sees every failure at once.
+7. **Honor `notnull`.** `TValue` cannot be nullable — model optionality with `Maybe<T>`.
+8. **Lean on implicit conversions.** Returning a value or a `Failure` directly is clearer than wrapping it in a factory call.
+
+## See also
+
+- [Result API Reference](./api-reference) — every method, signature, and failure factory.
+- [Maybe](/docs/maybe/) — for optional values.
+- [Failures and Metadata](/docs/failures-and-metadata) — failure types and metadata in depth.
+- [ASP.NET Core Integration](/docs/aspnetcore/) — map failures to HTTP responses.
+- [xUnit Integration](/docs/xunit/) — the `ShouldBe()` assertions used above.
