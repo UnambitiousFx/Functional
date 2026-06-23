@@ -27,6 +27,20 @@
       "matchManagers": ["npm"],
       "matchFileNames": ["docs/**"],
       "groupName": "docs"
+    },
+    {
+      "description": "Keep ASP.NET Core test host on net8 line",
+      "matchManagers": ["nuget"],
+      "matchPackageNames": ["Microsoft.AspNetCore.Mvc.Testing"],
+      "matchCurrentVersion": "/^8\\./",
+      "allowedVersions": "<9.0.0"
+    },
+    {
+      "description": "Keep ASP.NET Core test host on net9 line",
+      "matchManagers": ["nuget"],
+      "matchPackageNames": ["Microsoft.AspNetCore.Mvc.Testing"],
+      "matchCurrentVersion": "/^9\\./",
+      "allowedVersions": "<10.0.0"
     }
   ]
 }
