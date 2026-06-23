@@ -1,0 +1,118 @@
+---
+sidebar_position: 5
+title: Test Organization
+description: Structure functional tests with the AAA/Gherkin pattern, descriptive names, theories, and an edge-case checklist.
+---
+
+# Test Organization
+
+Fluent assertions are most valuable inside well-structured tests. This page captures the conventions used across the UnambitiousFx.Functional family so suites stay readable and diagnosable.
+
+## Arrange-Act-Assert (Gherkin style)
+
+Every test follows the **Arrange-Act-Assert (AAA)** pattern, which maps directly onto **Gherkin (Given-When-Then)**. Use comments to separate the three sections:
+
+- **Arrange (Given)** — set up conditions, initialize objects, prepare input.
+- **Act (When)** — execute the single operation under test.
+- **Assert (Then)** — verify the outcome with `ShouldBe()` assertions.
+
+```csharp
+[Fact]
+public void Map_WithSuccessResult_TransformsValue()
+{
+    // Arrange (Given)
+    var result = Result.Success(5);
+
+    // Act (When)
+    var mapped = result.Map(x => x * 2);
+
+    // Assert (Then)
+    mapped.ShouldBe()
+        .Success()
+        .And(value => Assert.Equal(10, value));
+}
+```
+
+## Descriptive test names
+
+Name tests `MethodName_Scenario_ExpectedBehavior`. The name should read as a sentence describing the behavior, so a failing test communicates intent without opening the body.
+
+```csharp
+[Fact]
+public void Withdraw_InsufficientFunds_ReturnsValidationFailure() { /* ... */ }
+
+[Fact]
+public void FindUser_UnknownEmail_ReturnsNone() { /* ... */ }
+```
+
+## Group by behavior
+
+Organize tests around behavior and expected outcome rather than implementation details:
+
+- Success flows
+- Validation failures
+- Not-found and authorization failures
+- Optional-value (`Maybe`) behavior
+
+Keep one main behavior per test. Use the fluent chain to assert several facets of a single outcome, but avoid testing unrelated concerns in the same method.
+
+## Theories for variation
+
+Use `[Theory]` with `[InlineData]` to exercise the same logic across multiple inputs. This keeps coverage high without duplicating the AAA scaffold.
+
+```csharp
+[Theory]
+[InlineData("1", 1)]
+[InlineData("42", 42)]
+[InlineData("-7", -7)]
+public void Parse_ValidInteger_ReturnsSuccess(string input, int expected)
+{
+    // Arrange (Given) — input provided by InlineData
+
+    // Act (When)
+    var result = Parse(input);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Success()
+        .And(value => Assert.Equal(expected, value));
+}
+
+[Theory]
+[InlineData("")]
+[InlineData("abc")]
+[InlineData("3.14")]
+public void Parse_NonInteger_ReturnsValidationFailure(string input)
+{
+    // Act (When)
+    var result = Parse(input);
+
+    // Assert (Then)
+    result.ShouldBe()
+        .Failure()
+        .WhichIsValidationError();
+}
+```
+
+## Edge-case checklist
+
+Always probe the boundaries, not just the happy path:
+
+- **Nulls** — null arguments, null fields, and `NotBeNull()` on values that must be present.
+- **Empty** — empty strings, empty collections, and zero counts.
+- **Boundaries** — min/max values, off-by-one limits, first/last elements.
+- **Error states** — each failure type the operation can produce (`ValidationFailure`, `NotFoundFailure`, `ConflictFailure`, `BadRequestFailure`, custom `IFailure`).
+
+Prefer asserting **concrete failure types** with the `.WhichIs...()` narrowers over checking only a message string — the test then documents which failure the code is contracted to return.
+
+## Improve diagnostic quality
+
+- Pass a `because` reason to `Success`, `Failure`, `Some`, `None`, and `Where` so red tests explain the expectation.
+- Give domain failures meaningful messages and stable codes; assert them with `AndCode`/`AndMessage`.
+- Use `Inspect(...)` on a chain to log intermediate state while debugging without breaking the assertion flow.
+
+## See also
+
+- [Result Assertions](./result-assertions)
+- [Maybe Assertions](./maybe-assertions)
+- [Failures and Metadata](/docs/failures-and-metadata)

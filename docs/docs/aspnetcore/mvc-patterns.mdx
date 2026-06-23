@@ -1,0 +1,158 @@
+---
+sidebar_position: 3
+title: MVC Patterns
+description: Convert Result and Maybe into IActionResult for MVC controllers using the AsActionResultBuilder fluent builders.
+---
+
+# MVC Patterns
+
+The `UnambitiousFx.Functional.AspNetCore.Mvc` namespace mirrors the Minimal API integration, but produces `IActionResult` instead of `IResult` so it fits naturally into MVC controllers.
+
+```csharp
+using UnambitiousFx.Functional.AspNetCore.Mvc;
+```
+
+## The builder entry points
+
+`AsActionResultBuilder` is the entry point, overloaded for synchronous and asynchronous (`ValueTask`) values, with an optional `IFailureHttpMapper` (defaults to `DefaultFailureHttpMapper`):
+
+```csharp
+// Result (no value)  → ResultMvcBuilder
+result.AsActionResultBuilder();
+valueTaskOfResult.AsActionResultBuilder();
+
+// Result<T>          → ResultMvcBuilder<TValue>
+resultOfT.AsActionResultBuilder();
+valueTaskOfResultOfT.AsActionResultBuilder();
+
+// Maybe<T>           → MaybeMvcBuilder<TValue>
+maybe.AsActionResultBuilder();
+valueTaskOfMaybe.AsActionResultBuilder();
+
+// With a specific mapper (e.g. injected from DI)
+resultOfT.AsActionResultBuilder(myFailureMapper);
+```
+
+Every builder exposes `GetAwaiter()`, so it can be `await`ed directly from an action method.
+
+## Default success mapping
+
+| Source                  | Default success response          |
+| ----------------------- | --------------------------------- |
+| `Result` (no value)     | 204 No Content                    |
+| `Result<T>`             | 200 OK + value as JSON            |
+| `Maybe<T>` — `Some`     | 200 OK + value as JSON            |
+| `Maybe<T>` — `None`     | 404 Not Found                     |
+
+Failure branches go through the configured [failure mapper](./http-mapping#failure-to-status-mapping). When the mapped body is a `ProblemDetails`, the MVC builder returns an `ObjectResult` with the status code from the problem details; other bodies are wrapped in the matching typed result (`BadRequestObjectResult`, `NotFoundObjectResult`, `ConflictObjectResult`, etc.).
+
+## Basic controller
+
+```csharp
+using UnambitiousFx.Functional.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/users")]
+public sealed class UsersController : ControllerBase
+{
+    private readonly IUserService _service;
+
+    public UsersController(IUserService service) => _service = service;
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id)
+        => await _service.GetUserAsync(id).AsActionResultBuilder();
+    // Found    → 200 OK + user
+    // NotFound → 404 Not Found (ProblemDetails)
+}
+```
+
+## Create endpoint (201 Created)
+
+`AsCreated` sets the status to 201 and builds the `Location` from the success value:
+
+```csharp
+[HttpPost]
+public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
+    => await _service.CreateAsync(request)
+                     .AsActionResultBuilder()
+                     .AsCreated(user => $"/api/users/{user.Id}");
+// Success → 201 Created + Location header
+// Failure → mapped status (e.g. 400 for ValidationFailure)
+```
+
+## Command with no value
+
+```csharp
+[HttpDelete("{id:guid}")]
+public async Task<IActionResult> Delete(Guid id)
+    => await _service.DeleteAsync(id).AsActionResultBuilder();
+// Success → 204 No Content
+// Failure → mapped status
+```
+
+## Customizing the response
+
+The MVC builders share the same fluent surface as the Minimal API builders:
+
+```csharp
+[HttpGet("{id:guid}")]
+public async Task<IActionResult> Get(Guid id)
+    => await _service.GetUserAsync(id)
+                     .AsActionResultBuilder()
+                     .WithStatusCode(200)
+                     .WithHeader("Cache-Control", "no-store")
+                     .WithResponseFormatter(user => new UserDto(user.Id, user.Name));
+```
+
+- `WithStatusCode(int)` — override the success status (200 → `OkObjectResult`, 201 → `CreatedResult`, 202 → `AcceptedResult`, 204 → `NoContentResult`, otherwise `StatusCodeResult`).
+- `WithHeader(key, value)` — add a response header.
+- `WithResponseFormatter(map)` — reshape the success value before serialization.
+- `AsCreated(locationFactory)` — 201 Created with a `Location`.
+- `AsNone(() => IActionResult)` — override the `Maybe.None` response (defaults to `NotFoundResult`).
+
+### `Maybe.None` override
+
+```csharp
+[HttpGet("{id:guid}/draft")]
+public async Task<IActionResult> GetDraft(Guid id)
+    => await _service.FindDraftAsync(id)
+                     .AsActionResultBuilder()
+                     .AsNone(() => NoContent());
+```
+
+## Injecting the mapper
+
+Register the mapper once with [`AddResultHttp`](./custom-mappers), then inject `IFailureHttpMapper` and hand it to the builder so every controller shares the same error contract:
+
+```csharp
+[ApiController]
+[Route("api/orders")]
+public sealed class OrdersController : ControllerBase
+{
+    private readonly IOrderService _service;
+    private readonly IFailureHttpMapper _mapper;
+
+    public OrdersController(IOrderService service, IFailureHttpMapper mapper)
+    {
+        _service = service;
+        _mapper = mapper;
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id)
+        => await _service.GetOrderAsync(id).AsActionResultBuilder(_mapper);
+}
+```
+
+## Guidance
+
+- Return `IActionResult` and adapt from functional outcomes at the boundary.
+- Keep services free of MVC-specific types.
+- Reuse the same `IFailureHttpMapper` across MVC and Minimal API endpoints for consistent errors.
+
+## See also
+
+- [HTTP Mapping (Minimal API)](./http-mapping) — the `IResult` equivalents and failure-mapping details.
+- [Custom Mappers](./custom-mappers) — customize failure-to-status mapping.

@@ -1,0 +1,178 @@
+---
+sidebar_position: 30
+title: Failures and Metadata
+description: Typed failure objects with stable codes plus an immutable metadata bag for attaching contextual diagnostics.
+---
+
+# Failures and Metadata
+
+`UnambitiousFx.Functional` models errors as **typed failure objects** rather than exceptions or bare strings. A failure carries a stable machine-readable `Code`, a human-readable `Message`, and an immutable `Metadata` bag of contextual key/value pairs. Failures flow through [`Result<T>`](/docs/result/), so error handling stays explicit and composable.
+
+All failure types live in `UnambitiousFx.Functional.Failures`.
+
+## The `IFailure` contract
+
+Every failure implements `IFailure`:
+
+```csharp
+public interface IFailure
+{
+    string Code { get; }       // stable code, e.g. "VALIDATION", "NOT_FOUND"
+    string Message { get; }    // human-readable description
+    Metadata Metadata { get; } // contextual key/value pairs (never null)
+}
+```
+
+The abstract record `FailureBase` provides the standard immutable, value-based implementation. `Failure` is the concrete general-purpose failure; the specialized types below all derive from it.
+
+## Built-in failure types
+
+Each built-in failure sets a code from `FailureCodes`. Construct them directly and pass them to a `Result` factory.
+
+| Type | Code constant (value) | Constructor | Use when |
+| --- | --- | --- | --- |
+| `Failure` | `FailureCodes.Failure` (`"ERROR"`) | `Failure(string message)` or `Failure(string code, string message, IReadOnlyDictionary<string, object?>? metadata = null)` | A general failure with no more specific category. |
+| `ValidationFailure` | `FailureCodes.Validation` (`"VALIDATION"`) | `ValidationFailure(string validationMessage, …)` or `ValidationFailure(IReadOnlyList<string> failures, …)` | Input fails field/business validation; collects one or more messages (exposed via `Failures`). |
+| `NotFoundFailure` | `FailureCodes.NotFound` (`"NOT_FOUND"`) | `NotFoundFailure(string resource, string identifier, string? messageOverride = null, …)` | A requested resource does not exist. Exposes `Resource` and `Identifier`. |
+| `ConflictFailure` | `FailureCodes.Conflict` (`"CONFLICT"`) | `ConflictFailure(string Message, …)` | A uniqueness/state conflict, e.g. a duplicate key. |
+| `UnauthorizedFailure` | `FailureCodes.Unauthorized` (`"UNAUTHORIZED"`) | `UnauthorizedFailure(string? reason = null, …)` | The caller is authenticated but not permitted. |
+| `UnauthenticatedFailure` | `FailureCodes.Unauthenticated` (`"UNAUTHENTICATED"`) | `UnauthenticatedFailure(string? reason = null, …)` | The caller is not authenticated. |
+| `BadRequestFailure` | `FailureCodes.BadRequest` (`"BAD_REQUEST"`) | `BadRequestFailure(string Message, …)` | The request is malformed beyond field validation. |
+| `TimeoutFailure` | `FailureCodes.Timeout` (`"TIMEOUT"`) | `TimeoutFailure(TimeSpan configuredTimeout, TimeSpan elapsed)` | An operation exceeded its allotted time. |
+| `ExceptionalFailure` | `FailureCodes.Exception` (`"EXCEPTION"`) | `ExceptionalFailure(Exception exception, string? messageOverride = null, …)` | Wrapping a caught exception while preserving it (via `Exception`). |
+| `AggregateFailure` | `FailureCodes.AggregateFailure` (`"AGGREGATE_ERROR"`) | `AggregateFailure(params IEnumerable<Failure> errors)` | Reporting several failures at once (exposed via `Errors`). |
+
+Constructors that take an optional metadata argument accept an `IReadOnlyDictionary<string, object?>?`; the values are merged into the failure's `Metadata`.
+
+## Producing a failed `Result`
+
+Use the `Result.Failure` / `Result.Fail` factories (the two are aliases). Overloads accept a `Failure`, an `Exception`, a plain message string, or a collection of failures.
+
+```csharp
+using UnambitiousFx.Functional;
+using UnambitiousFx.Functional.Failures;
+
+Result<string> ValidateEmail(string email)
+{
+    if (string.IsNullOrWhiteSpace(email))
+    {
+        return Result.Failure<string>(new ValidationFailure("Email is required."));
+    }
+
+    if (!email.Contains('@'))
+    {
+        return Result.Failure<string>(new ValidationFailure("Email format is invalid."));
+    }
+
+    return Result.Success(email);
+}
+
+// Other factories:
+Result<User> notFound = Result.Fail<User>(new NotFoundFailure("User", id.ToString()));
+Result<User> fromMessage = Result.Fail<User>("Something went wrong."); // wraps a Failure
+Result wrapped = Result.Fail(new InvalidOperationException("boom"));    // -> ExceptionalFailure
+```
+
+## Aggregating multiple failures
+
+`AggregateFailure` collects several failures so a caller sees them all at once — ideal for validation that reports every problem rather than stopping at the first.
+
+```csharp
+var errors = new List<Failure>();
+
+if (string.IsNullOrWhiteSpace(dto.Name))  errors.Add(new ValidationFailure("Name is required."));
+if (dto.Age < 0)                          errors.Add(new ValidationFailure("Age must be non-negative."));
+
+Result<User> result = errors.Count == 0
+    ? Result.Success(Map(dto))
+    : Result.Failure<User>(new AggregateFailure(errors));
+
+// Inspecting the aggregate:
+if (result.TryGetFailure(out var failure) && failure is AggregateFailure aggregate)
+{
+    foreach (var inner in aggregate.Errors)
+    {
+        Console.WriteLine($"{inner.Code}: {inner.Message}");
+    }
+}
+```
+
+## Wrapping exceptions
+
+`ExceptionalFailure` carries the original `Exception` so it can be logged or rethrown later, while still flowing through the `Result` pipeline. The wrapped exception's full type name is recorded under the `exceptionType` metadata key.
+
+```csharp
+try
+{
+    var data = ParseDocument(input);
+    return Result.Success(data);
+}
+catch (FormatException ex)
+{
+    return Result.Failure<Document>(new ExceptionalFailure(ex, "Document could not be parsed."));
+}
+```
+
+You can also pass an `Exception` straight to `Result.Fail` / `Result.Failure`, which wraps it in an `ExceptionalFailure` for you.
+
+## Metadata
+
+`Metadata` is an **immutable**, case-insensitive `string → object?` collection used to carry contextual diagnostics — correlation IDs, timing, domain context — alongside a result or failure. Use the static `Metadata.Empty` for the no-entries case.
+
+### Attaching metadata to a result
+
+`Result` and `Result<T>` expose `WithMetadata` overloads. Each call returns a **new** result instance — the original is never mutated.
+
+```csharp
+var result = Result.Success("ok")
+    .WithMetadata("requestId", "req-001")                 // single key/value
+    .WithMetadata(("traceId", "trace-xyz"), ("region", "eu-west")) // tuples
+    .WithMetadata(builder => builder                      // fluent builder
+        .Add("feature", "checkout")
+        .AddIf(isPremium, "tier", "premium"));
+```
+
+### Reading metadata
+
+Read it back from `result.Metadata`, which returns an `IReadOnlyMetadata` (never null — defaults to `Metadata.Empty`).
+
+```csharp
+if (result.Metadata.TryGetValue("requestId", out var requestId))
+{
+    Console.WriteLine(requestId);
+}
+
+foreach (var (key, value) in result.Metadata)
+{
+    Console.WriteLine($"{key} = {value}");
+}
+```
+
+### Building metadata directly
+
+`MetadataBuilder` offers a fluent API and converts implicitly to `Metadata`.
+
+```csharp
+Metadata metadata = new MetadataBuilder()
+    .Add("requestId", "req-001")
+    .AddIf(isRetry, "attempt", attemptNumber)
+    .AddRange(("source", "api"), ("region", "eu-west"))
+    .Build();
+```
+
+You can also build a `Metadata` from a collection expression or tuples:
+
+```csharp
+Metadata fromExpression = [ new("requestId", "req-001"), new("region", "eu-west") ];
+Metadata fromTuples = Metadata.From(("requestId", "req-001"), ("region", "eu-west"));
+Metadata merged = Metadata.Merge(first, second); // later values win
+```
+
+### Immutability and `Metadata.Empty`
+
+Metadata is treated as immutable in practice: builders and `WithMetadata` always return fresh instances, so attaching context never alters a shared object. When there is nothing to carry, use `Metadata.Empty` rather than `null` — failures and results default to it automatically.
+
+## See also
+
+- [Result](/docs/result/) — the type that carries failures and metadata.
+- [Maybe](/docs/maybe/) — bridge an empty `Maybe<T>` to a failed `Result` with `ToResult`.

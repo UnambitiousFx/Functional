@@ -1,0 +1,224 @@
+---
+sidebar_position: 2
+title: HTTP Mapping (Minimal API)
+description: Convert Result and Maybe into IResult for Minimal APIs — builders, status codes, headers, Problem Details, and endpoint patterns.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# HTTP Mapping (Minimal API)
+
+The `UnambitiousFx.Functional.AspNetCore.Http` namespace provides extension methods that turn `Result`, `Result<T>`, and `Maybe<T>` into ASP.NET Core `IResult` responses for Minimal APIs. Each extension returns an awaitable **builder** you can configure fluently, then `await` to produce the final `IResult`.
+
+```csharp
+using UnambitiousFx.Functional.AspNetCore.Http;
+```
+
+## The builder entry points
+
+`AsHttpBuilder` is the single entry point. It is overloaded for synchronous and asynchronous (`ValueTask`) values, and accepts an optional `IFailureHttpMapper` (falls back to `DefaultFailureHttpMapper` when omitted):
+
+```csharp
+// Result (no value)            → ResultHttpBuilder
+result.AsHttpBuilder();
+valueTaskOfResult.AsHttpBuilder();
+
+// Result<T>                     → ResultHttpBuilder<TValue>
+resultOfT.AsHttpBuilder();
+valueTaskOfResultOfT.AsHttpBuilder();
+
+// Maybe<T>                      → MaybeHttpBuilder<TValue>
+maybe.AsHttpBuilder();
+valueTaskOfMaybe.AsHttpBuilder();
+
+// Provide a specific mapper (e.g. from DI)
+resultOfT.AsHttpBuilder(myFailureMapper);
+```
+
+Every builder exposes `GetAwaiter()`, so you can `await` it directly in an endpoint handler:
+
+```csharp
+app.MapGet("/users/{id:guid}", async (Guid id, IUserService service) =>
+    await service.GetUserAsync(id).AsHttpBuilder());
+```
+
+## Default success mapping
+
+| Source                  | Default success response          |
+| ----------------------- | --------------------------------- |
+| `Result` (no value)     | 204 No Content                    |
+| `Result<T>`             | 200 OK + value as JSON            |
+| `Maybe<T>` — `Some`     | 200 OK + value as JSON            |
+| `Maybe<T>` — `None`     | 404 Not Found                     |
+
+Failure branches are always routed through the failure mapper (see [Failure mapping](#failure-to-status-mapping) below).
+
+## Configuring the response
+
+All builders are immutable — each method returns a new builder.
+
+### Override the success status code
+
+```csharp
+app.MapPost("/jobs", async (CreateJob cmd, IJobService service) =>
+    await service.QueueAsync(cmd)
+                 .AsHttpBuilder()
+                 .WithStatusCode(202)); // 202 Accepted
+```
+
+Recognized success codes map to typed results: `200` → `Ok`, `201` → `Created`, `202` → `Accepted`, `204` → `NoContent`. Any other code falls back to `Results.StatusCode(code)`.
+
+### 201 Created with a Location
+
+`AsCreated` sets the status to 201 and builds a `Location` header from the success value:
+
+```csharp
+app.MapPost("/users", async (CreateUserRequest request, IUserService service) =>
+    await service.CreateAsync(request)
+                 .AsHttpBuilder()
+                 .AsCreated(user => $"/users/{user.Id}"));
+```
+
+### Add response headers
+
+```csharp
+await service.GetUserAsync(id)
+             .AsHttpBuilder()
+             .WithHeader("Cache-Control", "no-store");
+```
+
+### Reshape the success body
+
+`WithResponseFormatter` transforms the success value before serialization (for example, mapping a domain entity to a DTO):
+
+```csharp
+await service.GetUserAsync(id)
+             .AsHttpBuilder()
+             .WithResponseFormatter(user => new UserDto(user.Id, user.Name));
+```
+
+### Customize the `None` response (Maybe only)
+
+By default `Maybe<T>.None` becomes 404. Override it with `AsNone`:
+
+```csharp
+using HttpResults = Microsoft.AspNetCore.Http.Results;
+
+await service.FindDraftAsync(id)
+             .AsHttpBuilder()
+             .AsNone(() => HttpResults.NoContent());
+```
+
+## Minimal API patterns
+
+### Query endpoint (read)
+
+```csharp
+app.MapGet("/users/{id:guid}", async (Guid id, IUserService service) =>
+    await service.GetUserAsync(id).AsHttpBuilder());
+// Found    → 200 OK + user
+// NotFound → 404 Not Found (ProblemDetails)
+```
+
+### Optional lookup with `Maybe<T>`
+
+```csharp
+app.MapGet("/profiles/{id:guid}", async (Guid id, IProfileService service) =>
+    await service.FindProfileAsync(id).AsHttpBuilder());
+// Some → 200 OK + profile
+// None → 404 Not Found
+```
+
+### Create endpoint (command)
+
+```csharp
+app.MapPost("/users", async (CreateUserRequest request, IUserService service) =>
+    await service.CreateAsync(request)
+                 .AsHttpBuilder()
+                 .AsCreated(user => $"/users/{user.Id}"));
+// Success → 201 Created + Location: /users/{id}
+// Failure → mapped status (e.g. 400 for ValidationFailure)
+```
+
+### Fire-and-forget command (no value)
+
+```csharp
+app.MapDelete("/users/{id:guid}", async (Guid id, IUserService service) =>
+    await service.DeleteAsync(id).AsHttpBuilder());
+// Success → 204 No Content
+// Failure → mapped status (e.g. 404)
+```
+
+### Endpoint design tips
+
+- Keep validation and business logic in services that return `Result` / `Maybe`.
+- Keep handlers thin — binding plus transport adaptation only.
+- Use `WithResponseFormatter` to keep domain types out of your wire contract.
+- Reuse the same `IFailureHttpMapper` across all endpoints for consistent error shapes.
+
+## Failure-to-status mapping
+
+When the outcome is a failure, the builder calls `IFailureHttpMapper.GetFailureResponse(failure)` and converts the resulting `FailureHttpResponse` into an `IResult`. The built-in `DefaultFailureHttpMapper` maps the standard failure types from `UnambitiousFx.Functional.Failures`:
+
+| Failure type             | HTTP status               |
+| ------------------------ | ------------------------- |
+| `ValidationFailure`      | 400 Bad Request           |
+| `BadRequestFailure`      | 400 Bad Request           |
+| `NotFoundFailure`        | 404 Not Found             |
+| `UnauthorizedFailure`    | 401 Unauthorized          |
+| `UnauthenticatedFailure` | 403 Forbidden             |
+| `ConflictFailure`        | 409 Conflict              |
+| `ExceptionalFailure`     | 500 Internal Server Error |
+| Any other failure        | 500 Internal Server Error |
+
+To change these mappings, see [Custom Mappers](./custom-mappers).
+
+### How a `FailureHttpResponse` becomes an `IResult`
+
+The builder inspects the mapped `FailureHttpResponse`:
+
+- `null` response → `Results.Problem(statusCode: 500)`.
+- No `Body` → `TypedResults.StatusCode(statusCode)`.
+- `Body` is a `ProblemDetails` → `TypedResults.Problem(problemDetails)`.
+- Otherwise, by status code: `400` → `BadRequest(body)`, `401` → `Unauthorized()`, `403` → `Forbid()`, `404` → `NotFound(body)`, `409` → `Conflict(body)`, `500` → `Problem(statusCode: 500)`, anything else → `StatusCode(code)`.
+
+Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the response.
+
+## Problem Details shape
+
+`DefaultFailureHttpMapper` produces an RFC `ProblemDetails` body. The fields are populated per failure type:
+
+```json
+// 404 from a NotFoundFailure
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Resource 'User' with id '42' was not found.",
+  "code": "NOT_FOUND",
+  "resource": "User",
+  "identifier": "42"
+}
+```
+
+```json
+// 400 from a ValidationFailure
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "Validation Error",
+  "status": 400,
+  "detail": "Name is required; Email is invalid",
+  "code": "VALIDATION",
+  "failure[0]": "Name is required",
+  "failure[1]": "Email is invalid"
+}
+```
+
+`NotFoundFailure` adds `code`, `resource`, and `identifier` extensions; `ValidationFailure` adds `code` plus one `failure[i]` extension per message. `Conflict`, `BadRequest`, `Unauthorized`, `Unauthenticated`, and `Exceptional` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
+
+## See also
+
+- [MVC Patterns](./mvc-patterns) — the `IActionResult` equivalents.
+- [Custom Mappers](./custom-mappers) — override the failure mapping.
+- [Result](/docs/result/) · [Maybe](/docs/maybe/)

@@ -1,0 +1,163 @@
+---
+sidebar_position: 2
+title: Result API Reference
+description: Terse reference for Result and Result&lt;T&gt; — factories, inspection, matching, transformation, failure handling, side effects, extraction, metadata, and LINQ.
+---
+
+# Result API Reference
+
+The complete surface of `Result` and `Result<TValue>` from `UnambitiousFx.Functional`. For concepts and worked examples, see the [Result guide](./).
+
+## Core types
+
+```csharp
+public readonly partial record struct Result : IResult;
+
+public readonly partial record struct Result<TValue> : IResult
+    where TValue : notnull;
+```
+
+`TValue` is constrained to `notnull`. Both types are immutable value types.
+
+## Factory methods
+
+Each `Success`/`Ok` and `Failure`/`Fail` pair below are aliases. Generic overloads (`<T>`) produce a `Result<T>`; non-generic overloads produce a `Result`.
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `Success` / `Ok` | `Result Success()` | A success with no value. |
+| `Success` / `Ok` | `Result<T> Success<T>(T value)` | A success carrying `value`. |
+| `Failure` / `Fail` | `Result Failure(string message)` | Failure from a message (wrapped in `ExceptionalFailure`). |
+| `Failure` / `Fail` | `Result Failure(Exception error)` | Failure wrapping an exception. |
+| `Failure` / `Fail` | `Result Failure(Failure failure)` | Failure from a `Failure` object. |
+| `Failure` / `Fail` | `Result Failure(params IEnumerable<Failure> errors)` | Failure merging many into an `AggregateFailure`. |
+| `Failure` / `Fail` | `Result<T> Failure<T>(...)` | Generic forms of the four overloads above. |
+
+### Static failure factories
+
+Extension factories that attach a semantic `Code` and structured metadata. Each has a non-generic (`Result`) and generic (`Result<T>`) overload.
+
+| Method | Signature | Failure type / code |
+| ------ | --------- | ------------------- |
+| `FailNotFound` | `Result<T> FailNotFound<T>(string resource, string identifier, string? messageOverride = null)` | `NotFoundFailure` — `NOT_FOUND` |
+| `FailValidation` | `Result<T> FailValidation<T>(string message)` | `ValidationFailure` — `VALIDATION` |
+| `FailUnauthenticated` | `Result<T> FailUnauthenticated<T>(string? reason)` | `UnauthenticatedFailure` — `UNAUTHENTICATED` |
+| `FailUnauthorized` | `Result<T> FailUnauthorized<T>(string? reason)` | `UnauthorizedFailure` — `UNAUTHORIZED` |
+| `FailConflict` | `Result<T> FailConflict<T>(string message)` | `ConflictFailure` — `CONFLICT` |
+| `FailBadRequest` | `Result<T> FailBadRequest<T>(string message)` | `BadRequestFailure` — `BAD_REQUEST` |
+
+## Inspection
+
+| Member | Signature | Description |
+| ------ | --------- | ----------- |
+| `IsSuccess` | `bool IsSuccess { get; }` | True when the operation succeeded. |
+| `IsFailure` | `bool IsFailure { get; }` | True when the operation failed. |
+| `Metadata` | `IReadOnlyMetadata Metadata { get; }` | Contextual metadata attached to the result. |
+| `TryGetValue` | `bool TryGetValue(out TValue? value)` | Extracts the value on success (`Result<T>` only). |
+| `TryGetFailure` | `bool TryGetFailure(out Failure? error)` | Extracts the failure on failure. |
+| `TryGet` | `bool TryGet(out TValue? value, out Failure? error)` | Extracts both at once (`Result<T>` only). |
+| `Deconstruct` | `void Deconstruct(out TValue? value, out Failure? error)` | Tuple deconstruction. |
+| `ToResult` | `Result ToResult()` | Drops the value, keeping state + metadata (`Result<T>` only). |
+
+## Matching
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `Match` | `TOut Match<TOut>(Func<TValue, TOut> success, Func<Failure, TOut> failure)` | Collapse both branches to a value. |
+| `Match` | `void Match(Action<TValue> success, Action<Failure> failure)` | Side-effecting match. |
+| `Switch` | `void Switch(Action<TValue> success, Action<Failure> failure)` | Alias for the action-based `Match`. |
+| `IfSuccess` | `void IfSuccess(Action<TValue> action)` | Run an action only on success. |
+| `IfFailure` | `void IfFailure(Action<Failure> action)` | Run an action only on failure. |
+
+For the non-generic `Result`, the success delegate takes no argument (e.g. `Match(Func<TOut> onSuccess, Func<Failure, TOut> onFailure)`).
+
+## Transformation
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `Map` | `Result<TOut> Map<TValue, TOut>(this Result<TValue>, Func<TValue, TOut> map)` | Transform the value with a plain function. |
+| `Bind` | `Result<TOut> Bind<TOut>(this Result<TValue>, Func<TValue, Result<TOut>> bind)` | Chain another result-returning step. |
+| `Then` | `Result<TValue> Then(this Result<TValue>, Func<TValue, Result<TValue>> then)` | Follow-up step preserving the value type. |
+| `Then` | `Result<TValue> Then(this Result<TValue>, Func<TValue, Result> then)` | Follow-up check that keeps the original value. |
+| `Then` | `Result Then(this Result, Func<Result> func)` | Sequence two non-generic results. |
+| `Flatten` | `Result<TValue> Flatten<TValue>(this Result<Result<TValue>>)` | Collapse one level of nesting. |
+
+## Failure handling
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `Ensure` | `Result<TValue> Ensure<TValue>(this Result<TValue>, Func<TValue, bool> predicate, Func<TValue, Failure> errorFactory)` | Fail when the predicate is false. |
+| `Recover` | `Result<TValue> Recover(this Result<TValue>, Func<Failure, TValue> recoverFunc)` | Turn a failure into a success via a factory. |
+| `Recover` | `Result<TValue> Recover(this Result<TValue>, TValue fallback)` | Turn a failure into a success via a fallback value. |
+| `Compensate` | `Result<TValue> Compensate<TValue>(this Result<TValue>, Func<Failure, Result> rollback)` | Run a rollback on failure; merges both failures if the rollback fails. |
+| `Compensate` | `Result Compensate(this Result, Func<Failure, Result> rollback)` | Non-generic compensation. |
+| `Try` | `Result<TOut> Try<TValue, TOut>(this Result<TValue>, Func<TValue, TOut> func)` | Run a throwing function, catching exceptions into a failure. |
+| `Try` | `Result Try(this Result, Action action)` | Run a throwing action, catching exceptions into a failure. |
+
+## Side effects
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `Tap` | `Result<TValue> Tap(this Result<TValue>, Action<TValue> tap)` | Observe the value on success; returns the result unchanged. |
+| `Tap` | `Result<TValue> Tap(this Result<TValue>, Action tap)` | Observe success without the value. |
+| `TapIf` | `Result<TValue> TapIf(this Result<TValue>, Func<TValue, bool> predicate, Action<TValue> tap)` | Observe only when success and predicate hold. |
+| `TapFailure` | `Result<TValue> TapFailure(this Result<TValue>, Action<Failure> tap)` | Observe the failure on the failure track. |
+
+`Tap`, `TapIf`, and `TapFailure` also exist on the non-generic `Result`.
+
+## Extraction
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `ValueOr` | `TValue ValueOr(this Result<TValue>, TValue fallback)` | Value, or a fallback on failure. |
+| `ValueOr` | `TValue ValueOr(this Result<TValue>, Func<TValue> fallbackFactory)` | Value, or a lazily-produced fallback. |
+| `ValueOrDefault` | `TValue? ValueOrDefault(this Result<TValue>)` | Value, or `default(TValue)` on failure. |
+| `ValueOrThrow` | `TValue ValueOrThrow(this Result<TValue>)` | Value, or throws the aggregated exception. |
+| `ValueOrThrow` | `TValue ValueOrThrow(this Result<TValue>, Func<Failure, Exception> exceptionFactory)` | Value, or throws a custom exception. |
+
+## Metadata
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `WithMetadata` | `Result<TValue> WithMetadata(string key, object? value)` | Add a single key/value pair. |
+| `WithMetadata` | `Result<TValue> WithMetadata(params (string Key, object? Value)[] items)` | Add several pairs. |
+| `WithMetadata` | `Result<TValue> WithMetadata(IReadOnlyMetadata metadata)` | Merge an existing metadata bag. |
+| `WithMetadata` | `Result<TValue> WithMetadata(IEnumerable<KeyValuePair<string, object?>> metadata)` | Merge key/value pairs. |
+| `WithMetadata` | `Result<TValue> WithMetadata(Action<MetadataBuilder> configure)` | Configure via a builder. |
+
+All `WithMetadata` overloads also exist on the non-generic `Result`.
+
+## LINQ
+
+| Method | Signature | Description |
+| ------ | --------- | ----------- |
+| `Select` | `Result<TOut> Select<TIn, TOut>(this Result<TIn>, Func<TIn, TOut> selector)` | Query-syntax `Map`. |
+| `SelectMany` | `Result<TOut> SelectMany<TIn, TOut>(this Result<TIn>, Func<TIn, Result<TOut>> binder)` | Query-syntax `Bind`. |
+| `SelectMany` | `Result<TOut> SelectMany<TIn, TCollection, TOut>(this Result<TIn>, Func<TIn, Result<TCollection>> binder, Func<TIn, TCollection, TOut> projector)` | `from … from … select` form. |
+| `Where` | `Result<TValue> Where<TValue>(this Result<TValue>, Func<TValue, bool> predicate)` | Filter; produces a `ValidationFailure` when false. |
+| `Combine` | `Result Combine(this IEnumerable<Result>)` | Succeeds only if all succeed; aggregates all failures. |
+| `Combine` | `Result<IEnumerable<TValue>> Combine<TValue>(this IEnumerable<Result<TValue>>)` | Collect all values, or aggregate all failures. |
+
+## Implicit conversions
+
+| Conversion | Direction |
+| ---------- | --------- |
+| `Result<TValue>(TValue value)` | value → success |
+| `Result<TValue>(Failure failure)` | failure → failed `Result<TValue>` |
+| `Result(Failure failure)` | failure → failed `Result` |
+
+## Async overloads
+
+Most operators have `Task<Result<T>>` and `ValueTask<Result<T>>` extension overloads — including `Map`, `Bind`, `Then`, `Flatten`, `Match`, `Switch`, `Ensure`, `Recover`, `Compensate`, `Try`, `Tap` / `TapFailure`, `ValueOr*`, `Combine`, and the LINQ operators. They accept both synchronous and asynchronous continuations, so a single awaited chain can freely mix `Map(x => …)` with `Bind(x => …Async(x))`:
+
+```csharp
+Result<Receipt> receipt = await LoadCartAsync(cartId)
+    .Bind(cart => ReserveStockAsync(cart))
+    .Map(reservation => new Receipt(reservation.Id));
+```
+
+## See also
+
+- [Result](./) — conceptual guide with worked examples.
+- [Failures and Metadata](/docs/failures-and-metadata)
+- [Maybe](/docs/maybe/)

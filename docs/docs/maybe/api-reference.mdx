@@ -1,0 +1,105 @@
+---
+sidebar_position: 2
+title: Maybe API Reference
+description: Complete method surface for Maybe&lt;T&gt;, grouped by category, with signatures and descriptions.
+---
+
+# Maybe API Reference
+
+The full API surface for `Maybe<T>` (`UnambitiousFx.Functional`). `T` is always constrained to `notnull`. Synchronous members live on `Maybe<T>` itself or in `MaybeExtensions`; asynchronous members extend `ValueTask<Maybe<T>>` and are listed under [Async support](#async-support).
+
+## Creation
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `Maybe.Some` | `Maybe<T> Maybe.Some<T>(T value)` | Wraps a non-null value as Some. |
+| `Maybe.None` | `Maybe<T> Maybe.None<T>()` | Creates an empty None. |
+| `Maybe<T>.Some` | `static Maybe<T> Some(T value)` | Instance-type factory for Some. |
+| `Maybe<T>.None` | `static Maybe<T> None()` | Instance-type factory for None. |
+| implicit operator | `implicit operator Maybe<T>(T? value)` | Converts a value to Some, or `null` to None. |
+
+## Inspection
+
+| Member | Signature | Description |
+| --- | --- | --- |
+| `IsSome` | `bool IsSome { get; }` | `true` when a value is present. |
+| `IsNone` | `bool IsNone { get; }` | `true` when no value is present. |
+| `Case` | `T? Case { get; }` | The value when Some, otherwise `default(T)`. |
+| `Some` | `bool Some(out T? value)` | Try-pattern: returns `true` and sets `value` (non-null) when Some. |
+
+## Matching
+
+| Member | Signature | Description |
+| --- | --- | --- |
+| `Match` | `TOut Match<TOut>(Func<T, TOut> some, Func<TOut> none)` | Collapses both branches to a single value. |
+| `Match` | `void Match(Action<T> some, Action none)` | Runs an action per branch. |
+| `Switch` | `void Switch(Action<T> some, Action none)` | Alias of the void `Match`; runs an action per branch. |
+| `IfSome` | `void IfSome(Action<T> some)` | Runs the action only when Some. |
+| `IfNone` | `void IfNone(Action none)` | Runs the action only when None. |
+
+## Transformation
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `Map` | `Maybe<TOut> Map<TIn, TOut>(this Maybe<TIn>, Func<TIn, TOut>)` | Transforms the value, preserving None. |
+| `Bind` | `Maybe<TOut> Bind<TIn, TOut>(this Maybe<TIn>, Func<TIn, Maybe<TOut>>)` | Transforms with a `Maybe`-returning function, flattening the result. |
+| `Filter` | `Maybe<T> Filter<T>(this Maybe<T>, Func<T, bool>)` | Keeps the value when the predicate holds; otherwise None. |
+
+## Extraction
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `ValueOr` | `T ValueOr<T>(this Maybe<T>, T fallback)` | Returns the value, or the fallback when None. |
+| `ValueOr` | `T ValueOr<T>(this Maybe<T>, Func<T> fallbackFactory)` | Returns the value, or a lazily-created fallback when None. |
+| `OrElse` | `Maybe<T> OrElse<T>(this Maybe<T>, Maybe<T> fallback)` | Returns this when Some; otherwise the fallback `Maybe`. |
+| `OrElse` | `Maybe<T> OrElse<T>(this Maybe<T>, Func<Maybe<T>> fallbackFactory)` | Returns this when Some; otherwise a lazily-created fallback `Maybe`. |
+
+> To read the raw inner value or `default(T)`, use the `Case` property — there is no `ValueOrDefault` on `Maybe<T>`.
+
+## Bridging
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `ToResult` | `Result<T> ToResult(Failure failure)` | Some becomes Success; None becomes Failure with the given failure. |
+| `ToResult` | `Result<T> ToResult(Func<Failure> errorFactory)` | Some becomes Success; None becomes Failure from the factory. |
+| `ToResult` | `Result<T> ToResult(string message)` | Some becomes Success; None becomes Failure with the given message. |
+
+## Side effects
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `Tap` | `Maybe<T> Tap<T>(this Maybe<T>, Action<T>)` | Runs a side effect when Some; returns the original `Maybe`. |
+| `TapSome` | `Maybe<T> TapSome(Action<T>)` | Runs a side effect when Some; returns the original `Maybe`. |
+| `TapNone` | `Maybe<T> TapNone(Action)` | Runs a side effect when None; returns the original `Maybe`. |
+
+## LINQ
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `Select` | `Maybe<TOut> Select<TIn, TOut>(this Maybe<TIn>, Func<TIn, TOut>)` | LINQ projection; delegates to `Map`. |
+| `SelectMany` | `Maybe<TOut> SelectMany<TIn, TOut>(this Maybe<TIn>, Func<TIn, Maybe<TOut>>)` | LINQ bind; delegates to `Bind`. |
+| `SelectMany` | `Maybe<TOut> SelectMany<TIn, TCollection, TOut>(this Maybe<TIn>, Func<TIn, Maybe<TCollection>>, Func<TIn, TCollection, TOut>)` | LINQ bind with a projection; enables multi-`from` queries. |
+| `Where` | `Maybe<T> Where<T>(this Maybe<T>, Func<T, bool>)` | LINQ filter; delegates to `Filter`. |
+
+## Async support
+
+Each method below extends `ValueTask<Maybe<T>>` and returns a `ValueTask<…>`, so chains can be `await`ed end to end. Where applicable, both sync-delegate and async-delegate (`Func<…, ValueTask<…>>`) overloads exist.
+
+| Method | Signatures | Description |
+| --- | --- | --- |
+| `Map` | `Map(Func<T, TOut>)`, `Map(Func<T, ValueTask<TOut>>)` | Async map, preserving None. |
+| `Bind` | `Bind(Func<T, Maybe<TOut>>)`, `Bind(Func<T, ValueTask<Maybe<TOut>>>)` | Async bind, flattening the result. |
+| `Filter` | `Filter(Func<T, bool>)`, `Filter(Func<T, ValueTask<bool>>)` | Async filter. |
+| `OrElse` | `OrElse(Maybe<T>)`, `OrElse(Func<Maybe<T>>)`, `OrElse(Func<ValueTask<Maybe<T>>>)` | Async fallback `Maybe`. |
+| `ValueOr` | `ValueOr(T)`, `ValueOr(Func<T>)`, `ValueOr(Func<ValueTask<T>>)` | Async unwrap with fallback. |
+| `Match` | `Match(Func<T, TOut>, Func<TOut>)`, `Match(Func<T, ValueTask<TOut>>, Func<ValueTask<TOut>>)` | Async match. |
+| `Switch` | `Switch(Action<T>, Action)`, `Switch(Func<T, ValueTask>, Func<ValueTask>)` | Async per-branch side effect. |
+| `TapSome` | `TapSome(Action<T>)`, `TapSome(Func<T, ValueTask>)` | Async side effect when Some. |
+| `TapNone` | `TapNone(Action)`, `TapNone(Func<ValueTask>)` | Async side effect when None. |
+| `ToResult` | `ToResult(Failure)`, `ToResult(Func<Failure>)`, `ToResult(string)`, `ToResult(Func<ValueTask<Failure>>)` | Async bridge to `Result<T>`. |
+
+## See also
+
+- [Maybe](./) — concepts and usage guide.
+- [Result](/docs/result/) — for operations that can fail with a reason.
+- [Failures and Metadata](/docs/failures-and-metadata) — typed failures used by `ToResult`.

@@ -1,0 +1,189 @@
+---
+sidebar_position: 4
+title: Custom Mappers
+description: Customize how failures map to HTTP status codes — register typed mappers, write IFailureHttpMapper implementations, and tune adapter policy.
+---
+
+# Custom Mappers
+
+The failure-to-status mapping is driven by a single contract, `IFailureHttpMapper`. The default mapping (see [HTTP Mapping](./http-mapping#failure-to-status-mapping)) covers the standard failure types, but you can add mappings for your own failure types, override the defaults, or replace the mapper entirely.
+
+```csharp
+using UnambitiousFx.Functional.AspNetCore;
+using UnambitiousFx.Functional.AspNetCore.Mappers;
+```
+
+## The contract
+
+```csharp
+public interface IFailureHttpMapper
+{
+    FailureHttpResponse? GetFailureResponse(IFailure failure);
+}
+```
+
+A mapper returns a `FailureHttpResponse` (status code, body, optional headers, optional content type) — or `null` to signal "I don't handle this failure", letting the next mapper in the chain try.
+
+```csharp
+public sealed record FailureHttpResponse
+{
+    public required int StatusCode { get; init; }
+    public object? Body { get; init; }
+    public IReadOnlyDictionary<string, string>? Headers { get; init; }
+    public string? ContentType { get; init; }
+}
+```
+
+## Adding mappings via `AddResultHttp`
+
+`ResultHttpOptions` provides three `AddMapper` overloads. Custom mappers are evaluated **before** the default mapper, in the order added — the first non-null response wins (chain of responsibility).
+
+### Map a failure type to a status code
+
+The simplest overload maps a failure type to a status code and produces a `ProblemDetails` body from the failure message:
+
+```csharp
+builder.Services.AddResultHttp(options =>
+{
+    options.AddMapper<RateLimitFailure>(429);
+    options.AddMapper<TimeoutFailure>(504);
+});
+```
+
+### Map with a custom response factory
+
+For full control over the body, headers, and content type, pass a factory:
+
+```csharp
+builder.Services.AddResultHttp(options =>
+{
+    options.AddMapper<PaymentRequiredFailure>(failure => new FailureHttpResponse
+    {
+        StatusCode  = 402,
+        Body        = new { message = failure.Message },
+        Headers     = new Dictionary<string, string> { ["Retry-After"] = "3600" },
+        ContentType = "application/json",
+    });
+});
+```
+
+### Register an `IFailureHttpMapper` instance
+
+```csharp
+builder.Services.AddResultHttp(options =>
+{
+    options.AddMapper(new MyFailureHttpMapper());
+});
+```
+
+`AddResultHttp` resolves the final mapper (a single mapper, or a `CompositeFailureHttpMapper` wrapping your custom mappers followed by the default) and registers it as a singleton, along with the `ResultHttpAdapterPolicy`.
+
+## Writing a full custom mapper
+
+Implement `IFailureHttpMapper` when you want to map several failure types in one place. Return `null` for failures you don't handle so the chain can fall through to the default mapper:
+
+```csharp
+using UnambitiousFx.Functional.AspNetCore.Mappers;
+using UnambitiousFx.Functional.Failures;
+
+public sealed class MyFailureHttpMapper : IFailureHttpMapper
+{
+    public FailureHttpResponse? GetFailureResponse(IFailure failure) => failure switch
+    {
+        NotFoundFailure nf   => new FailureHttpResponse { StatusCode = 404, Body = new { nf.Message } },
+        ValidationFailure vf => new FailureHttpResponse { StatusCode = 422, Body = new { vf.Message } },
+        _                    => null, // let the next mapper / default handle it
+    };
+}
+```
+
+```csharp
+builder.Services.AddResultHttp(options => options.AddMapper(new MyFailureHttpMapper()));
+```
+
+## Overriding only a few default mappings
+
+`DefaultFailureHttpMapper.GetFailureResponse` is `virtual`. Subclass it to change specific cases and defer to the base for everything else:
+
+```csharp
+using UnambitiousFx.Functional.AspNetCore.Mappers;
+using UnambitiousFx.Functional.Failures;
+
+public sealed class CustomDefaultMapper : DefaultFailureHttpMapper
+{
+    public override FailureHttpResponse GetFailureResponse(IFailure failure)
+    {
+        // Map validation errors to 422 instead of the default 400
+        if (failure is ValidationFailure validation)
+        {
+            return new FailureHttpResponse
+            {
+                StatusCode = 422,
+                Body       = new { errors = validation.Failures },
+            };
+        }
+
+        return base.GetFailureResponse(failure);
+    }
+}
+```
+
+```csharp
+builder.Services.AddResultHttp(options => options.AddMapper(new CustomDefaultMapper()));
+```
+
+:::tip
+Because the custom mapper always returns a non-null response for the cases it handles and delegates the rest to `base`, you don't need to re-declare every failure type.
+:::
+
+## Per-call mappers
+
+You don't have to register a mapper globally — pass one directly to a builder for a single endpoint:
+
+```csharp
+await service.GetUserAsync(id).AsHttpBuilder(new MyFailureHttpMapper());          // Minimal API
+await service.GetUserAsync(id).AsActionResultBuilder(new MyFailureHttpMapper());  // MVC
+```
+
+When omitted, the builders use `DefaultFailureHttpMapper`.
+
+## Composing mappers manually
+
+`CompositeFailureHttpMapper` chains mappers and returns the first non-null response. `AddResultHttp` builds one for you, but you can compose explicitly:
+
+```csharp
+var mapper = new CompositeFailureHttpMapper(
+    new MyFailureHttpMapper(),
+    new DefaultFailureHttpMapper());
+```
+
+## Adapter policy
+
+`ResultHttpAdapterPolicy` (exposed via `options.Policy`) tunes default behavior and is registered as a singleton by `AddResultHttp`:
+
+```csharp
+builder.Services.AddResultHttp(options =>
+{
+    options.IncludeExceptionDetails = builder.Environment.IsDevelopment();
+    options.Policy = options.Policy with
+    {
+        ResultSuccessBehavior = ResultSuccessHttpBehavior.Ok,      // NoContent (default) | Ok
+        MaybeNoneBehavior     = MaybeNoneHttpBehavior.NoContent,   // NotFound (default) | NoContent
+    };
+});
+```
+
+- `ResultSuccessBehavior` — how a successful non-generic `Result` maps when no explicit success mapper is given (`NoContent` → 204, `Ok` → 200).
+- `MaybeNoneBehavior` — how `Maybe.None` maps when no `AsNone` mapper is given (`NotFound` → 404, `NoContent` → 204).
+- `IncludeExceptionDetails` — whether to include exception details (stack traces) in error responses; enable only in development.
+
+## Composition guidelines
+
+- Keep domain failures transport-agnostic; map transport semantics in one place (the composition root).
+- Prefer typed failures over message parsing for deterministic mapping.
+- Reuse the same registered mapper across Minimal APIs and MVC for consistent error shapes.
+
+## See also
+
+- [HTTP Mapping (Minimal API)](./http-mapping) — the default mapping table and Problem Details shape.
+- [Failures and Metadata](/docs/failures-and-metadata) — the failure types being mapped.

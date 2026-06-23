@@ -1,0 +1,219 @@
+---
+sidebar_position: 1
+title: Maybe
+description: A type-safe optional value (Some or None) that replaces null and composes cleanly across pipelines.
+---
+
+# `Maybe<T>`
+
+`Maybe<T>` models an **optional value**: it is either **Some** — a present value of type `T` — or **None**, the explicit absence of a value. It is a type-safe alternative to `null` that forces the absent case to be handled at compile time, and it composes through `Map`, `Bind`, `Filter`, and LINQ so you can describe a whole pipeline without scattering null checks.
+
+`Maybe<T>` is a `readonly record struct`, so it allocates nothing on the heap for the wrapper itself. The constraint `where T : notnull` guarantees a Some never holds `null`.
+
+## When to reach for `Maybe<T>`
+
+- A value may legitimately be absent — cache misses, lookups, optional configuration.
+- A query may return no row — `FindById` returning `Maybe<User>` instead of a nullable.
+- You want to chain steps that each may produce nothing, without `if (x is null)` at every hop.
+
+Use [`Result<T>`](/docs/result/) instead when absence is an **error** that needs a reason. `Maybe<T>` says "nothing here"; `Result<T>` says "here is why it failed". Bridge from one to the other with [`ToResult`](#bridging-to-result).
+
+## Creating a `Maybe<T>`
+
+```csharp
+using UnambitiousFx.Functional;
+
+// Static factories
+Maybe<int> some = Maybe.Some(42);
+Maybe<int> none = Maybe.None<int>();
+
+// Instance factories
+Maybe<int> also = Maybe<int>.Some(42);
+
+// Implicit conversion from a (nullable) value: null becomes None
+Maybe<string> fromValue = "hello";   // Some("hello")
+Maybe<string> fromNull  = null;      // None
+```
+
+## Inspecting state
+
+```csharp
+Maybe<int> maybe = Maybe.Some(42);
+
+bool present = maybe.IsSome; // true
+bool absent  = maybe.IsNone; // false
+
+// Case yields the value when Some, or default(T) when None.
+int? raw = maybe.Case; // 42
+
+// Try-style extraction with a guaranteed-non-null out value.
+if (maybe.Some(out var value))
+{
+    Console.WriteLine(value); // 42
+}
+```
+
+Prefer `Match`, `ValueOr`, or `Some(out …)` over reading `Case` directly — they make the None case explicit.
+
+## Matching and switching
+
+`Match` collapses both branches into a single value; `Switch` (and the void `Match` overload) runs a side effect per branch.
+
+```csharp
+string label = maybe.Match(
+    some: value => $"Found {value}",
+    none: () => "Nothing here");
+
+maybe.Switch(
+    some: value => Console.WriteLine($"Got {value}"),
+    none: () => Console.WriteLine("Empty"));
+
+// Run an action only on one branch:
+maybe.IfSome(value => Console.WriteLine(value));
+maybe.IfNone(() => Console.WriteLine("Empty"));
+```
+
+## Transforming: Map, Bind, Filter
+
+- **`Map`** transforms the inner value, preserving None.
+- **`Bind`** transforms the value with a function that itself returns a `Maybe<T>`, flattening the result (no `Maybe<Maybe<T>>`).
+- **`Filter`** keeps the value only when a predicate holds; otherwise it becomes None.
+
+```csharp
+Maybe<string> name = Maybe.Some(new User("Ada"))
+    .Filter(user => user.IsActive)        // Some(user) or None
+    .Map(user => user.Name)               // Some("Ada") or None
+    .Bind(LookupDisplayName);             // flattens Maybe<string>
+
+Maybe<string> LookupDisplayName(string name) =>
+    name.Length > 0 ? Maybe.Some(name.ToUpperInvariant()) : Maybe.None<string>();
+```
+
+## Extracting a value: ValueOr and OrElse
+
+`ValueOr` unwraps to a plain `T`, supplying a fallback for None. `OrElse` stays in `Maybe<T>` space, supplying an alternative `Maybe<T>`.
+
+```csharp
+int retries = Maybe.None<int>().ValueOr(3);            // 3
+int lazy    = Maybe.None<int>().ValueOr(() => Compute()); // factory only runs on None
+
+Maybe<User> user = primaryLookup
+    .OrElse(secondaryLookup)                 // try another Maybe
+    .OrElse(() => FallbackLookup());         // or a lazily-produced one
+```
+
+To read the raw inner value or `default(T)`, use the `Case` property (there is no separate `ValueOrDefault` on `Maybe<T>`).
+
+## Bridging to Result
+
+When an empty `Maybe<T>` should become a failure, convert it with `ToResult`, supplying the failure to use for None. There are overloads for a ready-made `Failure`, a lazy `Func<Failure>`, and a plain message string.
+
+```csharp
+using UnambitiousFx.Functional.Failures;
+
+Result<User> required = FindUser(id)
+    .ToResult(new NotFoundFailure("User", id.ToString()));
+
+Result<User> lazyFailure = FindUser(id)
+    .ToResult(() => new NotFoundFailure("User", id.ToString()));
+
+Result<User> messageFailure = FindUser(id)
+    .ToResult("User not found");
+```
+
+See [Failures and Metadata](/docs/failures-and-metadata) for the failure catalog.
+
+## Side effects: the Tap family
+
+Tap operators run a side effect and return the original `Maybe<T>` unchanged, so they slot into a pipeline without breaking the chain.
+
+- **`Tap`** / **`TapSome`** run only when Some.
+- **`TapNone`** runs only when None.
+
+```csharp
+Maybe<Order> order = LookupOrder(id)
+    .TapSome(o => _logger.LogInformation("Found order {Id}", o.Id))
+    .TapNone(() => _logger.LogWarning("Order {Id} missing", id));
+```
+
+## LINQ query syntax
+
+`Maybe<T>` implements `Select`, `SelectMany`, and `Where`, so query syntax works directly. A `None` anywhere short-circuits the whole query to None.
+
+```csharp
+Maybe<PublicProfile> profile =
+    from user in GetUser(id)
+    from settings in GetSettings(user.SettingsId)
+    where settings.IsPublic
+    select new PublicProfile(user.Name, settings);
+```
+
+`Select` maps, `SelectMany` binds (with an optional projector), and `where` filters.
+
+## Async pipelines
+
+Every major operator has a `ValueTask<Maybe<T>>` extension, so you can `await` a chain without unwrapping at each step. Both synchronous and asynchronous delegate overloads are available (e.g. `Map(Func<T, TOut>)` and `Map(Func<T, ValueTask<TOut>>)`).
+
+```csharp
+ValueTask<Maybe<User>> userTask = GetUserAsync(id);
+
+Maybe<string> name = await userTask
+    .Filter(u => u.IsActive)
+    .Map(u => u.Name);
+
+Result<Profile> profile = await userTask
+    .Bind(u => GetProfileAsync(u.ProfileId))   // Func<T, ValueTask<Maybe<Profile>>>
+    .ToResult(() => new NotFoundFailure("Profile", id.ToString()));
+```
+
+The async surface covers `Map`, `Bind`, `Filter`, `OrElse`, `ValueOr`, `Match`, `Switch`, `TapSome`, `TapNone`, and `ToResult` (including a `Func<ValueTask<Failure>>` overload).
+
+## Best practices
+
+- **Prefer `Maybe<T>` over nullable** when the value flows through a chain — the operators keep the None case from leaking into every call site.
+- **Reserve `Maybe<T>` for genuine optionality.** If the caller needs to know *why* a value is missing, use `Result<T>`.
+- **Don't nest** — reach for `Bind` instead of `Map` whenever your function returns another `Maybe<T>`.
+- **Avoid reading `Case` directly** in business logic; prefer `Match`, `ValueOr`, or `Some(out …)`.
+- **Use `ValueOr` for simple defaults** and `OrElse` when the fallback is itself optional.
+
+## Testing with Functional.xunit
+
+`Functional.xunit` provides fluent assertions for `Maybe<T>` via `ShouldBe()`.
+
+```csharp
+using UnambitiousFx.Functional;
+
+[Fact]
+public void Map_WithSome_TransformsValue()
+{
+    // Arrange (Given)
+    var maybe = Maybe.Some(5);
+
+    // Act (When)
+    var mapped = maybe.Map(x => x * 2);
+
+    // Assert (Then)
+    mapped.ShouldBe()
+        .Some()
+        .And(value => Assert.Equal(10, value));
+}
+
+[Fact]
+public void Filter_WhenPredicateFails_BecomesNone()
+{
+    // Arrange (Given)
+    var maybe = Maybe.Some(3);
+
+    // Act (When)
+    var filtered = maybe.Filter(x => x > 10);
+
+    // Assert (Then)
+    filtered.ShouldBe().None();
+}
+```
+
+## See also
+
+- [Maybe API Reference](./api-reference) — the full method surface, grouped by category.
+- [Result](/docs/result/) — for operations that can fail with a reason.
+- [Failures and Metadata](/docs/failures-and-metadata) — typed failures and contextual metadata.
