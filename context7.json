@@ -1,0 +1,14 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "UnambitiousFx Functional",
+  "description": "Lightweight, performance-focused functional programming library for .NET: Result<T>, Maybe<T>, and railway-oriented error handling with zero-allocation, Native-AOT-ready primitives.",
+  "branch": "main",
+  "folders": ["docs/docs"],
+  "rules": [
+    "Functional targets .NET with zero-allocation and Native AOT in mind; core types are readonly structs and prefer ValueTask over Task on likely-synchronous paths.",
+    "Model expected failures with Result/Result<T> and absence with Maybe<T> instead of throwing exceptions or returning null.",
+    "Compose with railway-oriented operators (Bind/Map/Tap) rather than imperative control flow.",
+    "Use Functional.xunit fluent assertions (ShouldBe().Success()/.Failure(), .Some()/.None()) when testing Result/Maybe/OneOf.",
+    "OneOf is the external NuGet package (v3.0.271), not a library-owned type."
+  ]
+}

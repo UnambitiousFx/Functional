@@ -6,6 +6,7 @@
 [![codecov](https://codecov.io/gh/UnambitiousFx/Functional/branch/main/graph/badge.svg)](https://codecov.io/gh/UnambitiousFx/Functional)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
+[![Documentation](https://img.shields.io/badge/docs-functional.unambitiousfx.com-blue)](https://functional.unambitiousfx.com)
 
 A lightweight, modern functional programming library for .NET that makes failure handling and optional values elegant and
 type-safe.
