@@ -1,180 +1,199 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
+import { themes as prismThemes } from "prism-react-renderer";
+import type { Config } from "@docusaurus/types";
+import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: 'Functional - UnambitiousFx',
+  title: "Functional - UnambitiousFx",
   tagline:
-    'Result, Maybe, and railway-oriented error handling for .NET — zero-allocation and Native-AOT ready.',
-  favicon: 'img/favicon.ico',
+    "Result, Maybe, and railway-oriented error handling for .NET — zero-allocation and Native-AOT ready.",
+  favicon: "img/favicon.ico",
+
+  headTags: [
+    {
+      tagName: "link",
+      attributes: {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/img/favicon.svg",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "apple-touch-icon",
+        href: "/img/apple-touch-icon.png",
+      },
+    },
+  ],
 
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  url: 'https://functional.unambitiousfx.com',
-  baseUrl: '/',
+  url: "https://functional.unambitiousfx.com",
+  baseUrl: "/",
 
-  organizationName: 'UnambitiousFx',
-  projectName: 'Functional',
+  organizationName: "UnambitiousFx",
+  projectName: "Functional",
 
   plugins: [
     [
-      'docusaurus-plugin-llms',
+      "docusaurus-plugin-llms",
       {
         generateLLMsTxt: true,
         generateLLMsFullTxt: true,
         excludeImports: true,
         removeDuplicateHeadings: true,
         includeOrder: [
-          'index.mdx',
-          'getting-started.mdx',
-          'result/index.mdx',
-          'result/api-reference.mdx',
-          'maybe/index.mdx',
-          'maybe/api-reference.mdx',
-          'failures-and-metadata.mdx',
-          'aspnetcore/index.mdx',
-          'xunit/index.mdx',
+          "index.mdx",
+          "getting-started.mdx",
+          "result/index.mdx",
+          "result/api-reference.mdx",
+          "maybe/index.mdx",
+          "maybe/api-reference.mdx",
+          "failures-and-metadata.mdx",
+          "aspnetcore/index.mdx",
+          "xunit/index.mdx",
         ],
         includeUnmatchedLast: true,
         customLLMFiles: [
           {
-            filename: 'llms-result.txt',
+            filename: "llms-result.txt",
             includePatterns: [
-              'result/**',
-              'maybe/**',
-              'failures-and-metadata.mdx',
+              "result/**",
+              "maybe/**",
+              "failures-and-metadata.mdx",
             ],
             fullContent: true,
-            title: 'Functional — Result, Maybe & Failures',
+            title: "Functional — Result, Maybe & Failures",
             description:
-              'The Result and Maybe types, railway-oriented composition, and the failure model.',
+              "The Result and Maybe types, railway-oriented composition, and the failure model.",
           },
           {
-            filename: 'llms-testing.txt',
-            includePatterns: ['xunit/**'],
+            filename: "llms-testing.txt",
+            includePatterns: ["xunit/**"],
             fullContent: true,
-            title: 'Functional — Testing with Functional.xunit',
+            title: "Functional — Testing with Functional.xunit",
             description:
-              'Fluent assertions for Result and Maybe in xUnit tests.',
+              "Fluent assertions for Result and Maybe in xUnit tests.",
           },
         ],
       },
     ],
   ],
 
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: ["@docusaurus/theme-mermaid"],
 
   markdown: {
     mermaid: true,
   },
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: "throw",
 
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
   presets: [
     [
-      'classic',
+      "classic",
       {
         docs: {
-          sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/UnambitiousFx/Functional/',
+          sidebarPath: "./sidebars.ts",
+          editUrl: "https://github.com/UnambitiousFx/Functional/",
         },
         blog: false,
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
     ],
   ],
 
   themeConfig: {
-    image: 'img/docusaurus-social-card.jpg',
+    image: "img/unambitiousfx-social-card.png",
     colorMode: {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Functional',
+      title: "Functional",
       logo: {
-        alt: 'UnambitiousFx Functional Logo',
-        src: 'img/logo.svg',
+        alt: "UnambitiousFx Functional Logo",
+        src: "img/unambitiousfx-icon-light.svg",
+        srcDark: "img/unambitiousfx-icon-dark.svg",
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          position: 'left',
-          label: 'Docs',
+          type: "docSidebar",
+          sidebarId: "tutorialSidebar",
+          position: "left",
+          label: "Docs",
         },
         {
-          type: 'doc',
-          docId: 'result/index',
-          position: 'left',
-          label: 'Result',
+          type: "doc",
+          docId: "result/index",
+          position: "left",
+          label: "Result",
         },
         {
-          type: 'doc',
-          docId: 'maybe/index',
-          position: 'left',
-          label: 'Maybe',
+          type: "doc",
+          docId: "maybe/index",
+          position: "left",
+          label: "Maybe",
         },
         {
-          type: 'doc',
-          docId: 'aspnetcore/index',
-          position: 'left',
-          label: 'ASP.NET Core',
+          type: "doc",
+          docId: "aspnetcore/index",
+          position: "left",
+          label: "ASP.NET Core",
         },
         {
-          href: 'https://www.nuget.org/packages?q=UnambitiousFx.Functional',
-          label: 'NuGet',
-          position: 'right',
+          href: "https://www.nuget.org/packages?q=UnambitiousFx.Functional",
+          label: "NuGet",
+          position: "right",
         },
         {
-          href: 'https://github.com/UnambitiousFx/Functional',
-          label: 'GitHub',
-          position: 'right',
+          href: "https://github.com/UnambitiousFx/Functional",
+          label: "GitHub",
+          position: "right",
         },
       ],
     },
     footer: {
-      style: 'dark',
+      style: "dark",
       links: [
         {
-          title: 'Docs',
+          title: "Docs",
           items: [
             {
-              label: 'Getting Started',
-              to: '/docs/getting-started',
+              label: "Getting Started",
+              to: "/docs/getting-started",
             },
             {
-              label: 'Result',
-              to: '/docs/result/',
+              label: "Result",
+              to: "/docs/result/",
             },
             {
-              label: 'Maybe',
-              to: '/docs/maybe/',
+              label: "Maybe",
+              to: "/docs/maybe/",
             },
             {
-              label: 'Testing',
-              to: '/docs/xunit/',
+              label: "Testing",
+              to: "/docs/xunit/",
             },
           ],
         },
         {
-          title: 'More',
+          title: "More",
           items: [
             {
-              label: 'GitHub',
-              href: 'https://github.com/UnambitiousFx/Functional',
+              label: "GitHub",
+              href: "https://github.com/UnambitiousFx/Functional",
             },
             {
-              label: 'NuGet',
-              href: 'https://www.nuget.org/packages?q=UnambitiousFx.Functional',
+              label: "NuGet",
+              href: "https://www.nuget.org/packages?q=UnambitiousFx.Functional",
             },
           ],
         },
@@ -184,7 +203,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['csharp'],
+      additionalLanguages: ["csharp"],
     },
   } satisfies Preset.ThemeConfig,
 };
