@@ -10,7 +10,9 @@
         <LangVersion>latest</LangVersion>
         <LibraryTargetFrameworks>net8.0;net9.0;net10.0</LibraryTargetFrameworks>
         <LatestTargetFramework>net10.0</LatestTargetFramework>
-        <Version>2.0.0</Version>
+        <!-- Functional.xunit now depends on xunit.v3.assert (xUnit v3) instead of xunit.assert (v2) -->
+        <!-- this is a breaking change for consumers of Functional.xunit still on xUnit v2 -->
+        <Version>3.0.0</Version>
     </PropertyGroup>
 
 
