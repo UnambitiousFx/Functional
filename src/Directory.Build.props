@@ -58,10 +58,4 @@
         <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     </ItemGroup>
 
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
-        <NoWarn>$(NoWarn);AD0001</NoWarn>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
-        <NoWarn>$(NoWarn);AD0001</NoWarn>
-    </PropertyGroup>
 </Project>
