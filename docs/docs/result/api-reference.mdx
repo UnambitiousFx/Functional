@@ -146,6 +146,20 @@ All `WithMetadata` overloads also exist on the non-generic `Result`.
 | `Result<TValue>(Failure failure)` | failure → failed `Result<TValue>` |
 | `Result(Failure failure)` | failure → failed `Result` |
 
+## Union members (net11 / C# 15)
+
+Available only on `net11.0` with `<LangVersion>preview</LangVersion>` (on `Result<TValue>`). These back the C# 15 union `switch`/`is` matching over the case types `TValue` (success) and `Failure` — see [Union matching](./#union-matching-net11--c-15).
+
+| Member | Signature | Description |
+| ------ | --------- | ----------- |
+| `Value` | `object Value { get; }` | The success value or the `Failure`. **Never null** (a `default(Result<T>)` yields a sentinel failure); **boxes** a value-type success — prefer typed `switch`/`is` arms. |
+| `HasValue` | `bool HasValue { get; }` | Always `true` — the union view is never null. |
+| `TryGetValue` | `bool TryGetValue(out TValue? value)` | Non-boxing union access for the success case; used by the compiler for value-type `switch` arms. |
+| `IUnionMembers.Create` | `static Result<T> Create(T value)` | Union creation member; delegates to `Result.Success`. |
+| `IUnionMembers.Create` | `static Result<T> Create(Failure error)` | Union creation member; delegates to `Result.Failure<T>`. |
+
+Because a result is always success or failure, the union `switch` needs **no `null` arm** — only `TValue` and `Failure`.
+
 ## Async overloads
 
 Most operators have `Task<Result<T>>` and `ValueTask<Result<T>>` extension overloads — including `Map`, `Bind`, `Then`, `Flatten`, `Match`, `Switch`, `Ensure`, `Recover`, `Compensate`, `Try`, `Tap` / `TapFailure`, `ValueOr*`, `Combine`, and the LINQ operators. They accept both synchronous and asynchronous continuations, so a single awaited chain can freely mix `Map(x => …)` with `Bind(x => …Async(x))`:

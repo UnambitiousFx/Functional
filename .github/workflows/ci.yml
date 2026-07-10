@@ -32,6 +32,12 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Setup .NET 11 (preview, for C# 15 union targets)
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "11.0.x"
+          dotnet-quality: preview
+
       - name: Restore dependencies
         run: dotnet restore Functional.slnx
 
