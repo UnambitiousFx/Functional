@@ -73,6 +73,28 @@ maybe.IfSome(value => Console.WriteLine(value));
 maybe.IfNone(() => Console.WriteLine("Empty"));
 ```
 
+## Union matching (net11 / C# 15)
+
+On **`net11.0` with `<LangVersion>preview</LangVersion>`**, `Maybe<T>` opts into C# 15 [union types](https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unions), so you can `switch` and use `is`-patterns **directly on the maybe**. Its single case type is `TValue`; **None is represented by `null`**, and the compiler enforces exhaustiveness over the two arms:
+
+```csharp
+string label = maybe switch
+{
+    int value => $"Found {value}",   // Some
+    null      => "Nothing here",     // None
+};
+```
+
+The `null` arm **is** None — that is the whole point of `Maybe<T>`, so unlike [`Result<T>`](/docs/result/) (which is always success or failure) the `null` arm is required and correct here.
+
+`is`-patterns unwrap Some:
+
+```csharp
+if (maybe is int value) { /* Some, value in scope */ }
+```
+
+Both this `switch` and `Match` are **allocation-free** for value-type Some — the union `switch` uses a non-boxing `TryGetValue`. Reading the `object?`-typed `Value` property, however, **boxes** a value-type Some; prefer the typed arms. Union `switch`/`is` is `net11.0`-only; `Match`/`Switch` work on every target framework.
+
 ## Transforming: Map, Bind, Filter
 
 - **`Map`** transforms the inner value, preserving None.

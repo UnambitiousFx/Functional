@@ -1,0 +1,11 @@
+{
+    "name": "Functional (.NET 11 preview)",
+    "image": "mcr.microsoft.com/dotnet/nightly/sdk:11.0-preview",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csdevkit"
+            ]
+        }
+    }
+}
