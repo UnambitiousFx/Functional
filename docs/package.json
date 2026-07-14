@@ -2,7 +2,7 @@
   "name": "functional",
   "version": "2.0.0",
   "private": true,
-  "packageManager": "pnpm@11.12.0",
+  "packageManager": "pnpm@11.13.0",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
