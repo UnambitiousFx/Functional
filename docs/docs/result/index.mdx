@@ -141,6 +141,46 @@ return result.Match(
     });
 ```
 
+## Union matching (net11 / C# 15)
+
+On **`net11.0` with `<LangVersion>preview</LangVersion>`**, `Result<T>` opts into C# 15 [union types](https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unions), so you can `switch` and use `is`-patterns **directly on the result** — the compiler enforces exhaustiveness over its two case types, `TValue` (success) and `Failure` (failure):
+
+```csharp
+string message = result switch
+{
+    int value       => value.ToString(),   // success
+    Failure failure => failure.Message,     // failure
+};   // exhaustive — no `null` / discard arm needed
+```
+
+A result is **always** a success or a failure — never absent — so, unlike [`Maybe<T>`](/docs/maybe/), the union view is **non-null** and the `switch` needs **no `null` arm**. A degenerate `default(Result<T>)` is treated as a failure (it surfaces a sentinel `Failure`), so it lands on the `Failure` arm rather than throwing.
+
+`is`-patterns unwrap the same way:
+
+```csharp
+if (result is int value)      { /* success, value in scope */ }
+if (result is Failure error)  { /* failure, error in scope */ }
+```
+
+### `switch` vs `Match`
+
+`Match` is **allocation-free** on every target framework and is the right choice on hot paths. The union `switch` trades a small allocation for compiler-checked exhaustiveness and native syntax:
+
+| | Union `switch` / `is` | `Match` / `Switch` |
+| --- | --- | --- |
+| Available on | `net11.0` (preview) only | all target frameworks |
+| Exhaustiveness | compiler-checked | you supply both branches |
+| Allocations (value-type success) | **~24 B** (see below) | none |
+| Allocations (reference-type success or failure) | none | none |
+
+:::warning A value-type `Result<T>` switch boxes
+Because a result has **two** union case types (`TValue` and `Failure`), the C# 15 preview compiler reads the `object`-typed `Value` to dispatch the `switch`, which **boxes a value-type success** (measured ~24 B for `Result<int>`). Reference-type successes and failures don't box. If you match `Result<int>`/`Result<Guid>`/… on a hot path, prefer `Match` (0 B). This is a compiler codegen detail of the preview and may improve in a later preview.
+
+`Maybe<T>` has a single case type, so its `switch` uses the non-boxing `TryGetValue` path and does **not** allocate.
+:::
+
+Reading the `object`-typed `Value` property also boxes a value-type success — prefer the typed `switch`/`is`/`Match` accessors.
+
 ## Transforming with `Bind`, `Map`, `Then`, and `Flatten`
 
 These are the workhorses of the success track.
