@@ -39,7 +39,7 @@ public static class Maybe
 /// <typeparam name="TValue">The type of the value that may be present.</typeparam>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(MaybeDebugView<>))]
-public readonly record struct Maybe<TValue> : IMaybe<TValue>
+public readonly partial record struct Maybe<TValue> : IMaybe<TValue>
     where TValue : notnull
 {
     private readonly TValue? _value;
