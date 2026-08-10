@@ -99,7 +99,7 @@ public sealed class ResultHttpBuilder
         return new ResultHttpBuilder(_awaitableResult, _failureMapper, _headers, statusCode);
     }
 
-    private async ValueTask<IHttpResult> Build()
+    public async ValueTask<IHttpResult> Build()
     {
         var result = await _awaitableResult;
         return result.Match(OnSuccess, OnFailure);
