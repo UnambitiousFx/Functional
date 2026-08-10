@@ -99,6 +99,15 @@ public sealed class ResultHttpBuilder
         return new ResultHttpBuilder(_awaitableResult, _failureMapper, _headers, statusCode);
     }
 
+    /// <summary>
+    /// Asynchronously builds an HTTP result based on the current functional result and its associated state.
+    /// This method evaluates the functional result and produces an <see cref="Microsoft.AspNetCore.Http.IResult"/>
+    /// that reflects either a successful or failed outcome.
+    /// </summary>
+    /// <returns>
+    /// A task representing the asynchronous operation. The result of the task is an
+    /// <see cref="Microsoft.AspNetCore.Http.IResult"/> object, constructed based on the functional result.
+    /// </returns>
     public async ValueTask<IHttpResult> Build()
     {
         var result = await _awaitableResult;
