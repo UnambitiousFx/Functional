@@ -81,6 +81,17 @@ The full API surface for `Maybe<T>` (`UnambitiousFx.Functional`). `T` is always 
 | `SelectMany` | `Maybe<TOut> SelectMany<TIn, TCollection, TOut>(this Maybe<TIn>, Func<TIn, Maybe<TCollection>>, Func<TIn, TCollection, TOut>)` | LINQ bind with a projection; enables multi-`from` queries. |
 | `Where` | `Maybe<T> Where<T>(this Maybe<T>, Func<T, bool>)` | LINQ filter; delegates to `Filter`. |
 
+## Union members (net11 / C# 15)
+
+Available only on `net11.0` with `<LangVersion>preview</LangVersion>`. These back the C# 15 union `switch`/`is` matching — see [Union matching](./#union-matching-net11--c-15).
+
+| Member | Signature | Description |
+| --- | --- | --- |
+| `Value` | `object? Value { get; }` | The value when Some, `null` when None. **Boxes** a value-type Some — prefer typed `switch`/`is` arms. |
+| `HasValue` | `bool HasValue { get; }` | `true` when Some (equivalent to `IsSome`). |
+| `TryGetValue` | `bool TryGetValue(out T? value)` | Non-boxing union access: `true` and the value when Some. Used by the compiler for value-type `switch` arms. |
+| `IUnionMembers.Create` | `static Maybe<T> Create(T value)` | Union creation member; delegates to `Maybe.Some`. |
+
 ## Async support
 
 Each method below extends `ValueTask<Maybe<T>>` and returns a `ValueTask<…>`, so chains can be `await`ed end to end. Where applicable, both sync-delegate and async-delegate (`Func<…, ValueTask<…>>`) overloads exist.
