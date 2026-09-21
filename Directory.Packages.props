@@ -12,11 +12,11 @@
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.401"/>
         <PackageVersion Include="NSubstitute" Version="6.2.0"/>
         <PackageVersion Include="OneOf" Version="3.0.271"/>
-        <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.0">
+        <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageVersion>
-        <PackageVersion Include="xunit.v3.assert" Version="4.0.0"/>
+        <PackageVersion Include="xunit.v3.assert" Version="4.0.1"/>
         <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
