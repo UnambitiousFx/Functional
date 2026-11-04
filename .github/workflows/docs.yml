@@ -6,17 +6,19 @@ on:
     paths:
       - "docs/**"
       - ".github/workflows/docs.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
-# Allow GITHUB_TOKEN to deploy to GitHub Pages.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Single concurrent deployment; cancel in-progress runs for newer pushes.
+# Single concurrent deployment; cancel in-progress runs for newer pushes. PRs get their own group.
 concurrency:
-  group: pages
+  group: pages-${{ github.event.pull_request.number || 'main' }}
   cancel-in-progress: true
 
 jobs:
@@ -45,10 +47,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Build (emits site + llms.txt / llms-full.txt)
         run: pnpm build
 
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: docs/build
@@ -56,7 +62,12 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    # Allow GITHUB_TOKEN to deploy to GitHub Pages.
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
