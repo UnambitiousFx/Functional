@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
+        <!-- net11.0 (preview) only when an SDK that supports it is present; local SDK 10 keeps building net8-10 -->
         <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(NETCoreSdkVersion)', '11.0'))">$(LibraryTargetFrameworks);net11.0</TargetFrameworks>
+        <LangVersion Condition="'$(TargetFramework)' == 'net11.0'">preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
