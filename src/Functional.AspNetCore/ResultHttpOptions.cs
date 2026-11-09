@@ -12,7 +12,9 @@ public sealed class ResultHttpOptions
     private readonly List<IFailureHttpMapper> _customMappers = [];
 
     /// <summary>
-    ///     Whether to include exception details (stack traces) in error responses.
+    ///     Whether the default mapper includes failure details on 500 responses: the message, and for an
+    ///     <see cref="ExceptionalFailure" /> the exception type and stack trace.
+    ///     When false, 500 responses carry only title, status and type.
     ///     Should only be enabled in development environments.
     ///     Default is false.
     /// </summary>
@@ -90,7 +92,7 @@ public sealed class ResultHttpOptions
         // Add custom mappers first (they have priority)
         mappers.AddRange(_customMappers);
 
-        mappers.Add(new DefaultFailureHttpMapper());
+        mappers.Add(new DefaultFailureHttpMapper(IncludeExceptionDetails));
 
         // If we only have one mapper, return it directly
         if (mappers.Count == 1) {

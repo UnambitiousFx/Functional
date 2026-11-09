@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Failures;
@@ -190,7 +191,23 @@ public class ResultHttpOptionsTests
         var response = mapper.GetFailureResponse(error);
 
         // Assert (Then)
-        Assert.NotNull(response);
+        var problemDetail = Assert.IsType<ProblemDetails>(response?.Body);
+        Assert.Equal("Test", problemDetail.Detail);
+    }
+
+    [Fact(DisplayName = "BuildMapper without IncludeExceptionDetails hides 500 detail")]
+    public void BuildMapper_WithoutIncludeExceptionDetails_HidesDetail()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+
+        // Act (When)
+        var response = options.BuildMapper()
+                              .GetFailureResponse(new ExceptionalFailure(new Exception("Test")));
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response?.Body);
+        Assert.Null(problemDetail.Detail);
     }
 
     [Fact(DisplayName = "CustomMappers returns read-only collection")]

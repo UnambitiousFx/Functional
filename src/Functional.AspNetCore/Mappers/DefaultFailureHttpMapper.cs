@@ -15,6 +15,28 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
     /// </summary>
     internal static IFailureHttpMapper Instance { get; } = new DefaultFailureHttpMapper();
 
+    private readonly bool _includeExceptionDetails;
+
+    /// <summary>
+    ///     Initializes a new instance that hides failure details on 500 responses.
+    /// </summary>
+    public DefaultFailureHttpMapper()
+        : this(false)
+    {
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="DefaultFailureHttpMapper" /> class.
+    /// </summary>
+    /// <param name="includeExceptionDetails">
+    ///     When <see langword="true" />, 500 responses include the failure message, and for an
+    ///     <see cref="ExceptionalFailure" /> the exception type and stack trace. Enable only in development.
+    /// </param>
+    public DefaultFailureHttpMapper(bool includeExceptionDetails)
+    {
+        _includeExceptionDetails = includeExceptionDetails;
+    }
+
     /// <inheritdoc />
     public virtual FailureHttpResponse GetFailureResponse(IFailure failure)
     {
@@ -37,12 +59,12 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         };
     }
 
-    private static ProblemDetails FromError(IFailure failure)
+    private ProblemDetails FromError(IFailure failure)
     {
         return new ProblemDetails
         {
             Title  = "An error occurred.",
-            Detail = failure.Message,
+            Detail = _includeExceptionDetails ? failure.Message : null,
             Status = (int)HttpStatusCode.InternalServerError,
             Type   = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
         };
@@ -59,15 +81,21 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         };
     }
 
-    private static ProblemDetails FromExceptionalError(ExceptionalFailure failure)
+    private ProblemDetails FromExceptionalError(ExceptionalFailure failure)
     {
-        return new ProblemDetails
+        var details = new ProblemDetails
         {
             Title  = "Internal Server Error",
-            Detail = failure.Message,
             Status = (int)HttpStatusCode.InternalServerError,
             Type   = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
         };
+        if (_includeExceptionDetails) {
+            details.Detail                      = failure.Message;
+            details.Extensions["exceptionType"] = failure.Exception.GetType().FullName;
+            details.Extensions["stackTrace"]    = failure.Exception.StackTrace;
+        }
+
+        return details;
     }
 
     private static ProblemDetails FromUnauthorizedError(UnauthorizedFailure failure)
