@@ -210,12 +210,12 @@ Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the 
   "status": 400,
   "detail": "Name is required; Email is invalid",
   "code": "VALIDATION",
-  "failure[0]": "Name is required",
-  "failure[1]": "Email is invalid"
+  "errors": { "Name": ["Name is required"], "Email": ["Email is invalid"] },
+  "errorCodes": { "Name": ["Required"] }
 }
 ```
 
-`NotFoundFailure` adds `code`, `resource`, and `identifier` extensions; `ValidationFailure` adds `code` plus one `failure[i]` extension per message. `Conflict`, `BadRequest`, `Unauthorized`, and `Unauthenticated` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
+`NotFoundFailure` adds `code`, `resource`, and `identifier` extensions; `ValidationFailure` adds `code`, `errors` (messages grouped by field, same shape as ASP.NET Core `ValidationProblemDetails`; errors without a field use the `""` key) and, when at least one entry has a code, `errorCodes` grouped the same way. `Conflict`, `BadRequest`, `Unauthorized`, and `Unauthenticated` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
 
 500 responses (`ExceptionalFailure` and any unmapped failure) omit `detail`, so internal messages never reach the client:
 

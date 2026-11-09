@@ -161,8 +161,16 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
                 { "code", failure.Code }
             }
         };
-        for (var i = 0; i < failure.Failures.Count; i++) {
-            details.Extensions.Add($"failure[{i}]", failure.Failures[i]);
+        // Same shape as ASP.NET Core ValidationProblemDetails; "" holds errors not tied to a field.
+        details.Extensions["errors"] = failure.Errors
+                                              .GroupBy(e => e.Field ?? string.Empty)
+                                              .ToDictionary(g => g.Key, g => g.Select(e => e.Message).ToArray());
+        var codes = failure.Errors
+                           .Where(e => e.Code is not null)
+                           .GroupBy(e => e.Field ?? string.Empty)
+                           .ToDictionary(g => g.Key, g => g.Select(e => e.Code!).ToArray());
+        if (codes.Count > 0) {
+            details.Extensions["errorCodes"] = codes;
         }
 
         return details;

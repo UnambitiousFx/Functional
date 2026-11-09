@@ -48,6 +48,21 @@ public readonly struct ValidationFailureAssertion
     }
 
     /// <summary>
+    ///     Asserts that the ValidationError contains an error with exactly the given field, message and code.
+    /// </summary>
+    /// <param name="field">The expected field, or <see langword="null" /> for an error not tied to a field.</param>
+    /// <param name="message">The expected error message.</param>
+    /// <param name="code">The expected error code, or <see langword="null" /> for an error without code.</param>
+    /// <returns>The current instance of <see cref="ValidationFailureAssertion" /> for further chaining.</returns>
+    public ValidationFailureAssertion WithError(string? field,
+                                                string  message,
+                                                string? code = null)
+    {
+        Assert.Contains(new ValidationError(field, message, code), Failure.Errors);
+        return this;
+    }
+
+    /// <summary>
     ///     Asserts that the ValidationError contains a failure message that contains the specified text.
     /// </summary>
     /// <param name="expectedText">The expected text within a failure message.</param>

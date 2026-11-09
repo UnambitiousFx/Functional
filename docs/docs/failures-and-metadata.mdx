@@ -32,7 +32,7 @@ Each built-in failure sets a code from `FailureCodes`. Construct them directly a
 | Type | Code constant (value) | Constructor | Use when |
 | --- | --- | --- | --- |
 | `Failure` | `FailureCodes.Failure` (`"ERROR"`) | `Failure(string message)` or `Failure(string code, string message, IReadOnlyDictionary<string, object?>? metadata = null)` | A general failure with no more specific category. |
-| `ValidationFailure` | `FailureCodes.Validation` (`"VALIDATION"`) | `ValidationFailure(string validationMessage, …)` or `ValidationFailure(IReadOnlyList<string> failures, …)` | Input fails field/business validation; collects one or more messages (exposed via `Failures`). |
+| `ValidationFailure` | `FailureCodes.Validation` (`"VALIDATION"`) | `ValidationFailure(string validationMessage, …)`, `ValidationFailure(IReadOnlyList<string> failures, …)` or `ValidationFailure(IReadOnlyList<ValidationError> errors, …)` | Input fails field/business validation. Exposes structured `Errors` (`ValidationError(Field, Message, Code)`) and their messages via `Failures`. |
 | `NotFoundFailure` | `FailureCodes.NotFound` (`"NOT_FOUND"`) | `NotFoundFailure(string resource, string identifier, string? messageOverride = null, …)` | A requested resource does not exist. Exposes `Resource` and `Identifier`. |
 | `ConflictFailure` | `FailureCodes.Conflict` (`"CONFLICT"`) | `ConflictFailure(string Message, …)` | A uniqueness/state conflict, e.g. a duplicate key. |
 | `UnauthorizedFailure` | `FailureCodes.Unauthorized` (`"UNAUTHORIZED"`) | `UnauthorizedFailure(string? reason = null, …)` | The caller is authenticated but not permitted. |
@@ -72,6 +72,17 @@ Result<User> notFound = Result.Fail<User>(new NotFoundFailure("User", id.ToStrin
 Result<User> fromMessage = Result.Fail<User>("Something went wrong."); // wraps a Failure
 Result wrapped = Result.Fail(new InvalidOperationException("boom"));    // -> ExceptionalFailure
 ```
+
+To report which field failed and a stable code clients can map (i18n, UI), build a `ValidationFailure` from `ValidationError` entries. `Field` is `null` for an error not tied to a field; `Code` is optional:
+
+```csharp
+Result<User> invalid = Result.Failure<User>(new ValidationFailure([
+    new ValidationError("Email", "Email is required.", "Required"),
+    new ValidationError(null,    "Start date must be before end date.")
+]));
+```
+
+The message-only constructors create entries with no field and no code. `new ValidationFailure([])` is ambiguous between the two list overloads; pass a typed empty collection instead.
 
 ## Aggregating multiple failures
 
