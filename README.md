@@ -47,6 +47,19 @@ For xUnit testing utilities:
 dotnet add package UnambitiousFx.Functional.xunit
 ```
 
+### Agent skills
+
+`UnambitiousFx.Functional` and `UnambitiousFx.Functional.xunit` ship [Agent Skills](https://agentskills.io) (`skills/<name>/SKILL.md`) that teach AI coding agents the real API. To have them copied into your repository on every build, always matching the referenced package version, set a destination (for example in `Directory.Build.props`):
+
+```xml
+<PropertyGroup>
+  <!-- .claude/skills (Claude Code), .github/skills (GitHub Copilot), .agents/skills (others) -->
+  <UnambitiousFxSkillsDestination>$(MSBuildThisFileDirectory).claude/skills</UnambitiousFxSkillsDestination>
+</PropertyGroup>
+```
+
+Nothing is copied unless the property is set. See [Using with AI](https://functional.unambitiousfx.com/docs/using-with-ai#agent-skills) for details.
+
 ## 🚀 Quick Start
 
 ### Result<T> - Failure Handling Made Simple

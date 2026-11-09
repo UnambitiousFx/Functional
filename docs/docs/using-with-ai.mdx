@@ -1,7 +1,7 @@
 ---
 sidebar_position: 91
 title: Using with AI
-description: Feed the UnambitiousFx.Functional docs to Claude, Cursor, Copilot, and other AI assistants via llms.txt bundles.
+description: Feed the UnambitiousFx.Functional docs to Claude, Cursor, Copilot, and other AI assistants via llms.txt bundles and the Agent Skills shipped in the NuGet packages.
 ---
 
 # Using with AI
@@ -26,6 +26,38 @@ Use `/llms.txt` when you want an assistant to discover the structure and pull on
 :::tip
 Prefer `/llms.txt` for day-to-day questions to keep context small, and reach for `/llms-full.txt` only when you need the complete API surface — for example, when migrating a large codebase or generating new pipelines from scratch.
 :::
+
+## Agent skills
+
+The NuGet packages ship [Agent Skills](https://agentskills.io): `SKILL.md` files that tell coding agents how to use the library correctly.
+
+| Package | Skill |
+|---------|-------|
+| `UnambitiousFx.Functional` | `unambitiousfx-functional` |
+| `UnambitiousFx.Functional.xunit` | `unambitiousfx-functional-xunit` |
+
+`dotnet restore` places them under `~/.nuget/packages/<id>/<version>/skills/`, but agents only load skills from their own folders. Set `UnambitiousFxSkillsDestination` to have the packages copy their skills there on every build:
+
+```xml title="Directory.Build.props"
+<Project>
+  <PropertyGroup>
+    <UnambitiousFxSkillsDestination>$(MSBuildThisFileDirectory).claude/skills</UnambitiousFxSkillsDestination>
+  </PropertyGroup>
+</Project>
+```
+
+| Agent | Destination |
+|-------|-------------|
+| Claude Code | `.claude/skills` |
+| GitHub Copilot | `.github/skills` |
+| Codex and others, `dotnet-package-skills` | `.agents/skills` |
+
+- **Opt-in.** Nothing is written unless the property is set.
+- **Always current.** The copy runs on build (unchanged files are skipped), so a package update also updates the skill. A skill removed or renamed in a newer version is not deleted from the destination.
+- **Transitive.** Skills come from every referenced UnambitiousFx package, including ones pulled in by another package.
+- **Never breaks the build.** A failed copy (read-only or locked destination) is logged as warnings (`MSB3021`, `MSB3026`, `MSB3027`). If you build with `-warnaserror` / `MSBuildTreatWarningsAsErrors`, add `MSB3021;MSB3026;MSB3027` to `MSBuildWarningsNotAsErrors` to keep them warnings.
+
+Since the folder is regenerated on build, you can add it to `.gitignore`; commit it instead if agents should have the skills in a fresh clone before the first build.
 
 ## A note on accuracy
 
