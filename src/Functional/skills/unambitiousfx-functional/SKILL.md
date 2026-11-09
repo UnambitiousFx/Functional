@@ -45,7 +45,7 @@ Maybe<User> none = Maybe.None<User>();
 | Type | Constructor | `Code` (`FailureCodes.*`) |
 |------|-------------|------|
 | `Failure` | `(message)` or `(code, message)` | `ERROR` |
-| `ValidationFailure` | `(string message)` or `(IReadOnlyList<string> failures)` | `VALIDATION` |
+| `ValidationFailure` | `(string message)`, `(IReadOnlyList<string> failures)` or `(IReadOnlyList<ValidationError> errors)` — `ValidationError(Field?, Message, Code?)` | `VALIDATION` |
 | `NotFoundFailure` | `(resource, identifier, messageOverride?)` — **not** `(message)` | `NOT_FOUND` |
 | `ConflictFailure` | `(message)` | `CONFLICT` |
 | `BadRequestFailure` / `UnauthorizedFailure` / `UnauthenticatedFailure` / `TimeoutFailure` | see ctor | matching code |

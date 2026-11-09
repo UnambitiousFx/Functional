@@ -32,7 +32,8 @@ result.ShouldBe().Failure().And(f => Assert.Contains("email", f.Message));
 result.ShouldBe().Failure().WhichIsValidationError()
     .WithFailure("Email is required")      // exact entry in ValidationFailure.Failures
     .WithFailureContaining("Email")
-    .WithFailureCount(1);
+    .WithFailureCount(1)
+    .WithError("Email", "Email is required", "Required"); // exact (field, message, code) entry in Errors
 
 result.ShouldBe().Failure().WhichIsNotFoundError()
     .WithResource("User")

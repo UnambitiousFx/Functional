@@ -45,6 +45,34 @@ public class ValidationFailureAssertionTests
     }
 
     [Fact]
+    public void WithError_WhenErrorExists_Succeeds()
+    {
+        // Arrange (Given)
+        var error     = new ValidationFailure([new ValidationError("Email", "Email is required.", "Required")]);
+        var assertion = new ValidationFailureAssertion(error);
+
+        // Act (When)
+        var result = assertion.WithError("Email", "Email is required.", "Required");
+
+        // Assert (Then)
+        Assert.Equal(error, result.Failure);
+    }
+
+    [Theory]
+    [InlineData("Name",  "Email is required.", "Required")]
+    [InlineData("Email", "Email is invalid.",  "Required")]
+    [InlineData("Email", "Email is required.", null)]
+    public void WithError_WhenFieldMessageOrCodeDiffers_Throws(string field, string message, string? code)
+    {
+        // Arrange (Given)
+        var error     = new ValidationFailure([new ValidationError("Email", "Email is required.", "Required")]);
+        var assertion = new ValidationFailureAssertion(error);
+
+        // Act (When) & Assert (Then)
+        Assert.Throws<ContainsException>(() => assertion.WithError(field, message, code));
+    }
+
+    [Fact]
     public void WithFailureContaining_WhenTextContained_Succeeds()
     {
         // Arrange (Given)

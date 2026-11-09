@@ -138,7 +138,7 @@ After `.Failure()`, narrow the assertion to a concrete failure type. The narrowi
 
 ### Validation failures
 
-`ValidationFailureAssertion` adds `WithFailure(expected)`, `WithFailureContaining(text)`, and `WithFailureCount(count)` over the `Failures` collection, plus `And`, `AndMessage`, and `AndCode`.
+`ValidationFailureAssertion` adds `WithFailure(expected)`, `WithFailureContaining(text)`, and `WithFailureCount(count)` over the `Failures` collection, `WithError(field, message, code?)` for an exact entry in `Errors`, plus `And`, `AndMessage`, and `AndCode`.
 
 ```csharp
 [Fact]

@@ -114,10 +114,14 @@ Example error response (RFC 7807 Problem Details):
   "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
   "title": "Validation Error",
   "status": 400,
-  "detail": "One or more fields are invalid.",
-  "failures": ["Email is required", "Password too short"]
+  "detail": "Email is required; Password too short",
+  "code": "VALIDATION",
+  "errors": { "Email": ["Email is required"], "Password": ["Password too short"] },
+  "errorCodes": { "Email": ["Required"] }
 }
 ```
+
+`errors` groups messages by field (errors without a field use the `""` key). `errorCodes` is present only when at least one `ValidationError` has a `Code`.
 
 ## Configuration
 
