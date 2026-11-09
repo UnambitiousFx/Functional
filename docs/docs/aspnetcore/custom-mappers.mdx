@@ -175,7 +175,7 @@ builder.Services.AddResultHttp(options =>
 
 - `ResultSuccessBehavior` — how a successful non-generic `Result` maps when no explicit success mapper is given (`NoContent` → 204, `Ok` → 200).
 - `MaybeNoneBehavior` — how `Maybe.None` maps when no `AsNone` mapper is given (`NotFound` → 404, `NoContent` → 204).
-- `IncludeExceptionDetails` — whether to include exception details (stack traces) in error responses; enable only in development.
+- `IncludeExceptionDetails` — whether 500 responses from the default mapper include the failure message and, for an `ExceptionalFailure`, `exceptionType` and `stackTrace` extensions. When `false` (the default), 500 responses carry only `title`, `status` and `type`. Enable only in development. The builders' fallback mapper (no mapper passed) always hides these details.
 
 ## Composition guidelines
 

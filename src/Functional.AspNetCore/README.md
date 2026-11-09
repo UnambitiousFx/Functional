@@ -133,7 +133,7 @@ builder.Services.AddResultHttp(options =>
         MaybeNoneBehavior     = MaybeNoneHttpBehavior.NotFound       // default
     };
 
-    // Include stack traces in error responses (development only)
+    // Include the failure message, exception type and stack trace in 500 responses (development only)
     options.IncludeExceptionDetails = builder.Environment.IsDevelopment();
 });
 ```
@@ -292,7 +292,7 @@ Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 | Member                                                   | Type                      | Default   | Description                                     |
 |----------------------------------------------------------|---------------------------|-----------|-------------------------------------------------|
 | `Policy`                                                 | `ResultHttpAdapterPolicy` | `Default` | Global success/none behavior defaults           |
-| `IncludeExceptionDetails`                                | `bool`                    | `false`   | Include stack traces in error bodies            |
+| `IncludeExceptionDetails`                                | `bool`                    | `false`   | Include message, exception type and stack trace in 500 bodies |
 | `AddMapper(IFailureHttpMapper)`                            | —                         | —         | Register a custom mapper instance               |
 | `AddMapper<TFailure>(int statusCode)`                    | —                         | —         | Register a typed mapper returning a status code |
 | `AddMapper<TFailure>(Func<TFailure, FailureHttpResponse>)` | —                         | —         | Register a typed mapper with a custom factory   |

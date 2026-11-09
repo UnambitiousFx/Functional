@@ -85,6 +85,74 @@ public class DefaultFailureHttpMapperTests
         Assert.Equal("123",       problemDetail.Extensions["identifier"]);
     }
 
+    [Fact]
+    public void GetFailureResponse_ExceptionalFailureByDefault_OmitsDetail()
+    {
+        // Arrange (Given)
+        var error = new ExceptionalFailure(new InvalidOperationException("Login failed for user 'sa'"));
+
+        // Act (When)
+        var response = _sut.GetFailureResponse(error);
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal(500, problemDetail.Status);
+        Assert.Null(problemDetail.Detail);
+        Assert.Empty(problemDetail.Extensions);
+    }
+
+    [Fact]
+    public void GetFailureResponse_UnmappedFailureByDefault_OmitsDetail()
+    {
+        // Arrange (Given)
+        var error = new Failure("CUSTOM", "connection string fragment");
+
+        // Act (When)
+        var response = _sut.GetFailureResponse(error);
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal(500, problemDetail.Status);
+        Assert.Null(problemDetail.Detail);
+    }
+
+    [Fact]
+    public void GetFailureResponse_ExceptionalFailureWithDetailsEnabled_IncludesMessageTypeAndStackTrace()
+    {
+        // Arrange (Given)
+        var       sut = new DefaultFailureHttpMapper(includeExceptionDetails: true);
+        Exception exception;
+        try {
+            throw new InvalidOperationException("boom");
+        }
+        catch (InvalidOperationException ex) {
+            exception = ex;
+        }
+
+        // Act (When)
+        var response = sut.GetFailureResponse(new ExceptionalFailure(exception));
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal("boom", problemDetail.Detail);
+        Assert.Equal(typeof(InvalidOperationException).FullName, problemDetail.Extensions["exceptionType"]);
+        Assert.Equal(exception.StackTrace, problemDetail.Extensions["stackTrace"]);
+    }
+
+    [Fact]
+    public void GetFailureResponse_UnmappedFailureWithDetailsEnabled_IncludesMessage()
+    {
+        // Arrange (Given)
+        var sut = new DefaultFailureHttpMapper(includeExceptionDetails: true);
+
+        // Act (When)
+        var response = sut.GetFailureResponse(new Failure("CUSTOM", "Custom error message"));
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal("Custom error message", problemDetail.Detail);
+    }
+
     private static IFailure CreateFailure(Type failureType)
     {
         if (failureType == typeof(ValidationFailure)) {

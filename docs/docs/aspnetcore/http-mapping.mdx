@@ -215,7 +215,20 @@ Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the 
 }
 ```
 
-`NotFoundFailure` adds `code`, `resource`, and `identifier` extensions; `ValidationFailure` adds `code` plus one `failure[i]` extension per message. `Conflict`, `BadRequest`, `Unauthorized`, `Unauthenticated`, and `Exceptional` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
+`NotFoundFailure` adds `code`, `resource`, and `identifier` extensions; `ValidationFailure` adds `code` plus one `failure[i]` extension per message. `Conflict`, `BadRequest`, `Unauthorized`, and `Unauthenticated` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
+
+500 responses (`ExceptionalFailure` and any unmapped failure) omit `detail`, so internal messages never reach the client:
+
+```json
+// 500 from an ExceptionalFailure
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+  "title": "Internal Server Error",
+  "status": 500
+}
+```
+
+With `IncludeExceptionDetails = true` (see [Custom Mappers](./custom-mappers)), they include `detail` and, for an `ExceptionalFailure`, `exceptionType` and `stackTrace` extensions.
 
 ## See also
 
