@@ -47,6 +47,46 @@ public class DefaultFailureHttpMapperTests
         Assert.Equal("Validation Error", problemDetail.Title);
         Assert.Equal(400,                problemDetail.Status);
         Assert.Contains("code", problemDetail.Extensions);
+        Assert.DoesNotContain("failure[0]", problemDetail.Extensions);
+    }
+
+    [Fact]
+    public void GetFailureResponse_ValidationErrorWithFields_GroupsMessagesAndCodesByField()
+    {
+        // Arrange (Given)
+        var error = new ValidationFailure([
+            new ValidationError("Email", "Email is required.",  "Required"),
+            new ValidationError("Email", "Email is invalid."),
+            new ValidationError(null,    "Dates are inconsistent.", "DateRange")
+        ]);
+
+        // Act (When)
+        var response = _sut.GetFailureResponse(error);
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        var errors        = Assert.IsType<Dictionary<string, string[]>>(problemDetail.Extensions["errors"]);
+        Assert.Equal(["Email is required.", "Email is invalid."], errors["Email"]);
+        Assert.Equal(["Dates are inconsistent."],                 errors[""]);
+        var codes = Assert.IsType<Dictionary<string, string[]>>(problemDetail.Extensions["errorCodes"]);
+        Assert.Equal(["Required"],  codes["Email"]);
+        Assert.Equal(["DateRange"], codes[""]);
+    }
+
+    [Fact]
+    public void GetFailureResponse_ValidationErrorWithoutCodes_OmitsErrorCodes()
+    {
+        // Arrange (Given)
+        var error = new ValidationFailure(["Field is required"]);
+
+        // Act (When)
+        var response = _sut.GetFailureResponse(error);
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        var errors        = Assert.IsType<Dictionary<string, string[]>>(problemDetail.Extensions["errors"]);
+        Assert.Equal(["Field is required"], errors[""]);
+        Assert.DoesNotContain("errorCodes", problemDetail.Extensions);
     }
 
     [Fact]
