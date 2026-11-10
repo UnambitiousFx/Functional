@@ -1,4 +1,5 @@
 #if NET11_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using UnambitiousFx.Functional.Failures;
 
@@ -46,10 +47,10 @@ public readonly partial record struct Result<TValue> : IUnion, Result<TValue>.IU
     /// </summary>
     public bool HasValue => true;
 
-    // The TValue case of the non-boxing access pattern is served by the existing
-    // TryGetValue(out TValue?) member. No TryGetValue(out Failure?) overload: it would make
-    // every `TryGetValue(out var …)` call ambiguous, and Failure is a reference type, so
-    // matching it through Value never boxes.
+    // The compiler only reads union members from IUnionMembers, so HasValue/TryGetValue are declared
+    // there; the TValue case is implemented by the existing TryGetValue(out TValue?). No
+    // TryGetValue(out Failure?) overload: it would make every `TryGetValue(out var …)` call ambiguous,
+    // and Failure is a reference type, so matching it through Value never boxes.
 
     /// <summary>
     ///     C# 15 union construction surface. Constructors stay internal; creation delegates
@@ -75,6 +76,14 @@ public readonly partial record struct Result<TValue> : IUnion, Result<TValue>.IU
 
         /// <summary>Gets the non-null union view of the result.</summary>
         object Value { get; }
+
+        /// <summary>Gets a value indicating whether the union holds a case value (always true).</summary>
+        bool HasValue { get; }
+
+        /// <summary>Non-boxing access to the success case, used by the compiler for type patterns.</summary>
+        /// <param name="value">The success value when the result succeeded.</param>
+        /// <returns><see langword="true" /> when the result succeeded.</returns>
+        bool TryGetValue([NotNullWhen(true)] out TValue? value);
     }
 }
 #endif

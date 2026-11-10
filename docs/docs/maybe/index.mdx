@@ -75,7 +75,7 @@ maybe.IfNone(() => Console.WriteLine("Empty"));
 
 ## Union matching (net11 / C# 15)
 
-On **`net11.0` with `<LangVersion>preview</LangVersion>`**, `Maybe<T>` opts into C# 15 [union types](https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unions), so you can `switch` and use `is`-patterns **directly on the maybe**. Its single case type is `TValue`; **None is represented by `null`**, and the compiler enforces exhaustiveness over the two arms:
+On **`net11.0`** (C# 15, no `LangVersion` change needed), `Maybe<T>` opts into C# 15 [union types](https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unions), so you can `switch` and use `is`-patterns **directly on the maybe**. Its single case type is `TValue`; **None is represented by `null`**, and the compiler enforces exhaustiveness over the two arms:
 
 ```csharp
 string label = maybe switch

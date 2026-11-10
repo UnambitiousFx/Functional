@@ -51,6 +51,14 @@ public readonly partial record struct Maybe<TValue> : IUnion, Maybe<TValue>.IUni
 
         /// <summary>Gets the union view of the maybe.</summary>
         object? Value { get; }
+
+        /// <summary>Gets a value indicating whether the maybe is Some.</summary>
+        bool HasValue { get; }
+
+        /// <summary>Non-boxing access to the Some case, used by the compiler for type patterns.</summary>
+        /// <param name="value">The value when Some.</param>
+        /// <returns><see langword="true" /> when Some.</returns>
+        bool TryGetValue([NotNullWhen(true)] out TValue? value);
     }
 }
 #endif

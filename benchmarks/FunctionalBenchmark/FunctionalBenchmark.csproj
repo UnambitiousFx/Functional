@@ -7,7 +7,6 @@
         <TargetFramework />
         <TargetFrameworks>$(LatestTargetFramework)</TargetFrameworks>
         <TargetFrameworks Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(NETCoreSdkVersion)', '11.0'))">$(LatestTargetFramework);net11.0</TargetFrameworks>
-        <LangVersion Condition="'$(TargetFramework)' == 'net11.0'">preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

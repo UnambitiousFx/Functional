@@ -213,5 +213,21 @@ public sealed class ResultUnionTests {
         // Assert (Then)
         Assert.Equal(4, output);
     }
+
+    [Fact]
+    public void Switch_WithFailureAsSuccessValue_StillReportsSuccess() {
+        // Arrange (Given) — TValue == Failure: both union cases share one type
+        var payload = new Failure("payload");
+        var result  = Result.Success(payload);
+
+        // Act (When) — the union view can't tell the cases apart, IsSuccess still can
+        var matched = result is Failure f && ReferenceEquals(f, payload);
+
+        // Assert (Then)
+        Assert.True(matched);
+        result.ShouldBe()
+              .Success()
+              .And(v => Assert.Same(payload, v));
+    }
 }
 #endif
