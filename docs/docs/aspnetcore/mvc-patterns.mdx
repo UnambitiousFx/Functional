@@ -14,7 +14,7 @@ using UnambitiousFx.Functional.AspNetCore.Mvc;
 
 ## The builder entry points
 
-`AsActionResultBuilder` is the entry point, overloaded for synchronous and asynchronous (`ValueTask`) values, with an optional `IFailureHttpMapper` (defaults to `DefaultFailureHttpMapper`):
+`AsActionResultBuilder` is the entry point, overloaded for synchronous and asynchronous (`ValueTask`) values, with an optional `IFailureHttpMapper` (defaults to the mapper registered by `AddResultHttp`, else `DefaultFailureHttpMapper`):
 
 ```csharp
 // Result (no value)  → ResultMvcBuilder
