@@ -58,15 +58,14 @@ using UnambitiousFx.Functional.AspNetCore;
 builder.Services.AddResultHttp();
 ```
 
-`AddResultHttp` registers the resolved `IFailureHttpMapper` and a `ResultHttpAdapterPolicy` as singletons. Pass a configuration delegate to add custom mappings — see [Custom Mappers](./custom-mappers). Inject the mapper into endpoints/controllers and pass it to the builder when you want DI-managed behavior:
+`AddResultHttp` registers the resolved `IFailureHttpMapper` and a `ResultHttpAdapterPolicy` as singletons. Pass a configuration delegate to add custom mappings — see [Custom Mappers](./custom-mappers). The builders read both from the request services when the response is written, so endpoints need no mapper argument:
 
 ```csharp
-app.MapGet("/users/{id:guid}", async (
-    Guid id,
-    IUserService service,
-    IFailureHttpMapper mapper) =>
-    await service.GetUserAsync(id).AsHttpBuilder(mapper));
+app.MapGet("/users/{id:guid}", async (Guid id, IUserService service) =>
+    await service.GetUserAsync(id).AsHttpBuilder()); // uses the mapper registered by AddResultHttp
 ```
+
+Without `AddResultHttp`, the builders fall back to `DefaultFailureHttpMapper` and `ResultHttpAdapterPolicy.Default`.
 
 ## Minimal API — quick look
 
