@@ -99,6 +99,10 @@ public class ResultMvcBuilderTests
 
     private static IActionResult UnwrapWrappedResult(IActionResult result)
     {
+        // Deferred results pick the registered mapper/policy at execution; resolve without services.
+        if (result is UnambitiousFx.Functional.AspNetCore.Mvc.DeferredActionResult deferred) {
+            result = deferred.Resolve(new Microsoft.AspNetCore.Http.DefaultHttpContext());
+        }
         var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         return innerField?.GetValue(result) as IActionResult ?? result;
     }

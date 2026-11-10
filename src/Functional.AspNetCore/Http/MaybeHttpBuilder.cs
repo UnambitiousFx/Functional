@@ -148,7 +148,7 @@ public class MaybeHttpBuilder<TValue, TResponse>
 
     /// <summary>
     ///     Configures the HTTP response returned when the Maybe is None.
-    ///     Defaults to <c>404 Not Found</c> when not specified.
+    ///     Defaults to the registered <see cref="ResultHttpAdapterPolicy.MaybeNoneBehavior" /> (404 Not Found by default).
     /// </summary>
     /// <param name="noneMapper">A factory that produces an <see cref="IHttpResult" /> for the None case.</param>
     /// <returns>A new builder with the given None handler.</returns>
@@ -205,7 +205,9 @@ public class MaybeHttpBuilder<TValue, TResponse>
     {
         return _noneMapper is not null
                    ? _noneMapper()
-                   : HttpResults.NotFound();
+                   : new DeferredHttpResult(ctx => ctx.GetAdapterPolicy().MaybeNoneBehavior == MaybeNoneHttpBehavior.NoContent
+                                                       ? HttpResults.NoContent()
+                                                       : HttpResults.NotFound());
     }
 }
 

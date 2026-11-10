@@ -186,7 +186,9 @@ public class MaybeMvcBuilder<TValue, TResponse>
     {
         return _noneMapper is not null
                    ? _noneMapper()
-                   : new NotFoundResult();
+                   : new DeferredActionResult(ctx => ctx.GetAdapterPolicy().MaybeNoneBehavior == MaybeNoneHttpBehavior.NoContent
+                                                         ? new NoContentResult()
+                                                         : new NotFoundResult());
     }
 }
 

@@ -17,15 +17,15 @@ namespace UnambitiousFx.Functional.AspNetCore.Http;
 public sealed class ResultHttpBuilder
 {
     private readonly ValueTask<Result>                    _awaitableResult;
-    private readonly IFailureHttpMapper                   _failureMapper;
+    private readonly IFailureHttpMapper?                   _failureMapper;
     private readonly IReadOnlyDictionary<string, string>? _headers;
-    private readonly int                                  _successStatusCode;
+    private readonly int?                                 _successStatusCode;
 
     /// <summary>
     ///     A class used to build HTTP results based on the functional result model.
     /// </summary>
     public ResultHttpBuilder(Result             result,
-                             IFailureHttpMapper failureMapper)
+                             IFailureHttpMapper? failureMapper)
         : this(new ValueTask<Result>(result), failureMapper)
     {
     }
@@ -37,15 +37,15 @@ public sealed class ResultHttpBuilder
     ///     of functional results in ASP.NET Core by mapping successes and failures efficiently.
     /// </summary>
     public ResultHttpBuilder(ValueTask<Result>  awaitableResult,
-                             IFailureHttpMapper failureMapper)
+                             IFailureHttpMapper? failureMapper)
         : this(awaitableResult, failureMapper, null)
     {
     }
 
     private ResultHttpBuilder(ValueTask<Result>                    awaitableResult,
-                              IFailureHttpMapper                   failureMapper,
+                              IFailureHttpMapper?                   failureMapper,
                               IReadOnlyDictionary<string, string>? headers           = null,
-                              int                                  successStatusCode = 204)
+                              int?                                 successStatusCode = null)
     {
         _awaitableResult   = awaitableResult;
         _failureMapper     = failureMapper;
@@ -116,13 +116,28 @@ public sealed class ResultHttpBuilder
 
     private IHttpResult OnFailure(Failure failure)
     {
-        var response = _failureMapper.GetFailureResponse(failure);
-        return OnFailure(response);
+        return OnFailure(_failureMapper, failure);
     }
 
     private IHttpResult OnSuccess()
     {
-        return OnSuccess(_headers, _successStatusCode);
+        if (_successStatusCode is { } statusCode) {
+            return OnSuccess(_headers, statusCode);
+        }
+
+        var headers = _headers;
+        return new DeferredHttpResult(ctx => OnSuccess(headers,
+                                                       ctx.GetAdapterPolicy().ResultSuccessBehavior == ResultSuccessHttpBehavior.Ok
+                                                           ? StatusCodes.Status200OK
+                                                           : StatusCodes.Status204NoContent));
+    }
+
+    internal static IHttpResult OnFailure(IFailureHttpMapper? failureMapper,
+                                          Failure             failure)
+    {
+        return failureMapper is not null
+                   ? OnFailure(failureMapper.GetFailureResponse(failure))
+                   : new DeferredHttpResult(ctx => OnFailure(ctx.GetFailureMapper().GetFailureResponse(failure)));
     }
 
     internal static IHttpResult OnFailure(FailureHttpResponse? failureHttpResponse)
@@ -183,7 +198,7 @@ public sealed class ResultHttpBuilder<TValue> : ResultHttpBuilder<TValue, TValue
     ///     parameterized by a value type.
     /// </summary>
     public ResultHttpBuilder(Result<TValue>     result,
-                             IFailureHttpMapper failureMapper)
+                             IFailureHttpMapper? failureMapper)
         : base(result, failureMapper)
     {
     }
@@ -192,7 +207,7 @@ public sealed class ResultHttpBuilder<TValue> : ResultHttpBuilder<TValue, TValue
     ///     A class responsible for constructing HTTP responses based on the Result functional model.
     /// </summary>
     public ResultHttpBuilder(ValueTask<Result<TValue>> awaitableResult,
-                             IFailureHttpMapper        failureMapper)
+                             IFailureHttpMapper?        failureMapper)
         : base(awaitableResult, failureMapper)
     {
     }
@@ -208,7 +223,7 @@ public class ResultHttpBuilder<TValue, TResponse>
     where TValue : notnull
 {
     private readonly ValueTask<Result<TValue>>            _awaitableResult;
-    private readonly IFailureHttpMapper                   _failureMapper;
+    private readonly IFailureHttpMapper?                   _failureMapper;
     private readonly IReadOnlyDictionary<string, string>? _headers;
     private readonly Func<TValue, string>?                _locationFactory;
     private readonly Func<TValue, TResponse>?             _responseFormatter;
@@ -219,7 +234,7 @@ public class ResultHttpBuilder<TValue, TResponse>
     ///     tailored specifically for a single type of response value.
     /// </summary>
     public ResultHttpBuilder(Result<TValue>     result,
-                             IFailureHttpMapper failureMapper)
+                             IFailureHttpMapper? failureMapper)
         : this(new ValueTask<Result<TValue>>(result), failureMapper, null)
     {
     }
@@ -229,13 +244,13 @@ public class ResultHttpBuilder<TValue, TResponse>
     ///     specializing in mapping failure responses and optionally formatting successful responses.
     /// </summary>
     public ResultHttpBuilder(ValueTask<Result<TValue>> awaitableResult,
-                             IFailureHttpMapper        failureMapper)
+                             IFailureHttpMapper?        failureMapper)
         : this(awaitableResult, failureMapper, null)
     {
     }
 
     private ResultHttpBuilder(ValueTask<Result<TValue>>            awaitableResult,
-                              IFailureHttpMapper                   failureMapper,
+                              IFailureHttpMapper?                   failureMapper,
                               Func<TValue, TResponse>?             responseFormatter = null,
                               IReadOnlyDictionary<string, string>? headers           = null,
                               int                                  successStatusCode = 200,
@@ -376,8 +391,7 @@ public class ResultHttpBuilder<TValue, TResponse>
 
     private IHttpResult OnFailure(Failure failure)
     {
-        var response = _failureMapper.GetFailureResponse(failure);
-        return ResultHttpBuilder.OnFailure(response);
+        return ResultHttpBuilder.OnFailure(_failureMapper, failure);
     }
 
     private IHttpResult OnSuccess(TValue value)

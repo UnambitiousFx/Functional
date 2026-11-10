@@ -12,15 +12,15 @@ namespace UnambitiousFx.Functional.AspNetCore.Mvc;
 public sealed class ResultMvcBuilder
 {
     private readonly ValueTask<Result>                    _awaitableResult;
-    private readonly IFailureHttpMapper                   _failureMapper;
+    private readonly IFailureHttpMapper?                   _failureMapper;
     private readonly IReadOnlyDictionary<string, string>? _headers;
-    private readonly int                                  _successStatusCode;
+    private readonly int?                                 _successStatusCode;
 
     /// <summary>
     ///     Initializes a new <see cref="ResultMvcBuilder" /> from a synchronous <see cref="Result" />.
     /// </summary>
     public ResultMvcBuilder(Result             result,
-                            IFailureHttpMapper failureMapper)
+                            IFailureHttpMapper? failureMapper)
         : this(new ValueTask<Result>(result), failureMapper)
     {
     }
@@ -29,15 +29,15 @@ public sealed class ResultMvcBuilder
     ///     Initializes a new <see cref="ResultMvcBuilder" /> from an asynchronous <see cref="Result" />.
     /// </summary>
     public ResultMvcBuilder(ValueTask<Result>  awaitableResult,
-                            IFailureHttpMapper failureMapper)
+                            IFailureHttpMapper? failureMapper)
         : this(awaitableResult, failureMapper, null)
     {
     }
 
     private ResultMvcBuilder(ValueTask<Result>                    awaitableResult,
-                             IFailureHttpMapper                   failureMapper,
+                             IFailureHttpMapper?                   failureMapper,
                              IReadOnlyDictionary<string, string>? headers           = null,
-                             int                                  successStatusCode = 204)
+                             int?                                 successStatusCode = null)
     {
         _awaitableResult   = awaitableResult;
         _failureMapper     = failureMapper;
@@ -87,13 +87,28 @@ public sealed class ResultMvcBuilder
 
     private IActionResult OnFailure(Failure failure)
     {
-        var response = _failureMapper.GetFailureResponse(failure);
-        return OnFailure(response);
+        return OnFailure(_failureMapper, failure);
     }
 
     private IActionResult OnSuccess()
     {
-        return OnSuccess(_headers, _successStatusCode);
+        if (_successStatusCode is { } statusCode) {
+            return OnSuccess(_headers, statusCode);
+        }
+
+        var headers = _headers;
+        return new DeferredActionResult(ctx => OnSuccess(headers,
+                                                         ctx.GetAdapterPolicy().ResultSuccessBehavior == ResultSuccessHttpBehavior.Ok
+                                                             ? StatusCodes.Status200OK
+                                                             : StatusCodes.Status204NoContent));
+    }
+
+    internal static IActionResult OnFailure(IFailureHttpMapper? failureMapper,
+                                            Failure             failure)
+    {
+        return failureMapper is not null
+                   ? OnFailure(failureMapper.GetFailureResponse(failure))
+                   : new DeferredActionResult(ctx => OnFailure(ctx.GetFailureMapper().GetFailureResponse(failure)));
     }
 
     internal static IActionResult OnFailure(FailureHttpResponse? failureHttpResponse)
@@ -158,7 +173,7 @@ public sealed class ResultMvcBuilder<TValue> : ResultMvcBuilder<TValue, TValue>
     ///     Initializes a new <see cref="ResultMvcBuilder{TValue}" /> from a synchronous <see cref="Result{TValue}" />.
     /// </summary>
     public ResultMvcBuilder(Result<TValue>     result,
-                            IFailureHttpMapper failureMapper)
+                            IFailureHttpMapper? failureMapper)
         : base(result, failureMapper)
     {
     }
@@ -167,7 +182,7 @@ public sealed class ResultMvcBuilder<TValue> : ResultMvcBuilder<TValue, TValue>
     ///     Initializes a new <see cref="ResultMvcBuilder{TValue}" /> from an asynchronous <see cref="Result{TValue}" />.
     /// </summary>
     public ResultMvcBuilder(ValueTask<Result<TValue>> awaitableResult,
-                            IFailureHttpMapper        failureMapper)
+                            IFailureHttpMapper?        failureMapper)
         : base(awaitableResult, failureMapper)
     {
     }
@@ -182,7 +197,7 @@ public class ResultMvcBuilder<TValue, TResponse>
     where TValue : notnull
 {
     private readonly ValueTask<Result<TValue>>            _awaitableResult;
-    private readonly IFailureHttpMapper                   _failureMapper;
+    private readonly IFailureHttpMapper?                   _failureMapper;
     private readonly IReadOnlyDictionary<string, string>? _headers;
     private readonly Func<TValue, string>?                _locationFactory;
     private readonly Func<TValue, TResponse>?             _responseFormatter;
@@ -192,7 +207,7 @@ public class ResultMvcBuilder<TValue, TResponse>
     ///     Initializes a new <see cref="ResultMvcBuilder{TValue, TResponse}" /> from a synchronous result.
     /// </summary>
     public ResultMvcBuilder(Result<TValue>     result,
-                            IFailureHttpMapper failureMapper)
+                            IFailureHttpMapper? failureMapper)
         : this(new ValueTask<Result<TValue>>(result), failureMapper, null)
     {
     }
@@ -201,13 +216,13 @@ public class ResultMvcBuilder<TValue, TResponse>
     ///     Initializes a new <see cref="ResultMvcBuilder{TValue, TResponse}" /> from an asynchronous result.
     /// </summary>
     public ResultMvcBuilder(ValueTask<Result<TValue>> awaitableResult,
-                            IFailureHttpMapper        failureMapper)
+                            IFailureHttpMapper?        failureMapper)
         : this(awaitableResult, failureMapper, null)
     {
     }
 
     private ResultMvcBuilder(ValueTask<Result<TValue>>            awaitableResult,
-                             IFailureHttpMapper                   failureMapper,
+                             IFailureHttpMapper?                   failureMapper,
                              Func<TValue, TResponse>?             responseFormatter = null,
                              IReadOnlyDictionary<string, string>? headers           = null,
                              int                                  successStatusCode = 200,
@@ -310,8 +325,7 @@ public class ResultMvcBuilder<TValue, TResponse>
 
     private IActionResult OnFailure(Failure failure)
     {
-        var response = _failureMapper.GetFailureResponse(failure);
-        return ResultMvcBuilder.OnFailure(response);
+        return ResultMvcBuilder.OnFailure(_failureMapper, failure);
     }
 
     private IActionResult OnSuccess(TValue value)

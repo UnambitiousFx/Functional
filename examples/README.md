@@ -280,16 +280,16 @@ Result.Failure<User>(new UnauthorizedFailure("Admin access required"));
 Seamlessly convert functional types to HTTP results:
 
 ```csharp
-app.MapGet("/api/users/{id}", (string id) =>
+app.MapGet("/api/users/{id}", async (string id) =>
 {
     var result = GetUser(id);
-    return result.ToHttpResult(); // Automatic status code mapping
+    return await result.AsHttpBuilder(); // Automatic status code mapping
 });
 
-app.MapGet("/api/profiles/{id}", (string id) =>
+app.MapGet("/api/profiles/{id}", async (string id) =>
 {
-  var maybe = TryGetProfile(id);
-  return maybe.ToHttpResult(); // Some -> 200, None -> 404 (default)
+    var maybe = TryGetProfile(id);
+    return await maybe.AsHttpBuilder(); // Some -> 200, None -> 404 (default)
 });
 ```
 
