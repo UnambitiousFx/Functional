@@ -323,12 +323,20 @@ public class ResultHttpExtensionsTests
 
     private static IHttpResult UnwrapWrappedResult(IHttpResult result)
     {
+        // Deferred results pick the registered mapper/policy at execution; resolve without services.
+        if (result is UnambitiousFx.Functional.AspNetCore.Http.DeferredHttpResult deferred) {
+            result = deferred.Resolve(new Microsoft.AspNetCore.Http.DefaultHttpContext());
+        }
         var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         return innerField?.GetValue(result) as IHttpResult ?? result;
     }
 
     private static IReadOnlyDictionary<string, string>? GetWrappedHeaders(IHttpResult result)
     {
+        if (result is UnambitiousFx.Functional.AspNetCore.Http.DeferredHttpResult deferred) {
+            result = deferred.Resolve(new Microsoft.AspNetCore.Http.DefaultHttpContext());
+        }
+
         var headersField = result.GetType().GetField("_headers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         return headersField?.GetValue(result) as IReadOnlyDictionary<string, string>;
     }

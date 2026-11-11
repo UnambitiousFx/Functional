@@ -8,7 +8,7 @@ APIs and MVC controllers, with predictable defaults and zero boilerplate for com
 - ✅ **AOT-Compatible**: Designed for Native AOT compilation
 - ✅ **Minimal API Support**: Convert `Result<T>` / `Maybe<T>` to `IResult`
 - ✅ **MVC Controller Support**: Convert `Result<T>` / `Maybe<T>` to `IActionResult`
-- ✅ **async-first**: First-class `ValueTask<Result<T>>` and `Task<Result<T>>` overloads
+- ✅ **async-first**: First-class `ValueTask<Result<T>>` and `ValueTask<Maybe<T>>` overloads
 - ✅ **Policy-based defaults**: Configure success/none HTTP behavior globally via `AddResultHttp`
 - ✅ **Extensible Error Mapping**: Typed helper builders and chain-of-responsibility mapper pipeline
 - ✅ **Problem Details**: RFC 7807 compliant error responses out of the box
@@ -21,13 +21,20 @@ dotnet add package UnambitiousFx.Functional.AspNetCore
 
 ## Setup
 
-Register the required services once in your app startup:
+Register the services once in your app startup:
 
 ```csharp
 builder.Services.AddResultHttp();
 ```
 
+The mappers and policy configured here are read from the request services when the response is written, so every
+`AsHttpBuilder()` / `AsActionResultBuilder()` call without an explicit mapper uses them. Without `AddResultHttp`, the
+built-in defaults apply.
+
 ## Quick Start
+
+The builders are awaitable: `await result.AsHttpBuilder()` gives an `IResult`, `await result.AsActionResultBuilder()`
+gives an `IActionResult`.
 
 ### Minimal API
 
@@ -41,19 +48,19 @@ var app = builder.Build();
 
 // Result<T> — success: 200 OK with value, failure: mapped error status
 app.MapGet("/users/{id:guid}", async (Guid id, IUserService svc) =>
-    await svc.GetUserAsync(id).ToHttpResult());
+    await svc.GetUserAsync(id).AsHttpBuilder());
 
 // Maybe<T> — Some: 200 OK with value, None: 404 Not Found (by default)
 app.MapGet("/profiles/{id:guid}", async (Guid id, IProfileService svc) =>
-    await svc.TryGetProfileAsync(id).ToHttpResult());
+    await svc.TryGetProfileAsync(id).AsHttpBuilder());
 
-// Result (non-generic) — success: 204 No Content, failure: mapped error status
+// Result (non-generic) — success: 204 No Content (by default), failure: mapped error status
 app.MapDelete("/users/{id:guid}", async (Guid id, IUserService svc) =>
-    await svc.DeleteUserAsync(id).ToHttpResult());
+    await svc.DeleteUserAsync(id).AsHttpBuilder());
 
 // Created response from Result<T>
 app.MapPost("/users", async (CreateUserRequest req, IUserService svc) =>
-    await svc.CreateUserAsync(req).ToCreatedHttpResult(user => $"/users/{user.Id}"));
+    await svc.CreateUserAsync(req).AsHttpBuilder().AsCreated(user => $"/users/{user.Id}"));
 
 app.Run();
 ```
@@ -73,23 +80,23 @@ public class UsersController : ControllerBase
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetUser(Guid id)
-        => await _svc.GetUserAsync(id).ToActionResult();
+        => await _svc.GetUserAsync(id).AsActionResultBuilder();
 
     [HttpGet("profiles/{id:guid}")]
     public async Task<IActionResult> GetProfile(Guid id)
         // Maybe<T> — Some: 200 OK, None: 404 Not Found (by default)
-        => await _svc.TryGetProfileAsync(id).ToActionResult();
+        => await _svc.TryGetProfileAsync(id).AsActionResultBuilder();
 
     [HttpPost]
     public async Task<IActionResult> CreateUser(CreateUserRequest req)
-        // Pass a success mapper lambda to return 201 Created
         => await _svc.CreateUserAsync(req)
-            .ToActionResult(user => new CreatedAtActionResult(
-                nameof(GetUser), null, new { id = user.Id }, user));
+                     .AsActionResultBuilder()
+                     .WithResponseFormatter(user => new UserDto(user))
+                     .AsCreated(user => $"/api/users/{user.Id}");
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id)
-        => await _svc.DeleteUserAsync(id).ToActionResult();
+        => await _svc.DeleteUserAsync(id).AsActionResultBuilder();
 }
 ```
 
@@ -156,18 +163,22 @@ builder.Services.AddResultHttp(options =>
 | `NotFound` (default) | `Maybe<T>` None → 404 Not Found  |
 | `NoContent`          | `Maybe<T>` None → 204 No Content |
 
-### Per-endpoint policy override
+### Per-endpoint override
 
-The global policy can be overridden at any call site:
+The builders override the global policy and mappers at any call site:
 
 ```csharp
-var policy = new ResultHttpAdapterPolicy
-{
-    ResultSuccessBehavior = ResultSuccessHttpBehavior.Ok
-};
-
+// Status code on success, instead of the policy default
 app.MapPost("/publish", async (IPublishService svc) =>
-    await svc.PublishAsync().ToHttpResult(policy: policy));
+    await svc.PublishAsync().AsHttpBuilder().WithStatusCode(StatusCodes.Status200OK));
+
+// Response on None, instead of the policy default
+app.MapGet("/drafts/{id}", async (string id, IDraftService svc) =>
+    await svc.TryGetAsync(id).AsHttpBuilder().AsNone(() => Results.NoContent()));
+
+// Explicit mapper, instead of the one registered by AddResultHttp
+app.MapGet("/legacy/{id}", async (string id, ILegacyService svc) =>
+    await svc.GetAsync(id).AsHttpBuilder(new LegacyFailureMapper()));
 ```
 
 ### Custom error mappers
@@ -249,59 +260,27 @@ Custom mappers registered via `AddMapper` are tried in the order they are added,
 
 ### Minimal API (`IResult`) — namespace `UnambitiousFx.Functional.AspNetCore.Http`
 
-#### `Result` (non-generic)
+| Entry point                                 | Available on                                                                         |
+|---------------------------------------------|--------------------------------------------------------------------------------------|
+| `AsHttpBuilder(failureMapper?)`             | `Result`, `ValueTask<Result>`, `Result<T>`, `ValueTask<Result<T>>`                   |
+| `AsHttpBuilder()`                           | `Maybe<T>`, `ValueTask<Maybe<T>>`                                                    |
 
-| Method                                                | Success                                     | Failure      |
-|-------------------------------------------------------|---------------------------------------------|--------------|
-| `ToHttpResult(successMapper?, failureMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
+| Builder method                   | Result | Result&lt;T&gt; | Maybe&lt;T&gt; | Effect                                                          |
+|----------------------------------|:------:|:---------------:|:--------------:|-----------------------------------------------------------------|
+| `WithStatusCode(int)`            |   ✓    |        ✓        |       ✓        | Success status code (default `200`; `Result`: `204`/`200` per policy) |
+| `WithHeader(key, value)`         |   ✓    |        ✓        |       ✓        | Adds a response header on success                               |
+| `WithResponseFormatter(v => …)`  |        |        ✓        |       ✓        | Maps the value to the response body                             |
+| `AsCreated(v => location)`       |        |        ✓        |       ✓        | `201 Created` with a `Location` header                          |
+| `AsNone(() => IResult)`          |        |                 |       ✓        | Response on None (default `404`/`204` per policy)               |
 
-Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
-
-#### `Result<T>`
-
-| Method                                               | Success                                   | Failure      |
-|------------------------------------------------------|-------------------------------------------|--------------|
-| `ToHttpResult(successMapper?, failureMapper?)`         | `successMapper(value)` or `200 OK(value)` | Mapped error |
-| `ToCreatedHttpResult(locationFactory, failureMapper?)` | `201 Created(location, value)`            | Mapped error |
-
-Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
-
-#### `Maybe<T>`
-
-| Method                                                       | Some                                   | None                                     |
-|--------------------------------------------------------------|----------------------------------------|------------------------------------------|
-| `ToHttpResult(someMapper?, noneMapper?, policy?)`            | `someMapper(value)` or `200 OK(value)` | `noneMapper()` or `404`/`204` per policy |
-| `ToCreatedHttpResult(locationFactory, noneMapper?, policy?)` | `201 Created(location, value)`         | `noneMapper()` or `404`/`204` per policy |
-
-Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
+Failures go through `failureMapper` when given, else the mapper registered by `AddResultHttp`, else the default mapper.
 
 ---
 
 ### MVC (`IActionResult`) — namespace `UnambitiousFx.Functional.AspNetCore.Mvc`
 
-#### `Result` (non-generic)
-
-| Method                                                  | Success                                     | Failure      |
-|---------------------------------------------------------|---------------------------------------------|--------------|
-| `ToActionResult(successMapper?, failureMapper?, policy?)` | `successMapper()` or `204`/`200` per policy | Mapped error |
-
-Available on: `Result`, `ValueTask<Result>`, `Task<Result>`.
-
-#### `Result<T>`
-
-| Method                                         | Success                                           | Failure      |
-|------------------------------------------------|---------------------------------------------------|--------------|
-| `ToActionResult(successMapper?, failureMapper?)` | `successMapper(value)` or `OkObjectResult(value)` | Mapped error |
-
-Available on: `Result<T>`, `ValueTask<Result<T>>`, `Task<Result<T>>`.
-
-#### `Maybe<T>`
-
-| Method                                              | Some                                           | None                                     |
-|-----------------------------------------------------|------------------------------------------------|------------------------------------------|
-| `ToActionResult(someMapper?, noneMapper?, policy?)` | `someMapper(value)` or `OkObjectResult(value)` | `noneMapper()` or `404`/`204` per policy |
-
-Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
+`AsActionResultBuilder(failureMapper?)` on the same types, with the same builder methods. `AsNone` takes a
+`Func<IActionResult>`.
 
 ---
 
@@ -337,13 +316,15 @@ public interface IFailureHttpMapper
 
 ## Migration from v1
 
-| v1                                                            | v2                                                                              |
-|---------------------------------------------------------------|---------------------------------------------------------------------------------|
-| `result.ToHttpResult(v => dto)`                               | `result.ToHttpResult(v => Results.Ok(dto))`                                     |
-| `result.ToCreatedHttpResult(loc, v => dto)`                   | `result.ToCreatedHttpResult(loc)` — value returned directly                     |
-| `result.ToCreatedActionResult("Get", ctrl, routes)`           | `result.ToActionResult(v => new CreatedAtActionResult("Get", ctrl, routes, v))` |
-| `options.UseProblemDetails = true`                            | Removed — Problem Details is always on                                          |
-| Implicit `IFailureHttpMapper.GetStatusCode` / `GetResponseBody` | Implement `GetFailureResponse(IFailure)` → `FailureHttpResponse?`                   |
+| v1                                                              | v2                                                                                    |
+|-----------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| `result.ToHttpResult()`                                         | `await result.AsHttpBuilder()`                                                        |
+| `result.ToHttpResult(v => dto)`                                 | `await result.AsHttpBuilder().WithResponseFormatter(v => dto)`                        |
+| `result.ToCreatedHttpResult(loc)`                               | `await result.AsHttpBuilder().AsCreated(loc)`                                         |
+| `result.ToActionResult()`                                       | `await result.AsActionResultBuilder()`                                                |
+| `result.ToCreatedActionResult(...)`                             | `await result.AsActionResultBuilder().AsCreated(v => location)`                       |
+| `options.UseProblemDetails = true`                              | Removed — Problem Details is always on                                                |
+| Implicit `IFailureHttpMapper.GetStatusCode` / `GetResponseBody` | Implement `GetFailureResponse(IFailure)` → `FailureHttpResponse?`                     |
 
 ## Thread Safety
 

@@ -167,7 +167,7 @@ await service.GetUserAsync(id).AsHttpBuilder(new MyFailureHttpMapper());        
 await service.GetUserAsync(id).AsActionResultBuilder(new MyFailureHttpMapper());  // MVC
 ```
 
-When omitted, the builders use `DefaultFailureHttpMapper`.
+When omitted, the builders use the mapper registered by `AddResultHttp`, or `DefaultFailureHttpMapper` when none is registered.
 
 ## Composing mappers manually
 
@@ -181,7 +181,7 @@ var mapper = new CompositeFailureHttpMapper(
 
 ## Adapter policy
 
-`ResultHttpAdapterPolicy` (exposed via `options.Policy`) tunes default behavior and is registered as a singleton by `AddResultHttp`:
+`ResultHttpAdapterPolicy` (exposed via `options.Policy`) tunes default behavior. It is registered as a singleton by `AddResultHttp` and read by the builders when the response is written:
 
 ```csharp
 builder.Services.AddResultHttp(options =>
@@ -197,7 +197,7 @@ builder.Services.AddResultHttp(options =>
 
 - `ResultSuccessBehavior` — how a successful non-generic `Result` maps when no explicit success mapper is given (`NoContent` → 204, `Ok` → 200).
 - `MaybeNoneBehavior` — how `Maybe.None` maps when no `AsNone` mapper is given (`NotFound` → 404, `NoContent` → 204).
-- `IncludeExceptionDetails` — whether 500 responses from the default mapper include the failure message and, for an `ExceptionalFailure`, `exceptionType` and `stackTrace` extensions. When `false` (the default), 500 responses carry only `title`, `status` and `type`. Enable only in development. The builders' fallback mapper (no mapper passed) always hides these details.
+- `IncludeExceptionDetails` — whether 500 responses from the default mapper include the failure message and, for an `ExceptionalFailure`, `exceptionType` and `stackTrace` extensions. When `false` (the default), 500 responses carry only `title`, `status` and `type`. Enable only in development.
 
 ## Composition guidelines
 

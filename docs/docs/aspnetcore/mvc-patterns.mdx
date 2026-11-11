@@ -14,7 +14,7 @@ using UnambitiousFx.Functional.AspNetCore.Mvc;
 
 ## The builder entry points
 
-`AsActionResultBuilder` is the entry point, overloaded for synchronous and asynchronous (`ValueTask`) values, with an optional `IFailureHttpMapper` (defaults to `DefaultFailureHttpMapper`):
+`AsActionResultBuilder` is the entry point, overloaded for synchronous and asynchronous (`ValueTask`) values, with an optional `IFailureHttpMapper` (defaults to the mapper registered by `AddResultHttp`, else `DefaultFailureHttpMapper`):
 
 ```csharp
 // Result (no value)  → ResultMvcBuilder
@@ -122,29 +122,22 @@ public async Task<IActionResult> GetDraft(Guid id)
                      .AsNone(() => NoContent());
 ```
 
-## Injecting the mapper
+## The registered mapper
 
-Register the mapper once with [`AddResultHttp`](./custom-mappers), then inject `IFailureHttpMapper` and hand it to the builder so every controller shares the same error contract:
+Register the mapper once with [`AddResultHttp`](./custom-mappers). `AsActionResultBuilder()` without a mapper reads it from the request services when the result executes, so every controller shares the same error contract without injecting anything:
 
 ```csharp
 [ApiController]
 [Route("api/orders")]
-public sealed class OrdersController : ControllerBase
+public sealed class OrdersController(IOrderService service) : ControllerBase
 {
-    private readonly IOrderService _service;
-    private readonly IFailureHttpMapper _mapper;
-
-    public OrdersController(IOrderService service, IFailureHttpMapper mapper)
-    {
-        _service = service;
-        _mapper = mapper;
-    }
-
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
-        => await _service.GetOrderAsync(id).AsActionResultBuilder(_mapper);
+        => await service.GetOrderAsync(id).AsActionResultBuilder();
 }
 ```
+
+Pass a mapper (`AsActionResultBuilder(mapper)`) only to override it for one action.
 
 ## Guidance
 

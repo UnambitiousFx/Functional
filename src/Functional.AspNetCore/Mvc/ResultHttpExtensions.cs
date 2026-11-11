@@ -14,7 +14,7 @@ public static class ResultHttpExtensions {
     /// </summary>
     public static ResultMvcBuilder AsActionResultBuilder(this Result         result,
                                                          IFailureHttpMapper? failureMapper = null) {
-        return new ResultMvcBuilder(result, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultMvcBuilder(result, failureMapper);
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ public static class ResultHttpExtensions {
     /// </summary>
     public static ResultMvcBuilder AsActionResultBuilder(this ValueTask<Result> resultTask,
                                                          IFailureHttpMapper?    failureMapper = null) {
-        return new ResultMvcBuilder(resultTask, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultMvcBuilder(resultTask, failureMapper);
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public static class ResultHttpExtensions {
     public static ResultMvcBuilder<TValue> AsActionResultBuilder<TValue>(this Result<TValue> result,
                                                                          IFailureHttpMapper? failureMapper = null)
         where TValue : notnull {
-        return new ResultMvcBuilder<TValue>(result, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultMvcBuilder<TValue>(result, failureMapper);
     }
 
     /// <summary>
@@ -40,6 +40,6 @@ public static class ResultHttpExtensions {
     public static ResultMvcBuilder<TValue> AsActionResultBuilder<TValue>(this ValueTask<Result<TValue>> resultTask,
                                                                          IFailureHttpMapper?            failureMapper = null)
         where TValue : notnull {
-        return new ResultMvcBuilder<TValue>(resultTask, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultMvcBuilder<TValue>(resultTask, failureMapper);
     }
 }

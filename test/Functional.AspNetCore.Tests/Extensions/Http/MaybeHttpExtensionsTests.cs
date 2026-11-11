@@ -169,6 +169,10 @@ public class MaybeHttpExtensionsTests
 
     private static Microsoft.AspNetCore.Http.IResult UnwrapWrappedResult(Microsoft.AspNetCore.Http.IResult result)
     {
+        // Deferred results pick the registered mapper/policy at execution; resolve without services.
+        if (result is UnambitiousFx.Functional.AspNetCore.Http.DeferredHttpResult deferred) {
+            result = deferred.Resolve(new Microsoft.AspNetCore.Http.DefaultHttpContext());
+        }
         var innerField = result.GetType().GetField("_inner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         return innerField?.GetValue(result) as Microsoft.AspNetCore.Http.IResult ?? result;
     }

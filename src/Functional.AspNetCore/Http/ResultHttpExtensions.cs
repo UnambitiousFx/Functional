@@ -11,12 +11,12 @@ public static class ResultHttpExtensions
     ///     Creates a fluent builder for converting a Result to an IResult with customizable HTTP response settings.
     /// </summary>
     /// <param name="result">The result to convert.</param>
-    /// <param name="failureMapper">Optional custom failure mapper. Uses default mapper if not provided.</param>
+    /// <param name="failureMapper">Optional custom failure mapper. Uses the mapper registered by <c>AddResultHttp</c> if not provided, else the default mapper.</param>
     /// <returns>A <see cref="ResultHttpBuilder" /> for configuring the HTTP response.</returns>
     public static ResultHttpBuilder AsHttpBuilder(this Result         result,
                                                   IFailureHttpMapper? failureMapper = null)
     {
-        return new ResultHttpBuilder(result, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultHttpBuilder(result, failureMapper);
     }
 
     /// <summary>
@@ -26,21 +26,21 @@ public static class ResultHttpExtensions
     public static ResultHttpBuilder AsHttpBuilder(this ValueTask<Result> resultTask,
                                                   IFailureHttpMapper?    failureMapper = null)
     {
-        return new ResultHttpBuilder(resultTask, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultHttpBuilder(resultTask, failureMapper);
     }
 
     /// <summary>
     ///     Creates a fluent builder for converting a Result&lt;T&gt; to an IResult with customizable HTTP response settings.
     /// </summary>
     /// <param name="result">The result to convert.</param>
-    /// <param name="failureMapper">Optional custom failure mapper. Uses default mapper if not provided.</param>
+    /// <param name="failureMapper">Optional custom failure mapper. Uses the mapper registered by <c>AddResultHttp</c> if not provided, else the default mapper.</param>
     /// <typeparam name="TValue">The type of the success value.</typeparam>
     /// <returns>A <see cref="ResultHttpBuilder{TValue}" /> for configuring the HTTP response.</returns>
     public static ResultHttpBuilder<TValue> AsHttpBuilder<TValue>(this Result<TValue> result,
                                                                   IFailureHttpMapper? failureMapper = null)
         where TValue : notnull
     {
-        return new ResultHttpBuilder<TValue>(result, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultHttpBuilder<TValue>(result, failureMapper);
     }
 
     /// <summary>
@@ -51,6 +51,6 @@ public static class ResultHttpExtensions
                                                                   IFailureHttpMapper?            failureMapper = null)
         where TValue : notnull
     {
-        return new ResultHttpBuilder<TValue>(resultTask, failureMapper ?? DefaultFailureHttpMapper.Instance);
+        return new ResultHttpBuilder<TValue>(resultTask, failureMapper);
     }
 }
