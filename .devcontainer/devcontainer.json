@@ -1,6 +1,6 @@
 {
-    "name": "Functional (.NET 11 preview)",
-    "image": "mcr.microsoft.com/dotnet/nightly/sdk:11.0-preview",
+    "name": "Functional (.NET 11)",
+    "image": "mcr.microsoft.com/dotnet/sdk:11.0",
     "customizations": {
         "vscode": {
             "extensions": [
