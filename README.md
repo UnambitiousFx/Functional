@@ -14,7 +14,7 @@ type-safe.
 ## 🔧 Compatibility & support
 
 - **Dependency-free**: No external runtime dependencies — the library is dependency-less at runtime.
-- **Supported .NET versions**: `net8.0`, `net9.0`, and `net10.0`.
+- **Supported .NET versions**: `net8.0`, `net9.0`, `net10.0`, and `net11.0`.
 
 ## 🎯 Features
 
