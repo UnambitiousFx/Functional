@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.AspNetCore.Mappers;
 using UnambitiousFx.Functional.Failures;
@@ -121,6 +122,44 @@ public class CodeMappingTests
         Assert.Equal(FailureCodes.Conflict, problem.Extensions["code"]);
         Assert.DoesNotContain("internal", problem.Extensions);
         Assert.DoesNotContain("line",     problem.Extensions);
+    }
+
+    [Theory]
+    [InlineData("type")]
+    [InlineData("title")]
+    [InlineData("status")]
+    [InlineData("detail")]
+    [InlineData("instance")]
+    [InlineData("Status")]
+    public void ExposeMetadata_BuiltInProblemDetailsMember_Throws(string key)
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+
+        // Act & Assert (When/Then)
+        Assert.Throws<ArgumentException>(() => options.ExposeMetadata(key));
+    }
+
+    [Fact]
+    public void ExposeMetadata_SerializedResponse_WritesEachFieldOnce()
+    {
+        // Arrange (Given)
+        var mapper = new ResultHttpOptions().ExposeMetadata("freeBp").BuildMapper();
+        var failure = new ConflictFailure("Share exceeded.", new Dictionary<string, object?>
+        {
+            ["freeBp"] = 1200,
+            ["status"] = 200
+        });
+
+        // Act (When)
+        var json = JsonSerializer.Serialize(Problem(mapper, failure), new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        // Assert (Then)
+        using var document = JsonDocument.Parse(json);
+        var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
+        Assert.Equal(names.Length, names.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(409,  document.RootElement.GetProperty("status").GetInt32());
+        Assert.Equal(1200, document.RootElement.GetProperty("freeBp").GetInt32());
     }
 
     [Fact]

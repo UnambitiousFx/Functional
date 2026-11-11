@@ -93,7 +93,7 @@ builder.Services.AddResultHttp(options => options
 - An exact `MapCode` wins over a prefix; prefixes are tried in the order they are added.
 - `DefaultStatus` applies to failures with no built-in mapping and no code mapping, such as a plain `Failure`. Below 500 the response carries the failure message as `detail`; at 500 and above the message stays hidden unless `IncludeExceptionDetails` is on.
 - The default mapper always writes the failure `code` into the `ProblemDetails` extensions.
-- `ExposeMetadata` copies only the listed keys of `Failure.Metadata`, so internal metadata never leaks by default. A key never replaces an extension the mapper already wrote (`code`, `errors`, …).
+- `ExposeMetadata` copies only the listed keys of `Failure.Metadata`, so internal metadata never leaks by default. A key never replaces an extension the mapper already wrote (`code`, `errors`, …), and the built-in `ProblemDetails` members (`type`, `title`, `status`, `detail`, `instance`) are rejected with an `ArgumentException`.
 
 ```json
 // Failure("fx.sync_running", "A sync is running.") with MapCode("fx.sync_running", 409)

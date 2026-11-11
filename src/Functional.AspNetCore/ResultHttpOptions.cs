@@ -141,16 +141,28 @@ public sealed class ResultHttpOptions
     /// </summary>
     /// <param name="keys">The metadata keys to expose.</param>
     /// <returns>This options instance for fluent configuration.</returns>
+    /// <exception cref="ArgumentException">
+    ///     A key is empty or names a built-in <see cref="ProblemDetails" /> member (<c>type</c>, <c>title</c>,
+    ///     <c>status</c>, <c>detail</c> or <c>instance</c>, in any casing), which would produce a duplicate JSON field.
+    /// </exception>
     public ResultHttpOptions ExposeMetadata(params string[] keys)
     {
         ArgumentNullException.ThrowIfNull(keys);
         foreach (var key in keys) {
             ArgumentException.ThrowIfNullOrEmpty(key);
+            if (ReservedProblemDetailsMembers.Contains(key)) {
+                throw new ArgumentException($"'{key}' is a built-in ProblemDetails member and cannot be exposed as metadata.",
+                                            nameof(keys));
+            }
+
             ExposedMetadata.Add(key);
         }
 
         return this;
     }
+
+    private static readonly HashSet<string> ReservedProblemDetailsMembers =
+        new(StringComparer.OrdinalIgnoreCase) { "type", "title", "status", "detail", "instance" };
 
     private static int ValidStatus(int statusCode)
     {
