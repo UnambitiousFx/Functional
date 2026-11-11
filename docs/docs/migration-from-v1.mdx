@@ -38,7 +38,7 @@ If you pin versions centrally, update them in your `Directory.Packages.props`.
 
 ## 2. Target framework
 
-v2 supports `net8.0`, `net9.0`, and `net10.0`. If your project targets an older framework, retarget it before upgrading:
+v2 supports `net8.0`, `net9.0`, `net10.0`, and `net11.0`. If your project targets an older framework, retarget it before upgrading:
 
 ```xml
 <TargetFramework>net8.0</TargetFramework>
@@ -144,7 +144,7 @@ result.ShouldBe()
 ## Quick migration checklist
 
 - Update NuGet package versions to `2.0.0`.
-- Retarget to `net8.0`, `net9.0`, or `net10.0` if needed.
+- Retarget to `net8.0`, `net9.0`, `net10.0`, or `net11.0` if needed.
 - Ensure `using UnambitiousFx.Functional.Failures;` is present where you build or inspect failures.
 - Use `IsFailure` / `IsSuccess` and `TryGetFailure` / `TryGet` for state access.
 - Run your tests and confirm HTTP mapping expectations.

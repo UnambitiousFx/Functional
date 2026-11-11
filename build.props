@@ -8,7 +8,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
-        <LibraryTargetFrameworks>net8.0;net9.0;net10.0</LibraryTargetFrameworks>
+        <LibraryTargetFrameworks>net8.0;net9.0;net10.0;net11.0</LibraryTargetFrameworks>
         <LatestTargetFramework>net10.0</LatestTargetFramework>
     </PropertyGroup>
 
