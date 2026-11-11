@@ -138,7 +138,7 @@ public class DefaultFailureHttpMapperTests
         var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
         Assert.Equal(500, problemDetail.Status);
         Assert.Null(problemDetail.Detail);
-        Assert.Empty(problemDetail.Extensions);
+        Assert.Equal(FailureCodes.Exception, Assert.Single(problemDetail.Extensions).Value);
     }
 
     [Fact]

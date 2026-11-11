@@ -78,6 +78,28 @@ builder.Services.AddResultHttp(options =>
 
 `AddResultHttp` resolves the final mapper (a single mapper, or a `CompositeFailureHttpMapper` wrapping your custom mappers followed by the default) and registers it as a singleton, along with the `ResultHttpAdapterPolicy`.
 
+### Map a failure code to a status code
+
+Map failures by their `Code`, for plain `Failure(code, message)` with domain codes or third-party codes. Code mappings are checked after the type mappers above and before the built-in mapping by failure type. The body stays the one built for the failure type (a `ValidationFailure` keeps its `errors`), with the mapped status.
+
+```csharp
+builder.Services.AddResultHttp(options => options
+    .MapCode("fx.sync_running", 409)            // exact code, ordinal
+    .MapCodePrefix("documents.", 413)           // any code starting with "documents."
+    .DefaultStatus(422)                         // failures with no mapping, instead of 500
+    .ExposeMetadata("freeBp", "line"));         // copied into ProblemDetails extensions
+```
+
+- An exact `MapCode` wins over a prefix; prefixes are tried in the order they are added.
+- `DefaultStatus` applies to failures with no built-in mapping and no code mapping, such as a plain `Failure`. Below 500 the response carries the failure message as `detail`; at 500 and above the message stays hidden unless `IncludeExceptionDetails` is on.
+- The default mapper always writes the failure `code` into the `ProblemDetails` extensions.
+- `ExposeMetadata` copies only the listed keys of `Failure.Metadata`, so internal metadata never leaks by default. A key never replaces an extension the mapper already wrote (`code`, `errors`, …), and the built-in `ProblemDetails` members (`type`, `title`, `status`, `detail`, `instance`) are rejected with an `ArgumentException`.
+
+```json
+// Failure("fx.sync_running", "A sync is running.") with MapCode("fx.sync_running", 409)
+{ "title": "An error occurred.", "status": 409, "detail": "A sync is running.", "code": "fx.sync_running" }
+```
+
 ## Writing a full custom mapper
 
 Implement `IFailureHttpMapper` when you want to map several failure types in one place. Return `null` for failures you don't handle so the chain can fall through to the default mapper:

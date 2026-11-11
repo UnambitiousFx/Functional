@@ -15,7 +15,11 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
     /// </summary>
     internal static IFailureHttpMapper Instance { get; } = new DefaultFailureHttpMapper();
 
-    private readonly bool _includeExceptionDetails;
+    private readonly Dictionary<string, int>?    _codeStatuses;
+    private readonly int                         _defaultStatusCode = (int)HttpStatusCode.InternalServerError;
+    private readonly string[]                    _exposedMetadata   = [];
+    private readonly bool                        _includeExceptionDetails;
+    private readonly KeyValuePair<string, int>[] _prefixStatuses    = [];
 
     /// <summary>
     ///     Initializes a new instance that hides failure details on 500 responses.
@@ -37,9 +41,21 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         _includeExceptionDetails = includeExceptionDetails;
     }
 
+    internal DefaultFailureHttpMapper(ResultHttpOptions options)
+        : this(options.IncludeExceptionDetails)
+    {
+        _codeStatuses = options.CodeStatuses.Count > 0
+                            ? new Dictionary<string, int>(options.CodeStatuses, StringComparer.Ordinal)
+                            : null;
+        _prefixStatuses    = options.PrefixStatuses.ToArray();
+        _exposedMetadata   = options.ExposedMetadata.ToArray();
+        _defaultStatusCode = options.DefaultStatusCode;
+    }
+
     /// <inheritdoc />
     public virtual FailureHttpResponse GetFailureResponse(IFailure failure)
     {
+        var mappedStatus = GetMappedStatus(failure.Code);
         var problem = failure switch
         {
             ValidationFailure validation           => FromValidationError(validation),
@@ -49,8 +65,21 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             ConflictFailure conflict               => FromConflictError(conflict),
             BadRequestFailure badRequest           => FromBadRequestError(badRequest),
             ExceptionalFailure exceptional         => FromExceptionalError(exceptional),
-            _                                      => FromError(failure)
+            _                                      => FromError(failure, mappedStatus ?? _defaultStatusCode)
         };
+
+        if (mappedStatus is { } status &&
+            problem.Status != status) {
+            problem.Status = status;
+            problem.Type   = null; // the type URI described the built-in status
+        }
+
+        problem.Extensions.TryAdd("code", failure.Code);
+        foreach (var key in _exposedMetadata) {
+            if (failure.Metadata.TryGetValue(key, out var value)) {
+                problem.Extensions.TryAdd(key, value);
+            }
+        }
 
         return new FailureHttpResponse
         {
@@ -59,14 +88,34 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         };
     }
 
-    private ProblemDetails FromError(IFailure failure)
+    private int? GetMappedStatus(string code)
     {
+        if (_codeStatuses is not null &&
+            _codeStatuses.TryGetValue(code, out var status)) {
+            return status;
+        }
+
+        foreach (var (prefix, prefixStatus) in _prefixStatuses) {
+            if (code.StartsWith(prefix, StringComparison.Ordinal)) {
+                return prefixStatus;
+            }
+        }
+
+        return null;
+    }
+
+    private ProblemDetails FromError(IFailure failure,
+                                     int      statusCode)
+    {
+        var isServerError = statusCode >= (int)HttpStatusCode.InternalServerError;
         return new ProblemDetails
         {
             Title  = "An error occurred.",
-            Detail = _includeExceptionDetails ? failure.Message : null,
-            Status = (int)HttpStatusCode.InternalServerError,
-            Type   = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+            Detail = !isServerError || _includeExceptionDetails ? failure.Message : null,
+            Status = statusCode,
+            Type   = statusCode == (int)HttpStatusCode.InternalServerError
+                         ? "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+                         : null
         };
     }
 
