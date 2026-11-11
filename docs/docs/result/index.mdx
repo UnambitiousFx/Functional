@@ -141,6 +141,43 @@ return result.Match(
     });
 ```
 
+## Union matching (net11 / C# 15)
+
+On **`net11.0`** (C# 15, no `LangVersion` change needed), `Result<T>` opts into C# 15 [union types](https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unions), so you can `switch` and use `is`-patterns **directly on the result** — the compiler enforces exhaustiveness over its two case types, `TValue` (success) and `Failure` (failure):
+
+```csharp
+string message = result switch
+{
+    int value       => value.ToString(),   // success
+    Failure failure => failure.Message,     // failure
+};   // exhaustive — no `null` / discard arm needed
+```
+
+A result is **always** a success or a failure — never absent — so, unlike [`Maybe<T>`](/docs/maybe/), the union view is **non-null** and the `switch` needs **no `null` arm**. A degenerate `default(Result<T>)` is treated as a failure (it surfaces a sentinel `Failure`), so it lands on the `Failure` arm rather than throwing.
+
+`is`-patterns unwrap the same way:
+
+```csharp
+if (result is int value)      { /* success, value in scope */ }
+if (result is Failure error)  { /* failure, error in scope */ }
+```
+
+### `switch` vs `Match`
+
+Both are **allocation-free**. The union `switch` adds compiler-checked exhaustiveness and native syntax:
+
+| | Union `switch` / `is` | `Match` / `Switch` |
+| --- | --- | --- |
+| Available on | `net11.0` only | all target frameworks |
+| Exhaustiveness | compiler-checked | you supply both branches |
+| Allocations | none — the success arm uses the non-boxing `TryGetValue` | none |
+
+Reading the `object`-typed `Value` property directly boxes a value-type success — prefer the typed `switch`/`is`/`Match` accessors.
+
+:::note `Result<Failure>`
+When `TValue` is `Failure`, both case types are the same, so a `Failure` arm matches a success too. Check `IsSuccess` (or use `Match`) for that instantiation.
+:::
+
 ## Transforming with `Bind`, `Map`, `Then`, and `Flatten`
 
 These are the workhorses of the success track.
