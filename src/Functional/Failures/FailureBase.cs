@@ -26,9 +26,11 @@ public abstract record FailureBase : IFailure
     }
 
     /// <summary>
-    ///     Gets the machine-readable error code.
+    ///     Gets or inits the machine-readable error code.
+    ///     A typed failure keeps its kind (its type) when this is replaced by a domain code,
+    ///     e.g. <c>new ConflictFailure("The envelope is closed.") { Code = "investments.envelope_closed" }</c>.
     /// </summary>
-    public string Code { get; }
+    public string Code { get; init; }
 
     /// <summary>
     ///     Gets or inits the human-readable error message.

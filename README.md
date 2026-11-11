@@ -225,6 +225,9 @@ var notFoundFailure = new NotFoundFailure("User not found");
 // Conflict failure
 var conflictFailure = new ConflictFailure("Email already exists");
 
+// Any typed failure can carry a domain code and keep its kind (still a conflict)
+var emailTaken = new ConflictFailure("Email already exists") { Code = "users.email_taken" };
+
 // Unauthorized failure
 var unauthorizedFailure = new UnauthorizedFailure("Access denied");
 
