@@ -44,6 +44,19 @@ Each built-in failure sets a code from `FailureCodes`. Construct them directly a
 
 Constructors that take an optional metadata argument accept an `IReadOnlyDictionary<string, object?>?`; the values are merged into the failure's `Metadata`.
 
+### Domain codes
+
+The type of a failure says what kind it is (a conflict, a missing resource), so it decides the HTTP status. Its `Code` can carry a stable domain code for clients instead of the default one. `Code` is `init`, so any typed failure accepts one:
+
+```csharp
+var closed  = new ConflictFailure("The envelope is closed.") { Code = "investments.envelope_closed" };
+var missing = new NotFoundFailure("Loan", id) { Code = "loans.not_found" };
+var cells   = new ValidationFailure(errors) { Code = "import.unreadable_cell" };
+
+closed.Code;                // "investments.envelope_closed"
+closed is ConflictFailure;  // true: still mapped to 409
+```
+
 ## Producing a failed `Result`
 
 Use the `Result.Failure` / `Result.Fail` factories (the two are aliases). Overloads accept a `Failure`, an `Exception`, a plain message string, or a collection of failures.
