@@ -2,6 +2,10 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
+        <!-- Override the inherited single TargetFramework to also build net11.0, so the C# 15
+             union-matching benchmark can be built and run. -->
+        <TargetFramework />
+        <TargetFrameworks>$(LatestTargetFramework);net11.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
