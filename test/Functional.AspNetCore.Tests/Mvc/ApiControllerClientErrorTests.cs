@@ -2,9 +2,14 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using UnambitiousFx.Functional.AspNetCore.Mvc;
 
 namespace UnambitiousFx.Functional.AspNetCore.Tests.Mvc;
@@ -61,6 +66,75 @@ public class ApiControllerClientErrorTests
         // Assert (Then)
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Empty(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ExecuteResultAsync_MaybeNoneWithoutClientErrorFactory_ReturnsEmptyNotFound()
+    {
+        // Arrange (Given)
+        var context = CreateContext(services => services.AddLogging());
+
+        // Act (When)
+        await ExecuteMaybeNoneAsync(context, apiController: true);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
+        Assert.Equal(0, context.Response.Body.Length);
+    }
+
+    [Fact]
+    public async Task ExecuteResultAsync_MaybeNoneOutsideApiController_ReturnsEmptyNotFound()
+    {
+        // Arrange (Given)
+        var context = CreateContext(services => services.AddLogging().AddMvcCore());
+
+        // Act (When)
+        await ExecuteMaybeNoneAsync(context, apiController: false);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
+        Assert.Equal(0, context.Response.Body.Length);
+    }
+
+    [Fact]
+    public async Task ExecuteResultAsync_ClientErrorFactoryReturnsNull_ReturnsEmptyNotFound()
+    {
+        // Arrange (Given)
+        var factory = Substitute.For<IClientErrorFactory>();
+        factory.GetClientError(Arg.Any<ActionContext>(), Arg.Any<IClientErrorActionResult>())
+               .Returns((IActionResult?)null);
+        var context = CreateContext(services => services.AddLogging().AddMvcCore().Services.AddSingleton(factory));
+
+        // Act (When)
+        await ExecuteMaybeNoneAsync(context, apiController: true);
+
+        // Assert (Then)
+        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
+        Assert.Equal(0, context.Response.Body.Length);
+        factory.Received(1).GetClientError(Arg.Any<ActionContext>(), Arg.Any<IClientErrorActionResult>());
+    }
+
+    private static DefaultHttpContext CreateContext(Action<IServiceCollection> configure)
+    {
+        var services = new ServiceCollection();
+        configure(services);
+        return new DefaultHttpContext
+        {
+            RequestServices = services.BuildServiceProvider(),
+            Response        = { Body = new MemoryStream() }
+        };
+    }
+
+    private static async Task ExecuteMaybeNoneAsync(HttpContext context,
+                                                    bool        apiController)
+    {
+        var descriptor = new ActionDescriptor();
+        if (apiController) {
+            descriptor.EndpointMetadata = [new ApiControllerAttribute()];
+        }
+
+        var result = await Maybe.None<int>().AsActionResultBuilder();
+        await result.ExecuteResultAsync(new ActionContext(context, new RouteData(), descriptor));
     }
 
     private static async Task<WebApplication> StartAppAsync(bool                       suppressMapClientErrors,

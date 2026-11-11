@@ -32,23 +32,23 @@ internal sealed class DeferredActionResult : IActionResult
     public Task ExecuteResultAsync(ActionContext context)
     {
         var result = _resolve(context.HttpContext);
-        if (result is IClientErrorActionResult { StatusCode: >= StatusCodes.Status400BadRequest } clientError &&
-            MapsClientErrors(context)) {
-            var factory = context.HttpContext.RequestServices.GetService<IClientErrorFactory>();
-            result = factory?.GetClientError(context, clientError) ?? result;
+        if (result is IClientErrorActionResult { StatusCode: >= StatusCodes.Status400BadRequest } clientError) {
+            result = MapClientError(context, clientError);
         }
 
         return result.ExecuteResultAsync(context);
     }
 
-    private static bool MapsClientErrors(ActionContext context)
+    private static IActionResult MapClientError(ActionContext            context,
+                                                IClientErrorActionResult clientError)
     {
-        if (context.HttpContext.RequestServices is null ||
-            context.ActionDescriptor.EndpointMetadata?.Any(m => m is IApiBehaviorMetadata) != true) {
-            return false;
+        var services = context.HttpContext.RequestServices;
+        if (services.GetService<IClientErrorFactory>() is not { } factory ||
+            services.GetRequiredService<IOptions<ApiBehaviorOptions>>().Value.SuppressMapClientErrors ||
+            !context.ActionDescriptor.EndpointMetadata.Any(m => m is IApiBehaviorMetadata)) {
+            return clientError;
         }
 
-        var options = context.HttpContext.RequestServices.GetService<IOptions<ApiBehaviorOptions>>();
-        return options is not null && !options.Value.SuppressMapClientErrors;
+        return factory.GetClientError(context, clientError) ?? clientError;
     }
 }
