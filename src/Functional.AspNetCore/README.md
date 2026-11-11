@@ -105,7 +105,7 @@ The built-in default mapper converts standard failure types to RFC 7807 Problem 
 | `UnauthenticatedFailure` | 403 Forbidden             |
 | `ConflictFailure`        | 409 Conflict              |
 | `ExceptionalFailure`     | 500 Internal Server Error |
-| Unrecognised `Failure`   | 500 Internal Server Error |
+| Unrecognised `Failure`   | 500 Internal Server Error, or `DefaultStatus(...)` |
 
 Example error response (RFC 7807 Problem Details):
 
@@ -197,6 +197,20 @@ builder.Services.AddResultHttp(options =>
 ```
 
 Typed mappers participate in the same first-match-wins chain and fall through to the default mapper for unhandled types.
+
+#### By failure code
+
+```csharp
+builder.Services.AddResultHttp(options => options
+    .MapCode("fx.sync_running", 409)       // exact code
+    .MapCodePrefix("documents.", 413)      // code prefix; an exact MapCode wins
+    .DefaultStatus(422)                    // failures with no mapping, instead of 500
+    .ExposeMetadata("freeBp", "line"));    // metadata keys copied into the ProblemDetails
+```
+
+Code mappings are checked after the typed mappers and before the built-in mapping by type, and keep the body built
+for the failure type. The default mapper always writes `code` into the ProblemDetails extensions; metadata is exposed
+only for the keys listed in `ExposeMetadata`.
 
 #### Full `IFailureHttpMapper` implementation
 
@@ -300,6 +314,10 @@ Available on: `Maybe<T>`, `ValueTask<Maybe<T>>`, `Task<Maybe<T>>`.
 | `AddMapper(IFailureHttpMapper)`                            | —                         | —         | Register a custom mapper instance               |
 | `AddMapper<TFailure>(int statusCode)`                    | —                         | —         | Register a typed mapper returning a status code |
 | `AddMapper<TFailure>(Func<TFailure, FailureHttpResponse>)` | —                         | —         | Register a typed mapper with a custom factory   |
+| `MapCode(code, statusCode)`                              | —                         | —         | Map a failure code to a status code             |
+| `MapCodePrefix(prefix, statusCode)`                      | —                         | —         | Map codes starting with a prefix                |
+| `DefaultStatus(statusCode)`                              | —                         | `500`     | Status of failures with no mapping              |
+| `ExposeMetadata(params keys)`                            | —                         | none      | Copy these metadata keys into the ProblemDetails |
 
 ---
 

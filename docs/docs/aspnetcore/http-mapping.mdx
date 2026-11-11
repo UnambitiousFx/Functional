@@ -170,9 +170,9 @@ When the outcome is a failure, the builder calls `IFailureHttpMapper.GetFailureR
 | `UnauthenticatedFailure` | 403 Forbidden             |
 | `ConflictFailure`        | 409 Conflict              |
 | `ExceptionalFailure`     | 500 Internal Server Error |
-| Any other failure        | 500 Internal Server Error |
+| Any other failure        | 500 Internal Server Error, or `DefaultStatus` |
 
-To change these mappings, see [Custom Mappers](./custom-mappers).
+Mappings by code (`MapCode`, `MapCodePrefix`) take precedence over this table. To change these mappings, see [Custom Mappers](./custom-mappers).
 
 ### How a `FailureHttpResponse` becomes an `IResult`
 
@@ -215,7 +215,7 @@ Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the 
 }
 ```
 
-`NotFoundFailure` adds `code`, `resource`, and `identifier` extensions; `ValidationFailure` adds `code`, `errors` (messages grouped by field, same shape as ASP.NET Core `ValidationProblemDetails`; errors without a field use the `""` key) and, when at least one entry has a code, `errorCodes` grouped the same way. `Conflict`, `BadRequest`, `Unauthorized`, and `Unauthenticated` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
+Every response carries the failure `code` extension, plus any metadata key listed with `ExposeMetadata`. `NotFoundFailure` adds `resource` and `identifier` extensions; `ValidationFailure` adds `errors` (messages grouped by field, same shape as ASP.NET Core `ValidationProblemDetails`; errors without a field use the `""` key) and, when at least one entry has a code, `errorCodes` grouped the same way. `Conflict`, `BadRequest`, `Unauthorized`, and `Unauthenticated` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
 
 500 responses (`ExceptionalFailure` and any unmapped failure) omit `detail`, so internal messages never reach the client:
 
@@ -224,7 +224,8 @@ Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the 
 {
   "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1",
   "title": "Internal Server Error",
-  "status": 500
+  "status": 500,
+  "code": "EXCEPTION"
 }
 ```
 
