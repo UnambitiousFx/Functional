@@ -60,18 +60,23 @@ public class ValidationStatusTests
         Assert.Contains("errors", problem.Extensions);
     }
 
-    [Fact]
-    public void ValidationStatus_StatusWithoutKnownType_OmitsType()
+    [Theory]
+    [InlineData(StatusCodes.Status302Found)]
+    [InlineData(StatusCodes.Status402PaymentRequired)]
+    [InlineData(StatusCodes.Status418ImATeapot)]
+    [InlineData(StatusCodes.Status429TooManyRequests)]
+    [InlineData(StatusCodes.Status503ServiceUnavailable)]
+    public void ValidationStatus_StatusWithoutKnownType_OmitsType(int statusCode)
     {
         // Arrange (Given)
-        var mapper = new ResultHttpOptions().ValidationStatus(StatusCodes.Status418ImATeapot).BuildMapper();
+        var mapper = new ResultHttpOptions().ValidationStatus(statusCode).BuildMapper();
 
         // Act (When)
         var response = mapper.GetFailureResponse(Validation)!;
 
         // Assert (Then)
         var problem = Assert.IsType<ProblemDetails>(response.Body);
-        Assert.Equal(StatusCodes.Status418ImATeapot, response.StatusCode);
+        Assert.Equal(statusCode, response.StatusCode);
         Assert.Null(problem.Type);
     }
 

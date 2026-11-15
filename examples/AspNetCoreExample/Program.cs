@@ -21,7 +21,7 @@ app.MapGet("/api/divide/{numerator:int}/{denominator:int}",
     })
     .WithName("Divide")
     .Produces<double>(StatusCodes.Status200OK)
-    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status422UnprocessableEntity)
     .WithSummary("Divide two numbers (Math: The Functional Way)");
 
 // ============================================================================
@@ -49,7 +49,7 @@ app.MapPost("/api/users",
     })
     .WithName("CreateUser")
     .Produces<UserProfile>(StatusCodes.Status201Created)
-    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status422UnprocessableEntity)
     .Produces(StatusCodes.Status409Conflict)
     .WithSummary("Create a new user");
 
@@ -94,6 +94,7 @@ app.MapDelete("/api/users/{id:int}",
     .Produces(StatusCodes.Status401Unauthorized)
     .Produces(StatusCodes.Status403Forbidden)
     .Produces(StatusCodes.Status404NotFound)
+    .Produces(StatusCodes.Status422UnprocessableEntity)
     .WithSummary("Delete a user (admin only)");
 
 // ============================================================================
@@ -109,7 +110,7 @@ app.MapPost("/api/users/bulk",
     })
     .WithName("BulkCreateUsers")
     .Produces<List<UserProfile>>(StatusCodes.Status201Created)
-    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status422UnprocessableEntity)
     .WithSummary("Bulk create users");
 
 // ============================================================================
