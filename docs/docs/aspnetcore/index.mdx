@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 # ASP.NET Core Integration
 
-`UnambitiousFx.Functional.AspNetCore` (v2.0.0) turns the functional types from `UnambitiousFx.Functional` into HTTP responses. Keep your domain and application services returning `Result`, `Result<T>`, and `Maybe<T>`, then adapt the outcome to HTTP at the API boundary — for both **Minimal APIs** (`IResult`) and **MVC controllers** (`IActionResult`).
+`UnambitiousFx.Functional.AspNetCore` (v3.0.0) turns the functional types from `UnambitiousFx.Functional` into HTTP responses. Keep your domain and application services returning `Result`, `Result<T>`, and `Maybe<T>`, then adapt the outcome to HTTP at the API boundary — for both **Minimal APIs** (`IResult`) and **MVC controllers** (`IActionResult`).
 
 The conversion is driven by fluent builders. A single failure-to-status mapper (`IFailureHttpMapper`) centralizes how each failure type becomes an HTTP status code and body, so transport concerns stay out of your business logic.
 
@@ -23,7 +23,7 @@ The conversion is driven by fluent builders. A single failure-to-status mapper (
   </TabItem>
   <TabItem value="packageref" label="PackageReference">
     ```xml
-    <PackageReference Include="UnambitiousFx.Functional.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="UnambitiousFx.Functional.AspNetCore" Version="3.0.0" />
     ```
   </TabItem>
 </Tabs>
@@ -117,14 +117,14 @@ public sealed class UsersController : ControllerBase
 | `ValidationFailure`      | 400 Bad Request          | `ProblemDetails`|
 | `BadRequestFailure`      | 400 Bad Request          | `ProblemDetails`|
 | `NotFoundFailure`        | 404 Not Found            | `ProblemDetails`|
-| `UnauthorizedFailure`    | 401 Unauthorized         | `ProblemDetails`|
-| `UnauthenticatedFailure` | 403 Forbidden            | `ProblemDetails`|
+| `UnauthorizedFailure`    | 403 Forbidden            | `ProblemDetails`|
+| `UnauthenticatedFailure` | 401 Unauthorized         | `ProblemDetails`|
 | `ConflictFailure`        | 409 Conflict             | `ProblemDetails`|
 | `ExceptionalFailure`     | 500 Internal Server Error| `ProblemDetails`|
 | Any other failure        | 500 Internal Server Error| `ProblemDetails`|
 
 :::note Naming vs. status
-The default mapper maps `UnauthorizedFailure` to **401** and `UnauthenticatedFailure` to **403**. If your API contract expects the conventional 401/403 split, override these with a [custom mapper](./custom-mappers).
+The statuses follow RFC 9110: `UnauthenticatedFailure` (no authenticated caller) is **401**, `UnauthorizedFailure` (authenticated, but not allowed) is **403**. The default mapper does not add a `WWW-Authenticate` challenge to 401 responses; add one with a [custom mapper](./custom-mappers) if your clients need it. Before v3 the two statuses were swapped, see [Migration from v2](../migration-from-v2).
 :::
 
 ## Learn more

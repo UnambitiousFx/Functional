@@ -1,0 +1,42 @@
+---
+sidebar_position: 89
+title: Migration from v2
+description: Upgrade UnambitiousFx.Functional code from v2 to v3 — breaking changes and how to keep the old behaviour.
+---
+
+# Migration from v2
+
+This guide lists the breaking changes between v2 and v3 of `UnambitiousFx.Functional`.
+
+## ASP.NET Core: 401 and 403 are no longer swapped
+
+In v2, `DefaultFailureHttpMapper` answered `UnauthorizedFailure` with **401** and `UnauthenticatedFailure` with **403**. v3 follows RFC 9110 and the ASP.NET Core convention (`Results.Challenge()` → 401, `Results.Forbid()` → 403):
+
+| Failure type             | v2               | v3               |
+| ------------------------ | ---------------- | ---------------- |
+| `UnauthenticatedFailure` | 403 Forbidden    | 401 Unauthorized |
+| `UnauthorizedFailure`    | 401 Unauthorized | 403 Forbidden    |
+
+The `ProblemDetails` bodies change with them:
+
+- `UnauthenticatedFailure`: `title` `"Unauthorized"`, `type` `https://www.rfc-editor.org/rfc/rfc9110#section-15.5.2`.
+- `UnauthorizedFailure`: `title` `"Forbidden"`, `type` `https://www.rfc-editor.org/rfc/rfc9110#section-15.5.4`.
+
+**What to do:**
+
+- If you registered your own mappers only to get the conventional 401/403 split, you can remove them.
+- If your clients rely on the v2 statuses, register typed mappers to keep them:
+
+```csharp
+services.AddResultHttp(options =>
+{
+    options.AddMapper<UnauthorizedFailure>(StatusCodes.Status401Unauthorized);
+    options.AddMapper<UnauthenticatedFailure>(StatusCodes.Status403Forbidden);
+});
+```
+
+## See also
+
+- [HTTP mapping](./aspnetcore/http-mapping)
+- [Custom mappers](./aspnetcore/custom-mappers)
+- [Migration from v1](./migration-from-v1)

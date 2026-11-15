@@ -333,7 +333,7 @@ services.AddResultHttp(options =>
     options.AddMapper<ValidationFailure>(StatusCodes.Status400BadRequest);
     options.AddMapper<NotFoundFailure>(StatusCodes.Status404NotFound);
     options.AddMapper<ConflictFailure>(StatusCodes.Status409Conflict);
-    options.AddMapper<UnauthorizedFailure>(StatusCodes.Status401Unauthorized);
+    options.AddMapper<UnauthorizedFailure>(StatusCodes.Status403Forbidden);
 });
 ```
 

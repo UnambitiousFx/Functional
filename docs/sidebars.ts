@@ -52,7 +52,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Project',
-      items: ['migration-from-v1', 'using-with-ai'],
+      items: ['migration-from-v2', 'migration-from-v1', 'using-with-ai'],
     },
   ],
 };
