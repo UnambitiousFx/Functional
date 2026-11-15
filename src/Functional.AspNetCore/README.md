@@ -148,7 +148,7 @@ builder.Services.AddResultHttp(o => o.ValidationErrors(ValidationErrorsFormat.Rf
 }
 ```
 
-`detail` is the message, `pointer` the field as a JSON Pointer (`ValidationError.Pointer`) and `code` the error code; `pointer` and `code` are omitted when null, and no `errorCodes` is written. A field already written as a pointer (`#/…` or `/…`) is kept; a dotted / indexed path (`payload.movements[3].amount`, `$.amount`) is converted, escaping `~` and `/`. `ValidationErrorsFormat.AspNetCore` (the dictionary) stays the default for now.
+`detail` is the message, `pointer` the field as a JSON Pointer (`ValidationError.Pointer`) and `code` the error code; `pointer` and `code` are omitted when null, and no `errorCodes` is written. A field already written as a pointer (`#/…` or `/…`) is kept; a dotted / indexed path (`payload.movements[3].amount`, `$.amount`) is converted, escaping `~` and `/` and percent-encoding characters not allowed in a URI fragment (`first name` → `#/first%20name`). `ValidationErrorsFormat.AspNetCore` (the dictionary) stays the default for now.
 
 ## Configuration
 

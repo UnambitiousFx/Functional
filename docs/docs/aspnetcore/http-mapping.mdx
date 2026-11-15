@@ -247,7 +247,7 @@ builder.Services.AddResultHttp(o => o.ValidationErrors(ValidationErrorsFormat.Rf
 | `pointer` | `ValidationError.Pointer`, the field as a JSON Pointer; omitted when null |
 | `code`    | `ValidationError.Code`; omitted when null                               |
 
-`ValidationError.Pointer` keeps a field already written as a pointer (`#/…` or `/…`) and converts a dotted / indexed path (`payload.movements[3].amount`, `items["a.b"]`, `$.amount`) to `#/payload/movements/3/amount`, escaping `~` as `~0` and `/` as `~1`. Field names keep their casing. No `errorCodes` is written in this format. `ValidationErrorsFormat.AspNetCore` (the dictionary) stays the default for now.
+`ValidationError.Pointer` keeps a field already written as a pointer (`#/…` or `/…`) and converts a dotted / indexed path (`payload.movements[3].amount`, `items["a.b"]`, `$.amount`) to `#/payload/movements/3/amount`, escaping `~` as `~0` and `/` as `~1`, then percent-encoding (UTF-8) any character not allowed in a URI fragment, `%` included (`first name` → `#/first%20name`). A quoted key is taken literally, `]` and `.` included, with `\` escaping the next character; only an unquoted leading `$` is read as the root. Field names keep their casing. No `errorCodes` is written in this format. `ValidationErrorsFormat.AspNetCore` (the dictionary) stays the default for now.
 
 500 responses (`ExceptionalFailure` and any unmapped failure) omit `detail`, so internal messages never reach the client:
 

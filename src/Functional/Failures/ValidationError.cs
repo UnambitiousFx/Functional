@@ -16,9 +16,11 @@ public sealed record ValidationError(string? Field, string Message, string? Code
     /// </summary>
     /// <remarks>
     ///     A field already written as a pointer (starting with <c>#</c> or <c>/</c>) is returned unchanged. Otherwise the
-    ///     field is read as a dotted and indexed path (<c>payload.movements[3].amount</c>, <c>items["a.b"]</c>,
+    ///     field is read as a dotted and indexed path (<c>payload.movements[3].amount</c>, <c>items['a.b']</c>,
     ///     <c>$.amount</c>): each segment becomes a pointer token, with <c>~</c> and <c>/</c> escaped as <c>~0</c> and
-    ///     <c>~1</c>. Segment names keep their casing.
+    ///     <c>~1</c>, then any character not allowed in a URI fragment percent-encoded as UTF-8 (<c>first name</c> →
+    ///     <c>first%20name</c>, <c>%</c> → <c>%25</c>). A quoted key (<c>['…']</c> or <c>["…"]</c>) is taken
+    ///     literally, <c>\</c> escaping the next character. Segment names keep their casing.
     /// </remarks>
     public string? Pointer => ToJsonPointer(Field);
 
@@ -33,75 +35,126 @@ public sealed record ValidationError(string? Field, string Message, string? Code
         }
 
         var pointer = new StringBuilder("#", field.Length + 8);
-        var segment = new StringBuilder();
-        var first   = true;
+        var token   = new StringBuilder();
         var i       = 0;
+
+        // An unquoted leading "$" is the JSONPath root (System.Text.Json model errors use "$.amount"), not a member.
+        if (field[0] == '$' &&
+            (field.Length == 1 || field[1] is '.' or '[')) {
+            i = 1;
+        }
+
         while (i < field.Length) {
             var c = field[i];
             if (c == '.') {
-                AppendSegment(pointer, segment, ref first);
+                AppendToken(pointer, token, false);
                 i++;
             }
             else if (c == '[') {
-                AppendSegment(pointer, segment, ref first);
-                var end = field.IndexOf(']', i + 1);
+                AppendToken(pointer, token, false);
+                var end = ReadBracket(field, i, token);
                 if (end < 0) {
-                    // Unclosed bracket: keep the rest as a literal segment.
-                    segment.Append(field, i, field.Length - i);
+                    // Unclosed bracket: keep the rest as a literal token.
+                    token.Append(field, i, field.Length - i);
                     break;
                 }
 
-                var index = field.AsSpan(i + 1, end - i - 1);
-                if (index.Length >= 2 &&
-                    index[0] is '\'' or '"' &&
-                    index[^1] == index[0]) {
-                    index = index[1..^1];
-                }
-
-                segment.Append(index);
-                AppendSegment(pointer, segment, ref first, keepEmpty: true);
+                AppendToken(pointer, token, true);
                 i = end + 1;
             }
             else {
-                segment.Append(c);
+                token.Append(c);
                 i++;
             }
         }
 
-        AppendSegment(pointer, segment, ref first);
+        AppendToken(pointer, token, false);
         return pointer.ToString();
     }
 
-    private static void AppendSegment(StringBuilder pointer,
-                                      StringBuilder segment,
-                                      ref bool      first,
-                                      bool          keepEmpty = false)
+    /// <summary>
+    ///     Reads the bracket opened at <paramref name="start" /> into <paramref name="token" />, unquoting a quoted key.
+    /// </summary>
+    /// <returns>The index of the closing <c>]</c>, or -1 when the bracket is not closed.</returns>
+    private static int ReadBracket(string        field,
+                                   int           start,
+                                   StringBuilder token)
     {
-        if (segment.Length == 0 &&
+        var i = start + 1;
+        if (i < field.Length &&
+            field[i] is '\'' or '"') {
+            var quote = field[i];
+            for (i++; i < field.Length; i++) {
+                var c = field[i];
+                if (c == '\\' &&
+                    i + 1 < field.Length) {
+                    token.Append(field[++i]);
+                    continue;
+                }
+
+                if (c == quote) {
+                    if (i + 1 < field.Length &&
+                        field[i + 1] == ']') {
+                        return i + 1;
+                    }
+
+                    break;
+                }
+
+                token.Append(c);
+            }
+
+            // Not a well-formed quoted key: read it as a plain bracket.
+            token.Clear();
+            i = start + 1;
+        }
+
+        var end = field.IndexOf(']', i);
+        if (end < 0) {
+            return -1;
+        }
+
+        token.Append(field, i, end - i);
+        return end;
+    }
+
+    private static void AppendToken(StringBuilder pointer,
+                                    StringBuilder token,
+                                    bool          keepEmpty)
+    {
+        if (token.Length == 0 &&
             !keepEmpty) {
             return;
         }
 
-        // "$" is the JSONPath root (System.Text.Json model errors use "$.amount"), not a member.
-        var isRoot = first && segment is { Length: 1 } && segment[0] == '$';
-        first = false;
-        if (!isRoot) {
-            pointer.Append('/');
-            for (var j = 0; j < segment.Length; j++) {
-                switch (segment[j]) {
-                    case '~':
-                        pointer.Append("~0");
-                        break;
-                    case '/':
-                        pointer.Append("~1");
-                        break;
-                    default:
-                        pointer.Append(segment[j]);
-                        break;
+        pointer.Append('/');
+        Span<byte> utf8 = stackalloc byte[4];
+        foreach (var rune in token.ToString().EnumerateRunes()) {
+            if (rune.Value == '~') {
+                pointer.Append("~0");
+            }
+            else if (rune.Value == '/') {
+                pointer.Append("~1");
+            }
+            else if (IsFragmentChar(rune)) {
+                pointer.Append((char)rune.Value);
+            }
+            else {
+                var length = rune.EncodeToUtf8(utf8);
+                foreach (var b in utf8[..length]) {
+                    pointer.Append('%').Append(b.ToString("X2"));
                 }
             }
         }
 
-        segment.Clear();
+        token.Clear();
+    }
+
+    // RFC 3986 fragment characters, except "/" which JSON Pointer escapes itself.
+    private static bool IsFragmentChar(Rune rune)
+    {
+        return rune.IsAscii &&
+               (char.IsAsciiLetterOrDigit((char)rune.Value) ||
+                "-._~!$&'()*+,;=:@?".Contains((char)rune.Value));
     }
 }
