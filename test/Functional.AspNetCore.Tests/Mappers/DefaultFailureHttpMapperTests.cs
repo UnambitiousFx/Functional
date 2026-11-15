@@ -12,8 +12,8 @@ public class DefaultFailureHttpMapperTests
     [InlineData(typeof(ValidationFailure),      400)]
     [InlineData(typeof(BadRequestFailure),       400)]
     [InlineData(typeof(NotFoundFailure),         404)]
-    [InlineData(typeof(UnauthorizedFailure),     401)]
-    [InlineData(typeof(UnauthenticatedFailure),  403)]
+    [InlineData(typeof(UnauthorizedFailure),     403)]
+    [InlineData(typeof(UnauthenticatedFailure),  401)]
     [InlineData(typeof(ConflictFailure),         409)]
     [InlineData(typeof(ExceptionalFailure),      500)]
     [InlineData(typeof(Failure),                 500)]
@@ -28,6 +28,42 @@ public class DefaultFailureHttpMapperTests
         // Assert (Then)
         Assert.NotNull(response);
         Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    [Fact]
+    public void GetFailureResponse_UnauthenticatedFailure_ReturnsUnauthorizedProblemDetails()
+    {
+        // Arrange (Given)
+        var failure = new UnauthenticatedFailure("Sign in first.");
+
+        // Act (When)
+        var response = _sut.GetFailureResponse(failure);
+
+        // Assert (Then)
+        var problem = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal(401, response.StatusCode);
+        Assert.Equal(401, problem.Status);
+        Assert.Equal("Unauthorized", problem.Title);
+        Assert.Equal("Sign in first.", problem.Detail);
+        Assert.Equal("https://www.rfc-editor.org/rfc/rfc9110#section-15.5.2", problem.Type);
+    }
+
+    [Fact]
+    public void GetFailureResponse_UnauthorizedFailure_ReturnsForbiddenProblemDetails()
+    {
+        // Arrange (Given)
+        var failure = new UnauthorizedFailure("Admins only.");
+
+        // Act (When)
+        var response = _sut.GetFailureResponse(failure);
+
+        // Assert (Then)
+        var problem = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal(403, response.StatusCode);
+        Assert.Equal(403, problem.Status);
+        Assert.Equal("Forbidden", problem.Title);
+        Assert.Equal("Admins only.", problem.Detail);
+        Assert.Equal("https://www.rfc-editor.org/rfc/rfc9110#section-15.5.4", problem.Type);
     }
 
     [Fact]

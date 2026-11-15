@@ -117,14 +117,14 @@ public sealed class UsersController : ControllerBase
 | `ValidationFailure`      | 400 Bad Request          | `ProblemDetails`|
 | `BadRequestFailure`      | 400 Bad Request          | `ProblemDetails`|
 | `NotFoundFailure`        | 404 Not Found            | `ProblemDetails`|
-| `UnauthorizedFailure`    | 401 Unauthorized         | `ProblemDetails`|
-| `UnauthenticatedFailure` | 403 Forbidden            | `ProblemDetails`|
+| `UnauthorizedFailure`    | 403 Forbidden            | `ProblemDetails`|
+| `UnauthenticatedFailure` | 401 Unauthorized         | `ProblemDetails`|
 | `ConflictFailure`        | 409 Conflict             | `ProblemDetails`|
 | `ExceptionalFailure`     | 500 Internal Server Error| `ProblemDetails`|
 | Any other failure        | 500 Internal Server Error| `ProblemDetails`|
 
 :::note Naming vs. status
-The default mapper maps `UnauthorizedFailure` to **401** and `UnauthenticatedFailure` to **403**. If your API contract expects the conventional 401/403 split, override these with a [custom mapper](./custom-mappers).
+The statuses follow RFC 9110: `UnauthenticatedFailure` (no authenticated caller) is **401**, `UnauthorizedFailure` (authenticated, but not allowed) is **403**. The default mapper does not add a `WWW-Authenticate` challenge to 401 responses; add one with a [custom mapper](./custom-mappers) if your clients need it. Before v3 the two statuses were swapped, see [Migration from v2](../migration-from-v2).
 :::
 
 ## Learn more

@@ -108,8 +108,8 @@ The built-in default mapper converts standard failure types to RFC 7807 Problem 
 |--------------------------|---------------------------|
 | `ValidationFailure`      | 400 Bad Request           |
 | `NotFoundFailure`        | 404 Not Found             |
-| `UnauthorizedFailure`    | 401 Unauthorized          |
-| `UnauthenticatedFailure` | 403 Forbidden             |
+| `UnauthorizedFailure`    | 403 Forbidden             |
+| `UnauthenticatedFailure` | 401 Unauthorized          |
 | `ConflictFailure`        | 409 Conflict              |
 | `ExceptionalFailure`     | 500 Internal Server Error |
 | Unrecognised `Failure`   | 500 Internal Server Error, or `DefaultStatus(...)` |

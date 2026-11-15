@@ -15,8 +15,8 @@ public class AdapterAcceptanceTests
         yield return [new ValidationFailure(["Invalid input"]), StatusCodes.Status400BadRequest];
         yield return [new NotFoundFailure("User", "123"), StatusCodes.Status404NotFound];
         yield return [new ConflictFailure("Conflict"), StatusCodes.Status409Conflict];
-        yield return [new UnauthorizedFailure("Unauthorized"), StatusCodes.Status401Unauthorized];
-        yield return [new UnauthenticatedFailure("Forbidden"), StatusCodes.Status403Forbidden];
+        yield return [new UnauthorizedFailure("Admins only."), StatusCodes.Status403Forbidden];
+        yield return [new UnauthenticatedFailure("Sign in first."), StatusCodes.Status401Unauthorized];
         yield return
             [new ExceptionalFailure(new InvalidOperationException("Boom")), StatusCodes.Status500InternalServerError];
     }

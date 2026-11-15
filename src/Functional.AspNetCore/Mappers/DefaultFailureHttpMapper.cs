@@ -151,10 +151,10 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
     {
         return new ProblemDetails
         {
-            Title  = "Unauthorized",
+            Title  = "Forbidden",
             Detail = failure.Message,
-            Status = (int)HttpStatusCode.Unauthorized,
-            Type   = "https://tools.ietf.org/html/rfc7235#section-3.1"
+            Status = (int)HttpStatusCode.Forbidden,
+            Type   = "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.4"
         };
     }
 
@@ -164,8 +164,8 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         {
             Title  = "Unauthorized",
             Detail = failure.Message,
-            Status = (int)HttpStatusCode.Forbidden,
-            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            Status = (int)HttpStatusCode.Unauthorized,
+            Type   = "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.2"
         };
     }
 
