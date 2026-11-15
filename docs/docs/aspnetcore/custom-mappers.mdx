@@ -97,7 +97,7 @@ builder.Services.AddResultHttp(options => options
 
 ```json
 // Failure("fx.sync_running", "A sync is running.") with MapCode("fx.sync_running", 409)
-{ "title": "An error occurred.", "status": 409, "detail": "A sync is running.", "code": "fx.sync_running" }
+{ "title": "Conflict", "status": 409, "detail": "A sync is running.", "code": "fx.sync_running" }
 ```
 
 ### Change the status of validation failures

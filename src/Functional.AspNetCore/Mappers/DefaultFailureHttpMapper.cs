@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.Failures;
 
@@ -90,7 +91,8 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         if (mappedStatus is { } status &&
             problem.Status != status) {
             problem.Status = status;
-            problem.Type   = null; // the type URI described the built-in status
+            problem.Type   = null; // the type URI and title described the built-in status
+            problem.Title  = TitleFor(status);
         }
 
         problem.Extensions.TryAdd("code", failure.Code);
@@ -123,13 +125,20 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         return null;
     }
 
+    // RFC 9457 section 4.2.1: without a type of its own, the title is the status reason phrase.
+    internal static string TitleFor(int statusCode)
+    {
+        var phrase = ReasonPhrases.GetReasonPhrase(statusCode);
+        return phrase.Length > 0 ? phrase : "An error occurred.";
+    }
+
     private ProblemDetails FromError(IFailure failure,
                                      int      statusCode)
     {
         var isServerError = statusCode >= (int)HttpStatusCode.InternalServerError;
         return new ProblemDetails
         {
-            Title  = "An error occurred.",
+            Title  = TitleFor(statusCode),
             Detail = !isServerError || _includeExceptionDetails ? failure.Message : null,
             Status = statusCode,
             Type   = statusCode == (int)HttpStatusCode.InternalServerError

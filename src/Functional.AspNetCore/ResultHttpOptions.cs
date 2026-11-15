@@ -73,7 +73,7 @@ public sealed class ResultHttpOptions
             StatusCode = statusCode,
             Body = new ProblemDetails
             {
-                Title  = "An error occurred.",
+                Title  = DefaultFailureHttpMapper.TitleFor(statusCode),
                 Detail = f.Message,
                 Status = statusCode
             }

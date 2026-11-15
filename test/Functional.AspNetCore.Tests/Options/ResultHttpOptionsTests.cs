@@ -286,6 +286,24 @@ public class ResultHttpOptionsTests
         Assert.Equal(404, response.StatusCode);
     }
 
+    [Theory(DisplayName = "AddMapper<TFailure>(statusCode) titles the problem with the status reason phrase")]
+    [InlineData(429, "Too Many Requests")]
+    [InlineData(470, "An error occurred.")]
+    public void AddMapper_TypedWithStatusCode_TitleIsStatusReasonPhrase(int    statusCode,
+                                                                        string expectedTitle)
+    {
+        // Arrange (Given)
+        var mapper = new ResultHttpOptions().AddMapper<ConflictFailure>(statusCode).BuildMapper();
+
+        // Act (When)
+        var response = mapper.GetFailureResponse(new ConflictFailure("taken"));
+
+        // Assert (Then)
+        var problem = Assert.IsType<ProblemDetails>(response!.Body);
+        Assert.Equal(statusCode,    problem.Status);
+        Assert.Equal(expectedTitle, problem.Title);
+    }
+
     [Fact(DisplayName = "AddMapper<TFailure>(factory) adds typed mapper to collection")]
     public void AddMapper_TypedWithFactory_AddsMapperToCustomMappers()
     {
