@@ -126,7 +126,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
     }
 
     // RFC 9457 section 4.2.1: without a type of its own, the title is the status reason phrase.
-    private static string TitleFor(int statusCode)
+    internal static string TitleFor(int statusCode)
     {
         var phrase = ReasonPhrases.GetReasonPhrase(statusCode);
         return phrase.Length > 0 ? phrase : "An error occurred.";
