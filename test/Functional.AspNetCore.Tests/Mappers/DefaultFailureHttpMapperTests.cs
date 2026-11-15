@@ -126,6 +126,76 @@ public class DefaultFailureHttpMapperTests
     }
 
     [Fact]
+    public void GetFailureResponse_ValidationErrorInRfc9457Format_ListsErrorsInOrderWithPointerAndCode()
+    {
+        // Arrange (Given)
+        var sut = new DefaultFailureHttpMapper(false, ValidationErrorsFormat.Rfc9457);
+        var error = new ValidationFailure([
+            new ValidationError("amount",                      "Must be positive.",     "amount_negative"),
+            new ValidationError(null,                          "The period is closed."),
+            new ValidationError("payload.movements[3].amount", "At most 2 decimals.",   "amount_scale")
+        ]);
+
+        // Act (When)
+        var response = sut.GetFailureResponse(error);
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        Assert.Equal(400, response.StatusCode);
+        var errors = Assert.IsType<ValidationProblemError[]>(problemDetail.Extensions["errors"]);
+        Assert.Equal([
+                         new ValidationProblemError("Must be positive.",     "#/amount",                     "amount_negative"),
+                         new ValidationProblemError("The period is closed.", null,                           null),
+                         new ValidationProblemError("At most 2 decimals.",   "#/payload/movements/3/amount", "amount_scale")
+                     ],
+                     errors);
+        Assert.DoesNotContain("errorCodes", problemDetail.Extensions);
+        Assert.Equal(FailureCodes.Validation, problemDetail.Extensions["code"]);
+    }
+
+    [Fact]
+    public void GetFailureResponse_ValidationErrorInRfc9457Format_SerializesWithoutNullMembers()
+    {
+        // Arrange (Given)
+        var sut = new DefaultFailureHttpMapper(false, ValidationErrorsFormat.Rfc9457);
+        var error = new ValidationFailure([
+            new ValidationError("amount", "Must be positive.", "amount_negative"),
+            new ValidationError(null,     "The period is closed.")
+        ]);
+
+        // Act (When)
+        var body = sut.GetFailureResponse(error).Body;
+        var json = System.Text.Json.JsonSerializer.Serialize(body,
+                                                              new System.Text.Json.JsonSerializerOptions(
+                                                                  System.Text.Json.JsonSerializerDefaults.Web));
+
+        // Assert (Then)
+        using var document = System.Text.Json.JsonDocument.Parse(json);
+        var       errors   = document.RootElement.GetProperty("errors");
+        Assert.Equal(2, errors.GetArrayLength());
+        Assert.Equal("""{"detail":"Must be positive.","pointer":"#/amount","code":"amount_negative"}""",
+                     errors[0].GetRawText());
+        Assert.Equal("""{"detail":"The period is closed."}""", errors[1].GetRawText());
+    }
+
+    [Fact]
+    public void GetFailureResponse_DefaultFormat_IsAspNetCoreDictionary()
+    {
+        // Arrange (Given)
+        var sut   = new DefaultFailureHttpMapper(false, ValidationErrorsFormat.AspNetCore);
+        var error = new ValidationFailure([new ValidationError("amount", "Must be positive.", "amount_negative")]);
+
+        // Act (When)
+        var response = sut.GetFailureResponse(error);
+
+        // Assert (Then)
+        var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
+        var errors        = Assert.IsType<Dictionary<string, string[]>>(problemDetail.Extensions["errors"]);
+        Assert.Equal(["Must be positive."], errors["amount"]);
+        Assert.Contains("errorCodes", problemDetail.Extensions);
+    }
+
+    [Fact]
     public void GetFailureResponse_BadRequestError_ReturnsBadRequestProblemDetails()
     {
         // Arrange (Given)

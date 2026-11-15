@@ -20,6 +20,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
     private readonly string[]                    _exposedMetadata   = [];
     private readonly bool                        _includeExceptionDetails;
     private readonly KeyValuePair<string, int>[] _prefixStatuses    = [];
+    private readonly ValidationErrorsFormat      _validationErrorsFormat;
 
     /// <summary>
     ///     Initializes a new instance that hides failure details on 500 responses.
@@ -37,12 +38,27 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
     ///     <see cref="ExceptionalFailure" /> the exception type and stack trace. Enable only in development.
     /// </param>
     public DefaultFailureHttpMapper(bool includeExceptionDetails)
+        : this(includeExceptionDetails, ValidationErrorsFormat.AspNetCore)
+    {
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="DefaultFailureHttpMapper" /> class.
+    /// </summary>
+    /// <param name="includeExceptionDetails">
+    ///     When <see langword="true" />, 500 responses include the failure message, and for an
+    ///     <see cref="ExceptionalFailure" /> the exception type and stack trace. Enable only in development.
+    /// </param>
+    /// <param name="validationErrorsFormat">How the <c>errors</c> of a <see cref="ValidationFailure" /> are written.</param>
+    public DefaultFailureHttpMapper(bool                   includeExceptionDetails,
+                                    ValidationErrorsFormat validationErrorsFormat)
     {
         _includeExceptionDetails = includeExceptionDetails;
+        _validationErrorsFormat  = validationErrorsFormat;
     }
 
     internal DefaultFailureHttpMapper(ResultHttpOptions options)
-        : this(options.IncludeExceptionDetails)
+        : this(options.IncludeExceptionDetails, options.ValidationErrorsFormat)
     {
         _codeStatuses = options.CodeStatuses.Count > 0
                             ? new Dictionary<string, int>(options.CodeStatuses, StringComparer.Ordinal)
@@ -197,7 +213,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         };
     }
 
-    private static ProblemDetails FromValidationError(ValidationFailure failure)
+    private ProblemDetails FromValidationError(ValidationFailure failure)
     {
         var details = new ProblemDetails
         {
@@ -210,6 +226,12 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
                 { "code", failure.Code }
             }
         };
+        if (_validationErrorsFormat == ValidationErrorsFormat.Rfc9457) {
+            // RFC 9457 section 3: one entry per error, in order, locating its field with a JSON Pointer.
+            details.Extensions["errors"] = failure.Errors.Select(ValidationProblemError.From).ToArray();
+            return details;
+        }
+
         // Same shape as ASP.NET Core ValidationProblemDetails; "" holds errors not tied to a field.
         details.Extensions["errors"] = failure.Errors
                                               .GroupBy(e => e.Field ?? string.Empty)

@@ -348,4 +348,47 @@ public class ResultHttpOptionsTests
         Assert.NotNull(response);
         Assert.Equal(400, response.StatusCode); // first match wins
     }
+
+    [Fact(DisplayName = "ValidationErrors(Rfc9457) makes the built mapper write the RFC 9457 list")]
+    public void ValidationErrors_Rfc9457_BuiltMapperWritesList()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+        var failure = new ValidationFailure([new ValidationError("amount", "Must be positive.", "amount_negative")]);
+
+        // Act (When)
+        var returned = options.ValidationErrors(ValidationErrorsFormat.Rfc9457);
+        var response = options.BuildMapper().GetFailureResponse(failure);
+
+        // Assert (Then)
+        Assert.Same(options, returned);
+        var problem = Assert.IsType<ProblemDetails>(response!.Body);
+        var error   = Assert.Single(Assert.IsType<ValidationProblemError[]>(problem.Extensions["errors"]));
+        Assert.Equal(new ValidationProblemError("Must be positive.", "#/amount", "amount_negative"), error);
+    }
+
+    [Fact(DisplayName = "Validation errors use the ASP.NET Core dictionary by default")]
+    public void ValidationErrors_NotConfigured_BuiltMapperWritesDictionary()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+        var failure = new ValidationFailure([new ValidationError("amount", "Must be positive.")]);
+
+        // Act (When)
+        var response = options.BuildMapper().GetFailureResponse(failure);
+
+        // Assert (Then)
+        var problem = Assert.IsType<ProblemDetails>(response!.Body);
+        Assert.IsType<Dictionary<string, string[]>>(problem.Extensions["errors"]);
+    }
+
+    [Fact(DisplayName = "ValidationErrors throws for an undefined format")]
+    public void ValidationErrors_UndefinedFormat_Throws()
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+
+        // Act (When) & Assert (Then)
+        Assert.Throws<ArgumentOutOfRangeException>(() => options.ValidationErrors((ValidationErrorsFormat)42));
+    }
 }
