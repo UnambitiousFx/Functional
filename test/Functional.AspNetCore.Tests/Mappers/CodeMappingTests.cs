@@ -176,6 +176,64 @@ public class CodeMappingTests
     }
 
     [Theory]
+    [InlineData("orders.locked",  409, "Conflict")]
+    [InlineData("orders.locked2", 423, "Locked")]
+    [InlineData("orders.custom",  470, "An error occurred.")]
+    public void MapCode_PlainFailure_TitleIsStatusReasonPhrase(string code,
+                                                                int    statusCode,
+                                                                string expectedTitle)
+    {
+        // Arrange (Given)
+        var mapper = new ResultHttpOptions().MapCode(code, statusCode).BuildMapper();
+
+        // Act (When)
+        var problem = Problem(mapper, new Failure(code, "Refused."));
+
+        // Assert (Then)
+        Assert.Equal(statusCode,    problem.Status);
+        Assert.Equal(expectedTitle, problem.Title);
+    }
+
+    [Theory]
+    [InlineData(null, "Internal Server Error")]
+    [InlineData(429,  "Too Many Requests")]
+    public void DefaultStatus_PlainFailure_TitleIsStatusReasonPhrase(int?   defaultStatus,
+                                                                     string expectedTitle)
+    {
+        // Arrange (Given)
+        var options = new ResultHttpOptions();
+        if (defaultStatus is { } status) {
+            options.DefaultStatus(status);
+        }
+
+        // Act (When)
+        var problem = Problem(options.BuildMapper(), new Failure("unmapped", "Refused."));
+
+        // Assert (Then)
+        Assert.Equal(expectedTitle, problem.Title);
+    }
+
+    [Theory]
+    [InlineData("orders.closed",  400, null, "Bad Request")]
+    [InlineData("orders.changed", 409, "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.10", "Conflict")]
+    public void MapCode_TypedFailure_TitleFollowsAnsweredStatus(string  code,
+                                                                int     expectedStatus,
+                                                                string? expectedType,
+                                                                string  expectedTitle)
+    {
+        // Arrange (Given)
+        var mapper = new ResultHttpOptions().MapCode("orders.closed", 400).BuildMapper();
+
+        // Act (When)
+        var problem = Problem(mapper, new ConflictFailure("Refused.") { Code = code });
+
+        // Assert (Then)
+        Assert.Equal(expectedStatus, problem.Status);
+        Assert.Equal(expectedType,   problem.Type);
+        Assert.Equal(expectedTitle,  problem.Title);
+    }
+
+    [Theory]
     [InlineData("", 409)]
     [InlineData("code", 99)]
     [InlineData("code", 600)]
