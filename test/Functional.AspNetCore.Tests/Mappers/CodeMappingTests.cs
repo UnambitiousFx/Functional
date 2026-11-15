@@ -54,13 +54,13 @@ public class CodeMappingTests
     public void MapCode_TypedFailure_KeepsTypedBodyWithMappedStatus()
     {
         // Arrange (Given)
-        var mapper = new ResultHttpOptions().MapCode(FailureCodes.Validation, 422).BuildMapper();
+        var mapper = new ResultHttpOptions().MapCode(FailureCodes.Validation, 409).BuildMapper();
 
         // Act (When)
         var problem = Problem(mapper, new ValidationFailure([new ValidationError("Email", "Invalid")]));
 
         // Assert (Then)
-        Assert.Equal(422, problem.Status);
+        Assert.Equal(409, problem.Status);
         Assert.Null(problem.Type);
         Assert.Contains("errors", problem.Extensions);
     }

@@ -12,7 +12,7 @@ public class AdapterAcceptanceTests
 {
     public static IEnumerable<object[]> CommonFailures()
     {
-        yield return [new ValidationFailure(["Invalid input"]), StatusCodes.Status400BadRequest];
+        yield return [new ValidationFailure(["Invalid input"]), StatusCodes.Status422UnprocessableEntity];
         yield return [new NotFoundFailure("User", "123"), StatusCodes.Status404NotFound];
         yield return [new ConflictFailure("Conflict"), StatusCodes.Status409Conflict];
         yield return [new UnauthorizedFailure("Admins only."), StatusCodes.Status403Forbidden];

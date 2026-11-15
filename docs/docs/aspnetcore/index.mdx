@@ -114,7 +114,7 @@ public sealed class UsersController : ControllerBase
 
 | Failure type             | HTTP status              | Body            |
 | ------------------------ | ------------------------ | --------------- |
-| `ValidationFailure`      | 400 Bad Request          | `ProblemDetails`|
+| `ValidationFailure`      | 422 Unprocessable Content| `ProblemDetails`|
 | `BadRequestFailure`      | 400 Bad Request          | `ProblemDetails`|
 | `NotFoundFailure`        | 404 Not Found            | `ProblemDetails`|
 | `UnauthorizedFailure`    | 403 Forbidden            | `ProblemDetails`|

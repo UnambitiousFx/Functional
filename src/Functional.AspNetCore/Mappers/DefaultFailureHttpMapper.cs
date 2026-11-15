@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UnambitiousFx.Functional.Failures;
 
@@ -21,6 +22,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
     private readonly bool                        _includeExceptionDetails;
     private readonly KeyValuePair<string, int>[] _prefixStatuses    = [];
     private readonly ValidationErrorsFormat      _validationErrorsFormat;
+    private readonly int                         _validationStatusCode = StatusCodes.Status422UnprocessableEntity;
 
     /// <summary>
     ///     Initializes a new instance that hides failure details on 500 responses.
@@ -65,7 +67,8 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
                             : null;
         _prefixStatuses    = options.PrefixStatuses.ToArray();
         _exposedMetadata   = options.ExposedMetadata.ToArray();
-        _defaultStatusCode = options.DefaultStatusCode;
+        _defaultStatusCode    = options.DefaultStatusCode;
+        _validationStatusCode = options.ValidationStatusCode;
     }
 
     /// <inheritdoc />
@@ -130,7 +133,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             Detail = !isServerError || _includeExceptionDetails ? failure.Message : null,
             Status = statusCode,
             Type   = statusCode == (int)HttpStatusCode.InternalServerError
-                         ? "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+                         ? ProblemTypes.For(StatusCodes.Status500InternalServerError)
                          : null
         };
     }
@@ -142,7 +145,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             Title  = "Conflict",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.Conflict,
-            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.8"
+            Type   = ProblemTypes.For(StatusCodes.Status409Conflict)
         };
     }
 
@@ -152,7 +155,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         {
             Title  = "Internal Server Error",
             Status = (int)HttpStatusCode.InternalServerError,
-            Type   = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+            Type   = ProblemTypes.For(StatusCodes.Status500InternalServerError)
         };
         if (_includeExceptionDetails) {
             details.Detail                      = failure.Message;
@@ -170,7 +173,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             Title  = "Forbidden",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.Forbidden,
-            Type   = "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.4"
+            Type   = ProblemTypes.For(StatusCodes.Status403Forbidden)
         };
     }
 
@@ -181,7 +184,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             Title  = "Unauthorized",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.Unauthorized,
-            Type   = "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.2"
+            Type   = ProblemTypes.For(StatusCodes.Status401Unauthorized)
         };
     }
 
@@ -192,7 +195,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             Title  = "Not Found",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.NotFound,
-            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+            Type   = ProblemTypes.For(StatusCodes.Status404NotFound),
             Extensions =
             {
                 { "code", failure.Code },
@@ -209,7 +212,7 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
             Title  = "Bad Request",
             Detail = failure.Message,
             Status = (int)HttpStatusCode.BadRequest,
-            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
+            Type   = ProblemTypes.For(StatusCodes.Status400BadRequest)
         };
     }
 
@@ -219,8 +222,8 @@ public class DefaultFailureHttpMapper : IFailureHttpMapper
         {
             Title  = "Validation Error",
             Detail = failure.Message,
-            Status = (int)HttpStatusCode.BadRequest,
-            Type   = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+            Status = _validationStatusCode,
+            Type   = ProblemTypes.For(_validationStatusCode),
             Extensions =
             {
                 { "code", failure.Code }

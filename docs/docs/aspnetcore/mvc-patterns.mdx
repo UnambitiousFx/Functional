@@ -79,7 +79,7 @@ public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
                      .AsActionResultBuilder()
                      .AsCreated(user => $"/api/users/{user.Id}");
 // Success → 201 Created + Location header
-// Failure → mapped status (e.g. 400 for ValidationFailure)
+// Failure → mapped status (e.g. 422 for ValidationFailure)
 ```
 
 ## Command with no value
