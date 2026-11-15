@@ -320,7 +320,7 @@ public class UsersController : ControllerBase
     {
         return await _userService
             .CreateUserAsync(request)
-            .AsActionResultBuilder(); // 200 OK, 400 Bad Request, or 409 Conflict
+            .AsActionResultBuilder(); // 200 OK, 422 Unprocessable Content, or 409 Conflict
     }
 }
 ```
@@ -330,7 +330,7 @@ Configure failure mapping:
 ```csharp
 services.AddResultHttp(options =>
 {
-    options.AddMapper<ValidationFailure>(StatusCodes.Status400BadRequest);
+    options.ValidationStatus(StatusCodes.Status400BadRequest); // default 422, keeps the errors body
     options.AddMapper<NotFoundFailure>(StatusCodes.Status404NotFound);
     options.AddMapper<ConflictFailure>(StatusCodes.Status409Conflict);
     options.AddMapper<UnauthorizedFailure>(StatusCodes.Status403Forbidden);

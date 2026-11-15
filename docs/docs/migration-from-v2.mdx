@@ -35,6 +35,37 @@ services.AddResultHttp(options =>
 });
 ```
 
+## ASP.NET Core: `ValidationFailure` answers 422
+
+In v2, `DefaultFailureHttpMapper` answered every `ValidationFailure` with **400 Bad Request**. v3 answers **422 Unprocessable Content** (RFC 9110 §15.5.21): the request was parsed and bound, then a rule refused it. 400 is left for requests that cannot be read, such as a `BadRequestFailure` or an ASP.NET Core model-binding error.
+
+| Failure type        | v2              | v3                        |
+| ------------------- | --------------- | ------------------------- |
+| `ValidationFailure` | 400 Bad Request | 422 Unprocessable Content |
+| `BadRequestFailure` | 400 Bad Request | 400 Bad Request           |
+
+The body is unchanged apart from `status` and `type` (`https://www.rfc-editor.org/rfc/rfc9110#section-15.5.21`).
+
+**What to do:** if your clients test for 400, keep it with `ValidationStatus`, which covers every `ValidationFailure` whatever its code and keeps `errors`:
+
+```csharp
+services.AddResultHttp(options => options.ValidationStatus(StatusCodes.Status400BadRequest));
+```
+
+## ASP.NET Core: problem types cite RFC 9110
+
+The `type` URIs written by `DefaultFailureHttpMapper` pointed at RFC 7231, which RFC 9110 obsoletes. They now point at RFC 9110:
+
+| Status | v2                                                  | v3                                                       |
+| ------ | --------------------------------------------------- | -------------------------------------------------------- |
+| 400    | `https://tools.ietf.org/html/rfc7231#section-6.5.1` | `https://www.rfc-editor.org/rfc/rfc9110#section-15.5.1`  |
+| 404    | `https://tools.ietf.org/html/rfc7231#section-6.5.4` | `https://www.rfc-editor.org/rfc/rfc9110#section-15.5.5`  |
+| 409    | `https://tools.ietf.org/html/rfc7231#section-6.5.8` | `https://www.rfc-editor.org/rfc/rfc9110#section-15.5.10` |
+| 422    | —                                                   | `https://www.rfc-editor.org/rfc/rfc9110#section-15.5.21` |
+| 500    | `https://tools.ietf.org/html/rfc7231#section-6.6.1` | `https://www.rfc-editor.org/rfc/rfc9110#section-15.6.1`  |
+
+**What to do:** update clients that compare `type` against the RFC 7231 URIs.
+
 ## See also
 
 - [HTTP mapping](./aspnetcore/http-mapping)

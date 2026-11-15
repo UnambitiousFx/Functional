@@ -36,6 +36,8 @@ public sealed class ResultHttpOptions
 
     internal ValidationErrorsFormat ValidationErrorsFormat { get; private set; } = ValidationErrorsFormat.AspNetCore;
 
+    internal int ValidationStatusCode { get; private set; } = StatusCodes.Status422UnprocessableEntity;
+
     /// <summary>
     ///     Gets the collection of custom error mappers.
     ///     Custom mappers are evaluated before the default mapper.
@@ -133,6 +135,20 @@ public sealed class ResultHttpOptions
     public ResultHttpOptions DefaultStatus(int statusCode)
     {
         DefaultStatusCode = ValidStatus(statusCode);
+        return this;
+    }
+
+    /// <summary>
+    ///     Sets the status code of every <see cref="ValidationFailure" />, whatever its <see cref="IFailure.Code" />,
+    ///     keeping the validation body (<c>errors</c>). Default is 422 Unprocessable Content (RFC 9110 §15.5.21): the
+    ///     request was read, then a rule refused it. Use 400 to keep the v2 behaviour.
+    ///     A <see cref="MapCode" /> or <see cref="MapCodePrefix" /> matching the failure code still wins.
+    /// </summary>
+    /// <param name="statusCode">The HTTP status code to return (e.g. 400 or 422).</param>
+    /// <returns>This options instance for fluent configuration.</returns>
+    public ResultHttpOptions ValidationStatus(int statusCode)
+    {
+        ValidationStatusCode = ValidStatus(statusCode);
         return this;
     }
 

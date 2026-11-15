@@ -38,7 +38,7 @@ public class ResultHttpExtensionsTests
     }
 
     [Fact]
-    public async Task AsHttpBuilder_WithFailureResult_ReturnsMappedStatusCode400()
+    public async Task AsHttpBuilder_WithValidationFailure_ReturnsMappedStatusCode422()
     {
         // Arrange (Given)
         var result = Result.Failure(new ValidationFailure(["Invalid input"]));
@@ -47,7 +47,7 @@ public class ResultHttpExtensionsTests
         var httpResult = await result.AsHttpBuilder();
 
         // Assert (Then)
-        Assert.Equal(StatusCodes.Status400BadRequest, GetStatusCode(httpResult));
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, GetStatusCode(httpResult));
     }
 
     [Fact]

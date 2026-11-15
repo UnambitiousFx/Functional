@@ -100,6 +100,16 @@ builder.Services.AddResultHttp(options => options
 { "title": "An error occurred.", "status": 409, "detail": "A sync is running.", "code": "fx.sync_running" }
 ```
 
+### Change the status of validation failures
+
+`ValidationFailure` answers **422 Unprocessable Content** by default: the request was read and bound, then a rule refused it. `ValidationStatus` sets the status of every `ValidationFailure`, whatever its code, and keeps the validation body (`errors`):
+
+```csharp
+builder.Services.AddResultHttp(options => options.ValidationStatus(StatusCodes.Status400BadRequest));
+```
+
+Unlike `MapCode(FailureCodes.Validation, …)`, it also covers a `ValidationFailure` carrying a domain code (`new ValidationFailure(errors) { Code = "orders.amount_invalid" }`); unlike `AddMapper<ValidationFailure>(…)`, it keeps `errors`. A `MapCode` or `MapCodePrefix` matching the failure code still wins. The `type` follows the status (RFC 9110 §15.5.1 for 400, §15.5.21 for 422) and is omitted for a status with no built-in type.
+
 ## Writing a full custom mapper
 
 Implement `IFailureHttpMapper` when you want to map several failure types in one place. Return `null` for failures you don't handle so the chain can fall through to the default mapper:
@@ -135,7 +145,7 @@ public sealed class CustomDefaultMapper : DefaultFailureHttpMapper
 {
     public override FailureHttpResponse GetFailureResponse(IFailure failure)
     {
-        // Map validation errors to 422 instead of the default 400
+        // Answer validation errors with a flat list of messages instead of ProblemDetails
         if (failure is ValidationFailure validation)
         {
             return new FailureHttpResponse

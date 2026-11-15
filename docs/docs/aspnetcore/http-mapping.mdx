@@ -138,7 +138,7 @@ app.MapPost("/users", async (CreateUserRequest request, IUserService service) =>
                  .AsHttpBuilder()
                  .AsCreated(user => $"/users/{user.Id}"));
 // Success → 201 Created + Location: /users/{id}
-// Failure → mapped status (e.g. 400 for ValidationFailure)
+// Failure → mapped status (e.g. 422 for ValidationFailure)
 ```
 
 ### Fire-and-forget command (no value)
@@ -163,7 +163,7 @@ When the outcome is a failure, the builder calls `IFailureHttpMapper.GetFailureR
 
 | Failure type             | HTTP status               |
 | ------------------------ | ------------------------- |
-| `ValidationFailure`      | 400 Bad Request           |
+| `ValidationFailure`      | 422 Unprocessable Content |
 | `BadRequestFailure`      | 400 Bad Request           |
 | `NotFoundFailure`        | 404 Not Found             |
 | `UnauthorizedFailure`    | 403 Forbidden             |
@@ -172,7 +172,9 @@ When the outcome is a failure, the builder calls `IFailureHttpMapper.GetFailureR
 | `ExceptionalFailure`     | 500 Internal Server Error |
 | Any other failure        | 500 Internal Server Error, or `DefaultStatus` |
 
-Mappings by code (`MapCode`, `MapCodePrefix`) take precedence over this table. To change these mappings, see [Custom Mappers](./custom-mappers).
+Mappings by code (`MapCode`, `MapCodePrefix`) take precedence over this table. `ValidationFailure` answers 422 because its request was read, then refused by a rule (RFC 9110 §15.5.21); `BadRequestFailure` keeps 400 for a request that cannot be read. `ValidationStatus(...)` changes the validation status, whatever the failure code, and keeps the `errors` body. To change these mappings, see [Custom Mappers](./custom-mappers).
+
+Every built-in `type` points at the RFC 9110 section of its status (`https://www.rfc-editor.org/rfc/rfc9110#section-15.5.21` for 422, `…15.5.1` for 400, `…15.6.1` for 500, and so on).
 
 ### How a `FailureHttpResponse` becomes an `IResult`
 
@@ -192,7 +194,7 @@ Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the 
 ```json
 // 404 from a NotFoundFailure
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "type": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.5",
   "title": "Not Found",
   "status": 404,
   "detail": "Resource 'User' with id '42' was not found.",
@@ -203,11 +205,11 @@ Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the 
 ```
 
 ```json
-// 400 from a ValidationFailure
+// 422 from a ValidationFailure
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "type": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.21",
   "title": "Validation Error",
-  "status": 400,
+  "status": 422,
   "detail": "Name is required; Email is invalid",
   "code": "VALIDATION",
   "errors": { "Name": ["Name is required"], "Email": ["Email is invalid"] },
@@ -226,11 +228,11 @@ builder.Services.AddResultHttp(o => o.ValidationErrors(ValidationErrorsFormat.Rf
 ```
 
 ```json
-// 400 from a ValidationFailure, RFC 9457 format
+// 422 from a ValidationFailure, RFC 9457 format
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "type": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.21",
   "title": "Validation Error",
-  "status": 400,
+  "status": 422,
   "detail": "Must be positive.; At most 2 decimals.; The period is closed.",
   "code": "VALIDATION",
   "errors": [
@@ -254,7 +256,7 @@ builder.Services.AddResultHttp(o => o.ValidationErrors(ValidationErrorsFormat.Rf
 ```json
 // 500 from an ExceptionalFailure
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+  "type": "https://www.rfc-editor.org/rfc/rfc9110#section-15.6.1",
   "title": "Internal Server Error",
   "status": 500,
   "code": "EXCEPTION"

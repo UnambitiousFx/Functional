@@ -9,7 +9,7 @@ public class DefaultFailureHttpMapperTests
     private readonly DefaultFailureHttpMapper _sut = new();
 
     [Theory]
-    [InlineData(typeof(ValidationFailure),      400)]
+    [InlineData(typeof(ValidationFailure),      422)]
     [InlineData(typeof(BadRequestFailure),       400)]
     [InlineData(typeof(NotFoundFailure),         404)]
     [InlineData(typeof(UnauthorizedFailure),     403)]
@@ -81,7 +81,8 @@ public class DefaultFailureHttpMapperTests
         Assert.NotNull(response.Body);
         var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
         Assert.Equal("Validation Error", problemDetail.Title);
-        Assert.Equal(400,                problemDetail.Status);
+        Assert.Equal(422,                problemDetail.Status);
+        Assert.Equal("https://www.rfc-editor.org/rfc/rfc9110#section-15.5.21", problemDetail.Type);
         Assert.Contains("code", problemDetail.Extensions);
         Assert.DoesNotContain("failure[0]", problemDetail.Extensions);
     }
@@ -141,7 +142,7 @@ public class DefaultFailureHttpMapperTests
 
         // Assert (Then)
         var problemDetail = Assert.IsType<ProblemDetails>(response.Body);
-        Assert.Equal(400, response.StatusCode);
+        Assert.Equal(422, response.StatusCode);
         var errors = Assert.IsType<ValidationProblemError[]>(problemDetail.Extensions["errors"]);
         Assert.Equal([
                          new ValidationProblemError("Must be positive.",     "#/amount",                     "amount_negative"),
@@ -211,6 +212,7 @@ public class DefaultFailureHttpMapperTests
         Assert.Equal("Bad Request",                    problemDetail.Title);
         Assert.Equal(400,                              problemDetail.Status);
         Assert.Equal("Request body is malformed",      problemDetail.Detail);
+        Assert.Equal("https://www.rfc-editor.org/rfc/rfc9110#section-15.5.1", problemDetail.Type);
     }
 
     [Fact]

@@ -106,7 +106,7 @@ The built-in default mapper converts standard failure types to RFC 7807 Problem 
 
 | Failure Type             | HTTP Status               |
 |--------------------------|---------------------------|
-| `ValidationFailure`      | 400 Bad Request           |
+| `ValidationFailure`      | 422 Unprocessable Content |
 | `NotFoundFailure`        | 404 Not Found             |
 | `UnauthorizedFailure`    | 403 Forbidden             |
 | `UnauthenticatedFailure` | 401 Unauthorized          |
@@ -118,9 +118,9 @@ Example error response (RFC 7807 Problem Details):
 
 ```json
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "type": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.21",
   "title": "Validation Error",
-  "status": 400,
+  "status": 422,
   "detail": "Email is required; Password too short",
   "code": "VALIDATION",
   "errors": { "Email": ["Email is required"], "Password": ["Password too short"] },

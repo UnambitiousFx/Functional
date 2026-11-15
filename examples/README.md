@@ -61,7 +61,7 @@ A minimal ASP.NET Core API demonstrating integration with web frameworks:
 - Converting `Result<T>` to HTTP responses with `AsHttpBuilder()`
 - Converting `Maybe<T>` directly to HTTP responses (404 for None)
 - Automatic HTTP status code mapping for different failure types:
-  - `ValidationFailure` → 400 Bad Request
+  - `ValidationFailure` → 422 Unprocessable Content
   - `NotFoundFailure` → 404 Not Found
   - `UnauthorizedFailure` → 403 Forbidden
   - `UnauthenticatedFailure` → 401 Unauthorized
@@ -86,7 +86,7 @@ Then test the API endpoints:
 # Example 1: Simple division (success case)
 curl http://localhost:5000/api/divide/10/2
 
-# Example 1: Division by zero (validation failure - returns 400)
+# Example 1: Division by zero (validation failure - returns 422)
 curl http://localhost:5000/api/divide/10/0
 
 # Example 2: Get existing user (returns 200)
@@ -100,7 +100,7 @@ curl -X POST http://localhost:5000/api/users \
   -H "Content-Type: application/json" \
   -d '{"name":"Alice","email":"alice@example.com"}'
 
-# Example 3: Create user with validation errors (returns 400)
+# Example 3: Create user with validation errors (returns 422)
 curl -X POST http://localhost:5000/api/users \
   -H "Content-Type: application/json" \
   -d '{"name":"","email":"invalid"}'
@@ -229,7 +229,7 @@ var userEmail = userProfile
 
 The library provides several built-in failure types for common scenarios:
 
-- **`ValidationFailure`** - For validation errors (HTTP 400)
+- **`ValidationFailure`** - For validation errors (HTTP 422)
 - **`NotFoundFailure`** - For missing resources (HTTP 404)
 - **`ConflictFailure`** - For conflicting operations (HTTP 409)
 - **`UnauthorizedFailure`** - For insufficient permissions (HTTP 403)
