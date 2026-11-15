@@ -34,6 +34,8 @@ public sealed class ResultHttpOptions
 
     internal int DefaultStatusCode { get; private set; } = StatusCodes.Status500InternalServerError;
 
+    internal ValidationErrorsFormat ValidationErrorsFormat { get; private set; } = ValidationErrorsFormat.AspNetCore;
+
     /// <summary>
     ///     Gets the collection of custom error mappers.
     ///     Custom mappers are evaluated before the default mapper.
@@ -131,6 +133,25 @@ public sealed class ResultHttpOptions
     public ResultHttpOptions DefaultStatus(int statusCode)
     {
         DefaultStatusCode = ValidStatus(statusCode);
+        return this;
+    }
+
+    /// <summary>
+    ///     Sets how the default mapper writes the <c>errors</c> of a <see cref="ValidationFailure" />.
+    ///     Default is <see cref="Mappers.ValidationErrorsFormat.AspNetCore" /> (field → messages dictionary plus
+    ///     <c>errorCodes</c>); <see cref="Mappers.ValidationErrorsFormat.Rfc9457" /> writes an ordered list of
+    ///     <c>{ detail, pointer?, code? }</c>.
+    /// </summary>
+    /// <param name="format">The format to use.</param>
+    /// <returns>This options instance for fluent configuration.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="format" /> is not a defined value.</exception>
+    public ResultHttpOptions ValidationErrors(ValidationErrorsFormat format)
+    {
+        if (!Enum.IsDefined(format)) {
+            throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown validation errors format.");
+        }
+
+        ValidationErrorsFormat = format;
         return this;
     }
 

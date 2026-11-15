@@ -217,6 +217,38 @@ Any `Headers` and `ContentType` on the `FailureHttpResponse` are applied to the 
 
 Every response carries the failure `code` extension, plus any metadata key listed with `ExposeMetadata`. `NotFoundFailure` adds `resource` and `identifier` extensions; `ValidationFailure` adds `errors` (messages grouped by field, same shape as ASP.NET Core `ValidationProblemDetails`; errors without a field use the `""` key) and, when at least one entry has a code, `errorCodes` grouped the same way. `Conflict`, `BadRequest`, `Unauthorized`, and `Unauthenticated` failures produce a `ProblemDetails` with `title`, `detail`, `status`, and `type`.
 
+### RFC 9457 validation errors
+
+The dictionary detaches codes from their messages, loses the order of the errors and has no syntax for nested fields. `ValidationErrors(ValidationErrorsFormat.Rfc9457)` writes `errors` as the list shown in RFC 9457 instead, one entry per `ValidationError`, in order:
+
+```csharp
+builder.Services.AddResultHttp(o => o.ValidationErrors(ValidationErrorsFormat.Rfc9457));
+```
+
+```json
+// 400 from a ValidationFailure, RFC 9457 format
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "Validation Error",
+  "status": 400,
+  "detail": "Must be positive.; At most 2 decimals.; The period is closed.",
+  "code": "VALIDATION",
+  "errors": [
+    { "detail": "Must be positive.", "pointer": "#/amount", "code": "amount_negative" },
+    { "detail": "At most 2 decimals.", "pointer": "#/payload/movements/3/amount", "code": "amount_scale" },
+    { "detail": "The period is closed." }
+  ]
+}
+```
+
+| Member    | Source                                                                  |
+|-----------|-------------------------------------------------------------------------|
+| `detail`  | `ValidationError.Message`                                               |
+| `pointer` | `ValidationError.Pointer`, the field as a JSON Pointer; omitted when null |
+| `code`    | `ValidationError.Code`; omitted when null                               |
+
+`ValidationError.Pointer` keeps a field already written as a pointer (`#/…` or `/…`) and converts a dotted / indexed path (`payload.movements[3].amount`, `items["a.b"]`, `$.amount`) to `#/payload/movements/3/amount`, escaping `~` as `~0` and `/` as `~1`. Field names keep their casing. No `errorCodes` is written in this format. `ValidationErrorsFormat.AspNetCore` (the dictionary) stays the default for now.
+
 500 responses (`ExceptionalFailure` and any unmapped failure) omit `detail`, so internal messages never reach the client:
 
 ```json

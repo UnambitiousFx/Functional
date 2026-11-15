@@ -130,6 +130,26 @@ Example error response (RFC 7807 Problem Details):
 
 `errors` groups messages by field (errors without a field use the `""` key). `errorCodes` is present only when at least one `ValidationError` has a `Code`.
 
+#### RFC 9457 validation errors
+
+The dictionary loses the link between a message and its code, the order of the errors, and has no syntax for nested fields. Opt into the RFC 9457 list instead, one entry per `ValidationError`, in order:
+
+```csharp
+builder.Services.AddResultHttp(o => o.ValidationErrors(ValidationErrorsFormat.Rfc9457));
+```
+
+```json
+{
+  "errors": [
+    { "detail": "Must be positive.",     "pointer": "#/amount", "code": "amount_negative" },
+    { "detail": "At most 2 decimals.",   "pointer": "#/payload/movements/3/amount", "code": "amount_scale" },
+    { "detail": "The period is closed." }
+  ]
+}
+```
+
+`detail` is the message, `pointer` the field as a JSON Pointer (`ValidationError.Pointer`) and `code` the error code; `pointer` and `code` are omitted when null, and no `errorCodes` is written. A field already written as a pointer (`#/…` or `/…`) is kept; a dotted / indexed path (`payload.movements[3].amount`, `$.amount`) is converted, escaping `~` and `/`. `ValidationErrorsFormat.AspNetCore` (the dictionary) stays the default for now.
+
 ## Configuration
 
 ### Global policy defaults
