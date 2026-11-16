@@ -1,77 +1,20 @@
-name: Deploy Docs
+name: Docs
 
+# Builds unambitiousfx.com with this branch's docs, so a broken link or invalid MDX fails here
+# instead of blocking the next deploy of the whole site.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "docs/**"
-      - ".github/workflows/docs.yml"
   pull_request:
-    branches: [main]
     paths:
-      - "docs/**"
-      - ".github/workflows/docs.yml"
-  workflow_dispatch:
+      - 'docs/docs/**'
+      - 'docs/sidebars.ts'
+      - '.github/workflows/docs.yml'
 
 permissions:
   contents: read
 
-# Single concurrent deployment; cancel in-progress runs for newer pushes. PRs get their own group.
-concurrency:
-  group: pages-${{ github.event.pull_request.number || 'main' }}
-  cancel-in-progress: true
-
 jobs:
-  build:
-    name: Build site
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: docs
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          package_json_file: docs/package.json
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 26
-          cache: pnpm
-          cache-dependency-path: docs/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Build (emits site + llms.txt / llms-full.txt)
-        run: pnpm build
-
-      - name: Upload Pages artifact
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: docs/build
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    # Allow GITHUB_TOKEN to deploy to GitHub Pages.
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v5
+  check:
+    name: Check docs
+    uses: UnambitiousFx/UnambitiousFx.github.io/.github/workflows/check-docs.yml@main
+    with:
+      project-id: functional
