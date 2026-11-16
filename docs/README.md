@@ -1,35 +1,18 @@
-# Website
+# Docs
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+`docs/` (the pages) and `sidebars.ts` are published at <https://unambitiousfx.com/functional/> by [UnambitiousFx.github.io](https://github.com/UnambitiousFx/UnambitiousFx.github.io), which builds every UnambitiousFx library into one Docusaurus site.
 
-## Installation
+- `main` is served as the latest major. Each older major is served from its latest release tag.
+- Every Release run redeploys the site, so merged changes go live a few minutes later, including `docs:` commits that do not release.
+- `llms.txt`, `llms-full.txt` and the custom llms files are generated under `/functional/` (configured in the site repo).
+
+## Preview
+
+From a clone of UnambitiousFx.github.io next to this repository:
 
 ```bash
 pnpm install
+FUNCTIONAL_REPO=../Functional pnpm start
 ```
 
-## Local Development
-
-```bash
-pnpm start
-```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
-
-```bash
-pnpm build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Deployment is automated via GitHub Actions (`.github/workflows/docs.yml`). On every push to `main` that touches `docs/**`, the site is built and deployed to GitHub Pages at [functional.unambitiousfx.com](https://functional.unambitiousfx.com).
-
-To deploy manually via the Docusaurus CLI:
-
-```bash
-GIT_USER=<Your GitHub username> pnpm deploy
-```
+This serves your working tree, uncommitted changes included. `pnpm build` also checks links: the site uses `onBrokenLinks: "throw"`, so a broken link here blocks the next deploy of the whole site.

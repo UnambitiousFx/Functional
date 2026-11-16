@@ -115,4 +115,4 @@ if (maybe.Some(out var u)) { ... }
 - Do not catch exceptions to build failures by hand when `Try(...)` or `Result.Failure(exception)` does it.
 - For ASP.NET Core responses use the `UnambitiousFx.Functional.AspNetCore` package; for tests use `UnambitiousFx.Functional.xunit` (`result.ShouldBe().Success()`).
 
-Full docs: https://functional.unambitiousfx.com/llms.txt
+Full docs: https://unambitiousfx.com/functional/llms.txt
