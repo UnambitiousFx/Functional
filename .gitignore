@@ -60,3 +60,6 @@ nunit-*.xml
 # Rider
 .idea
 *.sln.DotSettings.user
+
+# Stryker.NET mutation testing reports
+StrykerOutput/

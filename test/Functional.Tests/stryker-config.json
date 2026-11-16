@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-net/master/src/Stryker.Core/Stryker.Core/stryker-config.schema.json",
+  "stryker-config": {
+    "project": "Functional.csproj",
+    "test-runner": "mtp",
+    "target-framework": "net10.0",
+    "reporters": ["html", "progress", "json"]
+  }
+}
